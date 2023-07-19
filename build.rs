@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-#[cfg(feature = "515.1609")]
+#[cfg(feature = "515-1609")]
 const DOWNLOAD_URL: &str = "https://files.catbox.moe/o69jxs.zip"; // TODO: Update to byond.com
 
 fn main() {
