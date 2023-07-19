@@ -2,6 +2,10 @@
 name = "byondapi-sys"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "Raw bindgen bindings for byondapi"
+repository = "https://github.com/spacestation13/byondapi-sys"
+homepage = "https://github.com/spacestation13/byondapi-sys"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
