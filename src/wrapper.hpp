@@ -1,1 +1,2 @@
-#include "byondapi_cpp_wrappers.h"
+// TODO: Enable C++ conversion when bindgen supports CUnwind correctly
+#include "byondapi.h"

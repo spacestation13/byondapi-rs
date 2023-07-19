@@ -22,5 +22,6 @@ default = ["515-1609"]
 [build-dependencies]
 bindgen = "0.66.1"
 reqwest = { version = "0.11.18", features = ["blocking"] }
+rustc_version = "0.4.0"
 walkdir = "2.3.3"
 zip = "0.6.6"

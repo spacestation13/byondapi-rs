@@ -13,10 +13,31 @@ fn main() {
     println!("cargo:rustc-link-search={}", lib_dir.to_string_lossy());
     println!("cargo:rustc-link-lib=byondapi");
 
-    bindgen::Builder::default()
+    let builder = bindgen::Builder::default()
         .header(wrapper.to_string_lossy())
         // Also make headers included by main header dependencies of the build
-        .parse_callbacks(Box::new(bindgen::CargoCallbacks))
+        .parse_callbacks(Box::new(bindgen::CargoCallbacks));
+
+    // TODO: Enable C++ conversion when bindgen supports CUnwind correctly
+    // let rust_version = rustc_version::version().unwrap();
+
+    // if rust_version.major > 1 || (rust_version.major == 1 && rust_version.minor > 72) {
+    // builder = builder
+    //     // Tweaks
+    //     .override_abi(bindgen::Abi::CUnwind, "Byond_GetVar")
+    //         .override_abi(bindgen::Abi::CUnwind, "Byond_SetVar")
+    //         .override_abi(bindgen::Abi::CUnwind, "Byond_GetVarByStrId")
+    //         .override_abi(bindgen::Abi::CUnwind, "Byond_SetVarByStrId")
+    //         .override_abi(bindgen::Abi::CUnwind, "Byond_CreateList")
+    //         .override_abi(bindgen::Abi::CUnwind, "Byond_GetList")
+    //         .override_abi(bindgen::Abi::CUnwind, "Byond_SetList")
+    //         .override_abi(bindgen::Abi::CUnwind, "Byond_ReadPointer")
+    //         .override_abi(bindgen::Abi::CUnwind, "Byond_WritePointer")
+    //         .override_abi(bindgen::Abi::CUnwind, "Byond_CallProc")
+    //         .override_abi(bindgen::Abi::CUnwind, "Byond_CallProcByStrId");
+    // }
+
+    builder
         .generate()
         .expect("Unable to generate bindings")
         .write_to_file(out_dir.join("bindings.rs"))
