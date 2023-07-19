@@ -102,6 +102,7 @@ fn link() {
         let bin_dir = find_bin(&base_path);
         println!("cargo:rustc-link-search={}", bin_dir.to_string_lossy());
         println!("cargo:rustc-link-lib=byond");
+        println!("cargo:rustc-link-lib=ext");
     }
 }
 
