@@ -6,7 +6,7 @@ const DOWNLOAD_URL: &str = "https://files.catbox.moe/o69jxs.zip"; // TODO: Updat
 fn main() {
     let tmp_dir = tempfile::Builder::new()
         .prefix("byondapi-sys")
-        .tempdir()
+        .tempdir_in(std::env::var("OUT_DIR").unwrap())
         .expect("Unable to create temporary directory");
 
     let (lib_dir, wrapper) = download_url(DOWNLOAD_URL, tmp_dir.path());
