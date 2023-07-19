@@ -4,25 +4,23 @@ use std::path::{Path, PathBuf};
 const DOWNLOAD_URL: &str = "https://files.catbox.moe/o69jxs.zip"; // TODO: Update to byond.com
 
 fn main() {
-    let tmp_dir = tempfile::Builder::new()
-        .prefix("byondapi-sys")
-        .tempdir_in(std::env::var("OUT_DIR").unwrap())
-        .expect("Unable to create temporary directory");
+    let out_dir = PathBuf::from(std::env::var("OUT_DIR").expect("OUT_DIR not defined"));
 
-    let (lib_dir, wrapper) = download_url(DOWNLOAD_URL, tmp_dir.path());
+    let (lib_dir, wrapper) = download_url(DOWNLOAD_URL, &out_dir);
 
+    // Make byondapi-c interface header a dependency of the build
+    println!("cargo:rerun-if-changed={}", wrapper.to_string_lossy());
     println!("cargo:rustc-link-search={}", lib_dir.to_string_lossy());
-
-    let bindings = bindgen::Builder::default()
-        .header(wrapper.to_string_lossy())
-        .generate()
-        .expect("Unable to generate bindings");
-
-    bindings
-        .write_to_file(Path::new(&std::env::var("OUT_DIR").unwrap()).join("bindings.rs"))
-        .expect("Couldn't write bindings!");
-
     println!("cargo:rustc-link-lib=byondapi");
+
+    bindgen::Builder::default()
+        .header(wrapper.to_string_lossy())
+        // Also make headers included by main header dependencies of the build
+        .parse_callbacks(Box::new(bindgen::CargoCallbacks))
+        .generate()
+        .expect("Unable to generate bindings")
+        .write_to_file(out_dir.join("bindings.rs"))
+        .expect("Couldn't write bindings!");
 }
 
 fn download_url(url: &str, path: &Path) -> (PathBuf, PathBuf) {
