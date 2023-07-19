@@ -1,17 +1,47 @@
 use std::path::{Path, PathBuf};
 
-#[cfg(feature = "515-1609")]
-const DOWNLOAD_URL: &str = "https://files.catbox.moe/o69jxs.zip"; // TODO: Update to byond.com
-
 fn main() {
+    bindgen();
+    if std::env::var("DOCS_RS").is_err() {
+        link();
+    }
+}
+
+fn get_header() -> PathBuf {
+    #[cfg(feature = "515-1609")]
+    return Path::new(&std::env::var("CARGO_MANIFEST_DIR").unwrap())
+        .join("headers")
+        .join("515-1609")
+        .join("byondapi.h");
+}
+
+fn copy_wrapper(lib_dir: &Path) -> PathBuf {
+    let wrapper_path = lib_dir.join("wrapper.hpp");
+
+    std::fs::copy(
+        Path::new(&std::env::var("CARGO_MANIFEST_DIR").unwrap())
+            .join("src")
+            .join("wrapper.hpp"),
+        &wrapper_path,
+    )
+    .expect("Failed to copy wrapper.hpp to byondapi");
+
+    wrapper_path
+}
+
+fn bindgen() {
     let out_dir = PathBuf::from(std::env::var("OUT_DIR").expect("OUT_DIR not defined"));
 
-    let (lib_dir, wrapper) = download_url(DOWNLOAD_URL, &out_dir);
+    let vendored_header = get_header();
+    std::fs::copy(&vendored_header, out_dir.join("byondapi.h"))
+        .expect("Failed to copy header to OUT_DIR");
+    let wrapper = copy_wrapper(&out_dir);
 
     // Make byondapi-c interface header a dependency of the build
-    println!("cargo:rerun-if-changed={}", wrapper.to_string_lossy());
-    println!("cargo:rustc-link-search={}", lib_dir.to_string_lossy());
-    println!("cargo:rustc-link-lib=byondapi");
+    println!(
+        "cargo:rerun-if-changed={}",
+        vendored_header.to_string_lossy()
+    );
 
     let builder = bindgen::Builder::default()
         .header(wrapper.to_string_lossy())
@@ -44,7 +74,38 @@ fn main() {
         .expect("Couldn't write bindings!");
 }
 
-fn download_url(url: &str, path: &Path) -> (PathBuf, PathBuf) {
+fn get_download_link() -> &'static str {
+    #[cfg(feature = "515-1609")]
+    #[cfg(target_os = "windows")]
+    return "https://files.catbox.moe/o69jxs.zip"; // TODO: Update to byond.com
+
+    #[cfg(feature = "515-1609")]
+    #[cfg(target_os = "linux")]
+    return "http://www.byond.com/download/build/515/515.1609_byond_linux.zip";
+}
+
+fn link() {
+    let out_dir = PathBuf::from(std::env::var("OUT_DIR").expect("OUT_DIR not defined"));
+    let base_path = download_url(get_download_link(), &out_dir);
+
+    #[cfg(target_os = "windows")]
+    {
+        println!(
+            "cargo:rustc-link-search={}",
+            find_lib(&base_path).to_string_lossy()
+        );
+        println!("cargo:rustc-link-lib=byondapi");
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        let bin_dir = find_bin(&base_path);
+        println!("cargo:rustc-link-search={}", bin_dir.to_string_lossy());
+        println!("cargo:rustc-link-lib=byond");
+    }
+}
+
+fn download_url(url: &str, path: &Path) -> PathBuf {
     let response =
         reqwest::blocking::get(url).unwrap_or_else(|_| panic!("Unable to fetch {}", url));
 
@@ -55,29 +116,33 @@ fn download_url(url: &str, path: &Path) -> (PathBuf, PathBuf) {
     );
 
     let mut zip = zip::ZipArchive::new(&mut content).expect("Invalid zip archive");
-
     let extracted = path.join("byond");
-
     zip.extract(&extracted).expect("Failed to unzip archive");
 
-    let api_file = walkdir::WalkDir::new(extracted)
+    extracted
+}
+
+#[cfg(target_os = "windows")]
+fn find_lib(base_path: &Path) -> PathBuf {
+    let api_file = walkdir::WalkDir::new(base_path)
         .follow_links(false)
         .into_iter()
         .filter_map(|e| e.ok())
-        .find(|f| f.file_name().to_string_lossy() == "byondapi.h")
-        .expect("Cannot find byondapi.h");
+        .find(|f| f.file_name().to_string_lossy() == "byondapi.lib")
+        .expect("Cannot find byondapi.lib");
 
     let lib_dir = api_file.path().parent().unwrap().to_owned();
 
-    std::fs::copy(
-        Path::new(&std::env::var("CARGO_MANIFEST_DIR").unwrap())
-            .join("src")
-            .join("wrapper.hpp"),
-        lib_dir.join("wrapper.hpp"),
-    )
-    .expect("Failed to copy wrapper.hpp to byondapi");
+    lib_dir
+}
 
-    let wrapper = lib_dir.join("wrapper.hpp").to_owned();
-
-    (lib_dir, wrapper)
+#[cfg(target_os = "linux")]
+fn find_bin(base_path: &Path) -> PathBuf {
+    walkdir::WalkDir::new(base_path)
+        .follow_links(false)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .find(|f| f.file_name().to_string_lossy() == "bin")
+        .expect("Cannot find bin")
+        .into_path()
 }
