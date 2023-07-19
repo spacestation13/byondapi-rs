@@ -1,6 +1,6 @@
 [package]
 name = "byondapi-sys"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["tigercat2000 <nick.pilant@gmail.com>"]
 edition = "2021"
 description = "Raw bindgen bindings for byondapi"
