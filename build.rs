@@ -19,11 +19,7 @@ fn main() {
         .expect("Unable to generate bindings");
 
     bindings
-        .write_to_file(
-            Path::new(&std::env::var("CARGO_MANIFEST_DIR").unwrap())
-                .join("src")
-                .join("bindings.rs"),
-        )
+        .write_to_file(Path::new(&std::env::var("OUT_DIR").unwrap()).join("bindings.rs"))
         .expect("Couldn't write bindings!");
 
     println!("cargo:rustc-link-lib=byondapi");
