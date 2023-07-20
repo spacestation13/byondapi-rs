@@ -40,12 +40,15 @@ fn bindgen() {
         vendored_header.to_string_lossy()
     );
 
-    let builder = bindgen::Builder::default()
+    let mut builder = bindgen::Builder::default()
         .header(wrapper.to_string_lossy())
         .dynamic_library_name("ByondApi")
         .dynamic_link_require_all(true)
         // Also make headers included by main header dependencies of the build
         .parse_callbacks(Box::new(bindgen::CargoCallbacks));
+
+    // Disable copy on refcounted types
+    builder = builder.no_copy("CByondValue").no_copy("CByondValueList");
 
     // TODO: Enable C++ conversion when bindgen supports CUnwind correctly
     // let rust_version = rustc_version::version().unwrap();
