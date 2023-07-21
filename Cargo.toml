@@ -1,6 +1,6 @@
 [package]
 name = "byondapi-sys"
-version = "0.6.0"
+version = "0.7.0"
 authors = ["tigercat2000 <nick.pilant@gmail.com>"]
 edition = "2021"
 description = "Raw bindgen bindings for byondapi"
@@ -9,9 +9,6 @@ license = "MIT"
 repository = "https://github.com/spacestation13/byondapi-sys"
 keywords = ["byond", "byondapi"]
 exclude = [".vscode/*"]
-
-[lib]
-crate-type = ["dylib"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
