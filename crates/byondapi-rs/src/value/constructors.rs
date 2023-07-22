@@ -15,6 +15,7 @@ impl Default for ByondValue {
     }
 }
 
+/// # Constructors
 impl ByondValue {
     pub fn new() -> Self {
         Default::default()
