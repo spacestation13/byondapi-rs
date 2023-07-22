@@ -1,0 +1,14 @@
+# Ignore libs copied to this folder
+/*.so
+/*.dll
+
+#Ignore compiled files and other files generated during compilation.
+*.mdme
+*.mdme.*
+*.dmb
+*.rsc
+*.m.dme
+*.test.dme
+*.lk
+*.int
+*.backup
