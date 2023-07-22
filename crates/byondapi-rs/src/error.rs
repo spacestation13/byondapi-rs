@@ -40,3 +40,12 @@ impl ByondError {
         }
     }
 }
+
+/// For extreme cases where we know we're about to crash, we write to a log.txt file in PWD so the user has some idea
+/// what went wrong.
+pub mod crash_logging {
+    pub fn log_to_file<S: AsRef<str>>(log: S) {
+        // Just drop the error, if we can't write the log then :shrug:
+        let _ = std::fs::write("./byondapi-rs-log.txt", log.as_ref());
+    }
+}
