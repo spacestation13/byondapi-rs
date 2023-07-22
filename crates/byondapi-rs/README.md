@@ -1,4 +1,4 @@
-# BYONDAPI-rs - The primary safe rust bindings for BYONDAPI
+# BYONDAPI-rs - Safe rust bindings for BYONDAPI
 
 This crate implements a rusty safe API for using BYONDAPI.
 
