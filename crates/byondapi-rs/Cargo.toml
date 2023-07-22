@@ -1,0 +1,12 @@
+[package]
+name = "byondapi"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+byondapi-sys = { path = "../byondapi-sys" }
+lazy_static = "1.4.0"
+libloading = "0.8.0"
+walkdir = "2.3.3"

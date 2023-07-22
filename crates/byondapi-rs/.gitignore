@@ -1,0 +1,7 @@
+/target
+/Cargo.lock
+byondcore.dll
+byondext.dll
+byondwin.dll
+libbyond.so
+libext.so
