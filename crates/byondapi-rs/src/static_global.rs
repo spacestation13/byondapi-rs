@@ -1,6 +1,7 @@
 #[cfg(target_os = "windows")]
 pub fn init_lib() -> byondapi_sys::ByondApi {
-    if std::env::var("BYONDAPI_TEST").is_ok() {
+    // Load files from disk if in testing mode
+    if std::env::var("BYONDAPI_TEST").is_ok() || cfg!(test) {
         let library = unsafe {
             libloading::os::windows::Library::new("byondcore.dll")
                 .expect("unable to find byondcore.dll")
@@ -15,7 +16,8 @@ pub fn init_lib() -> byondapi_sys::ByondApi {
 
 #[cfg(target_os = "linux")]
 pub fn init_lib() -> byondapi_sys::ByondApi {
-    if std::env::var("BYONDAPI_TEST").is_ok() {
+    // Load files from disk if in testing mode
+    if std::env::var("BYONDAPI_TEST").is_ok() || cfg!(test) {
         let library = unsafe {
             // Load libext.so first
             let libext = libloading::os::unix::Library::open(
