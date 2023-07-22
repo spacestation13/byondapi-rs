@@ -12,7 +12,7 @@ For Windows, I recommend copying the following files to the crate root, `crates/
  - `byond/bin/byondext.dll`
  - `byond/bin/byondwin.dll`
 
-For Linux, ensure these are in your ld_library_path:
+For Linux, ensure these are in your `LD_LIBRARY_PATH`:
  - `byond/bin/libbyond.so`
  - `byond/bin/libext.so`
 
