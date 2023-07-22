@@ -44,4 +44,8 @@ impl ByondValue {
     pub fn set_ref(&mut self, type_: ByondValueType, ref_: u4c) {
         unsafe { BYOND.ByondValue_SetRef(&mut self.0, type_, ref_) }
     }
+
+    pub fn write_ptr(&self, ptr: &ByondValue) -> Result<(), Error> {
+        unsafe { succeeds!(BYOND.Byond_WritePointer(&ptr.0, &self.0)) }
+    }
 }

@@ -1,0 +1,11 @@
+argv: ByondValue(
+    "3C",
+    "0",
+)
+ result: Err(
+    ByondError(
+        ByondError(
+            "null",
+        ),
+    ),
+)

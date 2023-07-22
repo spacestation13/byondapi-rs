@@ -19,8 +19,13 @@ obj
 
 /world/New()
 	. = ..()
-	var/num = 5
-	var/p = &num
+	
+	var/a=3, b=4
+	var/p = &a
+	world.log << *p   // same as world << a
+	*p = 5    // same as a = 5
+	world.log << *p
 	var/ret = call_ext("fakelib.dll", "byond:test")(p)
-	world.log << "number: [num]"
+
+	world.log << "number: [*p]"
 	world.log << "ret: [ret]"
