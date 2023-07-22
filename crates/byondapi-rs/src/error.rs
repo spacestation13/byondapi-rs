@@ -41,6 +41,17 @@ impl ByondError {
     }
 }
 
+macro_rules! succeeds {
+    ($x:expr) => {{
+        let result = $x;
+        if result {
+            Ok(())
+        } else {
+            Err(Error::get_last_byond_error())
+        }
+    }};
+}
+
 /// For extreme cases where we know we're about to crash, we write to a log.txt file in PWD so the user has some idea
 /// what went wrong.
 pub mod crash_logging {

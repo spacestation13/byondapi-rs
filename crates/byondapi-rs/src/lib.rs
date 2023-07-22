@@ -3,6 +3,7 @@ extern crate lazy_static;
 
 mod static_global;
 
+#[macro_use]
 pub mod error;
 pub use error::Error;
 

@@ -53,13 +53,15 @@ impl ByondValue {
         let mut new_inner = MaybeUninit::uninit();
 
         let new_inner = unsafe {
-            // Safety: new_inner is going to an initialization function, it will only write to the pointer.
-            let success = BYOND.ByondValue_InitStr(new_inner.as_mut_ptr(), c_str.as_ptr());
-            if success {
-                // Safety: ByondValue_Init will have initialized the new_inner.
-                new_inner.assume_init()
-            } else {
-                return Err(Error::get_last_byond_error());
+            let result =
+                succeeds!(BYOND.ByondValue_InitStr(new_inner.as_mut_ptr(), c_str.as_ptr()));
+
+            match result {
+                Ok(_) => {
+                    // Safety: ByondValue_Init will have initialized the new_inner.
+                    new_inner.assume_init()
+                }
+                Err(e) => return Err(e),
             }
         };
 
