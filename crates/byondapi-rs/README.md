@@ -2,14 +2,17 @@
 
 This crate implements a rusty safe API for using BYONDAPI.
 
-## Linux Warnings
+# WARNING
 
-Normally, when finding the BYOND functions the library needs fails, usually due to being loaded by a process that
-does not have them already loaded into the global namespace, the crate will write to `byondapi-rs-log.txt` informing
-you what went wrong.
+This library automatically initializes on the first function call, using lazy_static!. This initialization can fail
+in one circumstance: where the symbols needed by the BYONDAPI are not found in the current executable.
 
-Currently, this is unable to be implemented for Linux, so no log will be produced other than the panic!() leaking into
-BYOND, which is undefined behavior.
+The only sane way to handle this is to panic, which will inevitably unwind across the FFI barrier, which is **undefined
+behavior**.
+
+There's two ways to fix this and I've chosen the second:
+1. Make the library API substantially worse by forcing every function to take an argument to a library struct.
+2. Wait for bindgen to [stabilize the C-unwind abi](https://github.com/rust-lang/rust-bindgen/issues/2581)
 
 ## Testing
 
