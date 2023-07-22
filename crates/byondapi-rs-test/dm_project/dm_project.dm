@@ -19,5 +19,8 @@ obj
 
 /world/New()
 	. = ..()
-	var/num = call_ext("fakelib.dll", "byond:test")(5)
-	world.log << num
+	var/num = 5
+	var/p = &num
+	var/ret = call_ext("fakelib.dll", "byond:test")(p)
+	world.log << "number: [num]"
+	world.log << "ret: [ret]"
