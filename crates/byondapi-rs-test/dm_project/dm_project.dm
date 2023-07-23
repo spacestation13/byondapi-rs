@@ -26,6 +26,9 @@ obj
 	world.log << "## POINTER BUG ##"
 	ptr_bug()
 
+/obj/proc/testproc()
+	world.log << "hi test proc on obj!"
+
 /proc/send_obj()
 	var/obj/O = new()
 	O.name = "meow"

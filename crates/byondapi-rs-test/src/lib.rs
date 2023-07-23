@@ -15,6 +15,8 @@ pub unsafe extern "cdecl" fn test_obj(
     let _ = value.write_var("name", &"woof".try_into().unwrap());
     let ret = value.read_var("name").unwrap();
 
+    value.call("testproc", &[]).unwrap();
+
     ret
 }
 

@@ -59,12 +59,7 @@ impl ByondValue {
         let mut new_value = ByondValue::new();
 
         unsafe {
-            let result =
-                map_byond_error!(BYOND.Byond_ReadVar(&self.0, c_str.as_ptr(), &mut new_value.0));
-            match result {
-                Ok(_) => {}
-                Err(e) => return Err(e),
-            }
+            map_byond_error!(BYOND.Byond_ReadVar(&self.0, c_str.as_ptr(), &mut new_value.0))?;
         }
 
         Ok(new_value)
@@ -75,5 +70,26 @@ impl ByondValue {
         let c_str = c_string.as_c_str();
 
         unsafe { map_byond_error!(BYOND.Byond_WriteVar(&self.0, c_str.as_ptr(), &other.0)) }
+    }
+
+    pub fn call(&self, name: &str, args: &[ByondValue]) -> Result<ByondValue, Error> {
+        let c_string = CString::new(name).unwrap();
+        let c_str = c_string.as_c_str();
+
+        let ptr = args.as_ptr();
+
+        let mut new_value = ByondValue::new();
+
+        unsafe {
+            map_byond_error!(BYOND.Byond_CallProc(
+                &self.0,
+                c_str.as_ptr(),
+                ptr as *const byondapi_sys::CByondValue,
+                args.len() as u32,
+                &mut new_value.0
+            ))?;
+        }
+
+        Ok(new_value)
     }
 }
