@@ -38,7 +38,7 @@ impl ByondValue {
     pub fn set_str(&mut self, f: &str) -> Result<(), Error> {
         let c_string = CString::new(f).unwrap();
         let c_str = c_string.as_c_str();
-        unsafe { succeeds!(BYOND.ByondValue_SetStr(&mut self.0, c_str.as_ptr())) }
+        unsafe { map_byond_error!(BYOND.ByondValue_SetStr(&mut self.0, c_str.as_ptr())) }
     }
 
     pub fn set_ref(&mut self, type_: ByondValueType, ref_: u4c) {
@@ -46,6 +46,34 @@ impl ByondValue {
     }
 
     pub fn write_ptr(&self, ptr: &ByondValue) -> Result<(), Error> {
-        unsafe { succeeds!(BYOND.Byond_WritePointer(&ptr.0, &self.0)) }
+        unsafe { map_byond_error!(BYOND.Byond_WritePointer(&ptr.0, &self.0)) }
+    }
+}
+
+/// # Accessors
+impl ByondValue {
+    pub fn read_var(&self, name: &str) -> Result<ByondValue, Error> {
+        let c_string = CString::new(name).unwrap();
+        let c_str = c_string.as_c_str();
+
+        let mut new_value = ByondValue::new();
+
+        unsafe {
+            let result =
+                map_byond_error!(BYOND.Byond_ReadVar(&self.0, c_str.as_ptr(), &mut new_value.0));
+            match result {
+                Ok(_) => {}
+                Err(e) => return Err(e),
+            }
+        }
+
+        Ok(new_value)
+    }
+
+    pub fn write_var(&mut self, name: &str, other: &ByondValue) -> Result<(), Error> {
+        let c_string = CString::new(name).unwrap();
+        let c_str = c_string.as_c_str();
+
+        unsafe { map_byond_error!(BYOND.Byond_WriteVar(&self.0, c_str.as_ptr(), &other.0)) }
     }
 }

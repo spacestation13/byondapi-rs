@@ -41,7 +41,7 @@ impl ByondError {
     }
 }
 
-macro_rules! succeeds {
+macro_rules! map_byond_error {
     ($x:expr) => {{
         let result = $x;
         if result {

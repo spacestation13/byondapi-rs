@@ -19,13 +19,29 @@ obj
 
 /world/New()
 	. = ..()
-	
+
+	world.log << "## SENDING OBJECT ##"
+	send_obj()
+
+	world.log << "## POINTER BUG ##"
+	ptr_bug()
+
+/proc/send_obj()
+	var/obj/O = new()
+	O.name = "meow"
+	var/ret = call_ext("fakelib.dll", "byond:test_obj")(O)
+	world.log << "ret: [ret]"
+
+
+/proc/ptr_bug()
 	var/a=3, b=4
 	var/p = &a
+	var/p2 = &a
 	world.log << *p   // same as world << a
 	*p = 5    // same as a = 5
 	world.log << *p
-	var/ret = call_ext("fakelib.dll", "byond:test")(p)
+	var/ret = call_ext("fakelib.dll", "byond:test_ptr")(p2) // runtime error: bad pointer
 
-	world.log << "number: [*p]"
+	// (if test_ptr is stubbed out we can check 
+	world.log << "number: [*p]" 
 	world.log << "ret: [ret]"

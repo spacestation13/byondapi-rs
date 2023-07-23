@@ -21,6 +21,10 @@ impl ByondValue {
         Default::default()
     }
 
+    pub fn null() -> Self {
+        Default::default()
+    }
+
     pub fn new_ref(typ: ByondValueType, ptr: u4c) -> Self {
         let mut new_inner = MaybeUninit::uninit();
 
@@ -54,7 +58,7 @@ impl ByondValue {
 
         let new_inner = unsafe {
             let result =
-                succeeds!(BYOND.ByondValue_InitStr(new_inner.as_mut_ptr(), c_str.as_ptr()));
+                map_byond_error!(BYOND.ByondValue_InitStr(new_inner.as_mut_ptr(), c_str.as_ptr()));
 
             match result {
                 Ok(_) => {
