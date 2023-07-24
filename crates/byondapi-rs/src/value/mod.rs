@@ -8,7 +8,7 @@ use byondapi_sys::{u4c, ByondValueType, CByondValue};
 use crate::{error::Error, static_global::BYOND, typecheck_trait::ByondTypeCheck};
 
 #[repr(transparent)]
-pub struct ByondValue(CByondValue);
+pub struct ByondValue(pub(crate) CByondValue);
 
 pub mod constructors;
 pub mod functions;

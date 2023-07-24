@@ -71,4 +71,12 @@ impl ByondValue {
 
         Ok(Self(new_inner))
     }
+
+    pub fn new_list() -> Result<Self, Error> {
+        let mut new_self = Self::new();
+
+        unsafe { map_byond_error!(BYOND.Byond_CreateList(&mut new_self.0))? }
+
+        Ok(new_self)
+    }
 }

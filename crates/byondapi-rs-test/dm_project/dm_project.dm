@@ -26,14 +26,17 @@ obj
 	world.log << "## POINTER BUG ##"
 	ptr_bug()
 
+	world.log << "## LIST TEST ##"
+	test_list()
+
 /obj/proc/testproc()
 	world.log << "hi test proc on obj!"
 
 /proc/send_obj()
 	var/obj/O = new()
 	O.name = "meow"
-	var/ret = call_ext("fakelib.dll", "byond:test_obj")(O)
-	world.log << "ret: [ret]"
+	var/list/ret = call_ext("fakelib.dll", "byond:test_obj")(O)
+	world.log << "ret: [json_encode(ret)]"
 
 
 /proc/ptr_bug()
@@ -48,3 +51,9 @@ obj
 	// (if test_ptr is stubbed out we can check 
 	world.log << "number: [*p]" 
 	world.log << "ret: [ret]"
+
+/proc/test_list()
+	var/list/L = list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+	var/ret = call_ext("fakelib.dll", "byond:test_list")(L)
+	world.log << "list: [json_encode(L)]"
+	world.log << "ret: [json_encode(ret)]"

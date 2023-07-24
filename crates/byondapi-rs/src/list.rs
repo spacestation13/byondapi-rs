@@ -1,146 +1,97 @@
-// use crate::{value::ByondValue, BYOND};
-// use std::{cell::UnsafeCell, mem::MaybeUninit};
+use std::{fmt::Debug, marker::PhantomData, mem::MaybeUninit, ptr::NonNull};
 
-// use byondapi_sys::CByondValueList;
+use byondapi_sys::{u4c, CByondValue, CByondValueList};
 
-// pub struct ByondValueList {
-//     _internal: UnsafeCell<CByondValueList>,
-// }
+use crate::{prelude::ByondValue, static_global::BYOND, Error};
 
-// impl Default for ByondValueList {
-//     fn default() -> Self {
-//         let m = MaybeUninit::<UnsafeCell<CByondValueList>>::uninit();
-//         unsafe {
-//             let raw_ptr = UnsafeCell::raw_get(m.as_ptr());
-//             BYOND.ByondValueList_Init(raw_ptr);
-//         }
+#[repr(transparent)]
+pub struct ByondValueList(pub(crate) CByondValueList);
 
-//         let uc = unsafe { m.assume_init() };
-//         ByondValueList { _internal: uc }
-//     }
-// }
+impl Default for ByondValueList {
+    fn default() -> Self {
+        let mut new_inner = MaybeUninit::uninit();
 
-// impl ByondValueList {
-//     pub fn new() -> Self {
-//         Default::default()
-//     }
+        let new_inner = unsafe {
+            // Safety: new_inner is going to an initialization function, it will only write to the pointer.
+            BYOND.ByondValueList_Init(new_inner.as_mut_ptr());
+            // Safety: ByondValue_Init will have initialized the new_inner.
+            new_inner.assume_init()
+        };
 
-//     pub fn push(&mut self, value: ByondValue) -> bool {
-//         let raw = value.get_const();
-//         unsafe { BYOND.ByondValueList_Add(self._internal.get(), raw) }
-//     }
+        Self(new_inner)
+    }
+}
 
-//     pub fn len(&self) -> usize {
-//         unsafe { (*self.get_const()).count as usize }
-//     }
+/// # Constructors
+impl ByondValueList {
+    pub fn new() -> Self {
+        Default::default()
+    }
 
-//     pub fn capacity(&self) -> usize {
-//         unsafe { (*self.get_const()).capacity as usize }
-//     }
+    pub fn with_capacity(capacity: usize) -> Self {
+        let mut new_inner = MaybeUninit::uninit();
 
-//     pub fn is_empty(&self) -> bool {
-//         self.len() == 0
-//     }
+        let new_inner = unsafe {
+            // Safety: new_inner is going to an initialization function, it will only write to the pointer.
+            BYOND.ByondValueList_InitCount(new_inner.as_mut_ptr(), capacity as u4c);
+            // Safety: ByondValue_Init will have initialized the new_inner.
+            new_inner.assume_init()
+        };
 
-//     pub fn pop(&mut self) -> ByondValue {
-//         let raw = self._internal.get_mut();
-//         let ptr = unsafe { raw.items.offset((raw.count - 1) as isize) };
+        Self(new_inner)
+    }
+}
 
-//         unsafe {
-//             assert_eq!(
-//                 BYOND.ByondValueList_RemoveAt(raw as *mut _, raw.count - 1, 1),
-//                 1
-//             );
-//         }
+/// # Accessors
+impl ByondValueList {
+    pub fn push(&mut self, value: &ByondValue) -> Result<(), Error> {
+        unsafe { map_byond_error!(BYOND.ByondValueList_Add(&mut self.0, &value.0)) }
+    }
 
-//         unsafe { ByondValue::from_raw(ptr) }
-//     }
+    pub fn insert(&mut self, index: usize, element: &ByondValue) -> Result<(), Error> {
+        unsafe {
+            map_byond_error!(BYOND.ByondValueList_InsertAt(&mut self.0, index as i32, &element.0))
+        }
+    }
+}
 
-//     #[allow(dead_code)]
-//     pub(crate) fn get_const(&self) -> *const CByondValueList {
-//         self._internal.get() as *const CByondValueList
-//     }
+// Debug!
+impl Debug for ByondValueList {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let ptr = format! {"{:p}", self.0.items};
+        let count = format!("0x{:X}", self.0.count);
+        let capacity = format!("0x{:X}", self.0.capacity);
 
-//     #[allow(dead_code)]
-//     pub(crate) fn get_mut(&mut self) -> *mut CByondValueList {
-//         self._internal.get()
-//     }
-// }
+        f.debug_tuple("ByondValueList")
+            .field(&ptr)
+            .field(&count)
+            .field(&capacity)
+            .finish()
+    }
+}
 
-// impl Drop for ByondValueList {
-//     fn drop(&mut self) {
-//         unsafe { BYOND.ByondValueList_Free(self._internal.get()) }
-//     }
-// }
+impl TryFrom<ByondValue> for ByondValueList {
+    type Error = Error;
 
-// #[cfg(test)]
-// mod test {
-//     use super::*;
+    fn try_from(value: ByondValue) -> Result<Self, Self::Error> {
+        let mut new_list = ByondValueList::new();
 
-//     #[test]
-//     fn init_and_drop() {
-//         let meow = ByondValueList::new();
-//         std::hint::black_box(&meow);
-//         std::mem::drop(meow);
-//     }
+        unsafe { map_byond_error!(BYOND.Byond_ReadList(&value.0, &mut new_list.0))? }
 
-//     #[test]
-//     fn push() {
-//         let mut list = ByondValueList::new();
-//         let meow = ByondValue::new();
-//         assert_eq!(list.len(), 0);
-//         assert!(list.push(meow));
-//         assert_eq!(list.len(), 1);
-//     }
+        Ok(new_list)
+    }
+}
 
-//     #[test]
-//     fn push_and_pop() {
-//         let mut list = ByondValueList::new();
-//         let meow = ByondValue::new();
-//         // The list should be initially completely empty
-//         assert_eq!(list.len(), 0);
-//         assert_eq!(list.capacity(), 0);
+impl TryFrom<ByondValueList> for ByondValue {
+    type Error = Error;
 
-//         // We push the value into it
-//         assert!(list.push(meow));
+    fn try_from(value: ByondValueList) -> Result<Self, Self::Error> {
+        let new_value = ByondValue::new_list().unwrap();
 
-//         // The list should now have a len of 1 and a capacity other than 0
-//         assert_eq!(list.len(), 1);
-//         let new_capacity = list.capacity();
-//         assert_ne!(new_capacity, 0);
+        unsafe {
+            map_byond_error!(BYOND.Byond_WriteList(&new_value.0, &value.0))?;
+        }
 
-//         // Remove the value
-//         let _ = list.pop();
-
-//         // The len should be zero, but the capacity should remain
-//         assert_eq!(list.len(), 0);
-//         assert_eq!(list.capacity(), new_capacity);
-//     }
-
-//     #[test]
-//     fn big_pushpop() {
-//         let mut list = ByondValueList::new();
-//         // The list should be initially completely empty
-//         assert_eq!(list.len(), 0);
-//         assert_eq!(list.capacity(), 0);
-
-//         // We push the values into it
-//         for _ in 0..100 {
-//             assert!(list.push(ByondValue::new()));
-//         }
-
-//         // The list should now have a len of 100 and a capacity other than 0
-//         assert_eq!(list.len(), 100);
-//         let new_capacity = list.capacity();
-//         assert_ne!(new_capacity, 0);
-
-//         // Remove the values
-//         for _ in 0..100 {
-//             let _ = list.pop();
-//         }
-
-//         // The len should be zero, but the capacity should remain
-//         assert_eq!(list.len(), 0);
-//         assert_eq!(list.capacity(), new_capacity);
-//     }
-// }
+        Ok(new_value)
+    }
+}

@@ -1,4 +1,19 @@
-use byondapi::value::ByondValue;
+use byondapi::{list::ByondValueList, value::ByondValue};
+
+#[no_mangle]
+/// # Safety
+/// It's fucked
+pub unsafe extern "cdecl" fn test_list(
+    argc: byondapi_sys::u4c,
+    argv: *const ByondValue,
+) -> ByondValue {
+    let list: ByondValue = argv.read();
+    let mut list: ByondValueList = list.try_into().unwrap();
+
+    let _ = list.push(&(11.0).into());
+
+    list.try_into().unwrap()
+}
 
 #[no_mangle]
 /// # Safety
