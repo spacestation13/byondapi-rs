@@ -17,8 +17,9 @@ default-target = "i686-unknown-linux-gnu"
 targets = [] # Do not build the doc with any other target than the default.
 
 [features]
-default = ["515-1609"]
+default = ["515-1610"]
 515-1609 = []
+515-1610 = []
 
 [dependencies]
 libloading = "0.8.0"
