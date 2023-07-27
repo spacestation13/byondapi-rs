@@ -20,3 +20,6 @@
 	
 	if (ret.name != O.name)
 		throw EXCEPTION("Object did not make it through FFI")
+
+/test/proc/send_test()
+	call_ext("byondapi_test.dll", "byond:send_test")()
