@@ -10,6 +10,9 @@ use crate::{error::Error, static_global::BYOND, typecheck_trait::ByondTypeCheck}
 #[repr(transparent)]
 pub struct ByondValue(pub(crate) CByondValue);
 
+/// It is safe to send ByondValue with ownership, but it is not safe to have references between threads.
+unsafe impl Send for ByondValue {}
+
 pub mod constructors;
 pub mod functions;
 pub mod trait_impls;
