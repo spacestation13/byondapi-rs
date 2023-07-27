@@ -1,59 +1,22 @@
-/*
-	These are simple defaults for your project.
- */
-
-world
-	fps = 25		// 25 frames per second
-	icon_size = 32	// 32x32 icon size by default
-
-	view = 6		// show up to 6 tiles outward from center (13x13 view)
-
-
-// Make objects move 8 pixels per tick when walking
-
-mob
-	step_size = 8
-
-obj
-	step_size = 8
 
 /world/New()
-	. = ..()
+	world.log = file("dd_log.txt")
 
-	world.log << "## SENDING OBJECT ##"
-	send_obj()
+	for(var/func in typesof(/test/proc))
+		world.log << "[func] [copytext("------------------------------------------------------------------------", length("[func]"))]"
+		call(new /test, func)()
 
-	world.log << "## POINTER BUG ##"
-	ptr_bug()
+	del(src)
 
-	world.log << "## LIST TEST ##"
-	test_list()
+/test/proc/test_connection()
+	var/ret = call_ext("byondapi_test.dll", "byond:test_connection")()
+	if (ret != 69)
+		throw EXCEPTION("Connection bad")
 
-/obj/proc/testproc()
-	world.log << "hi test proc on obj!"
-
-/proc/send_obj()
+/test/proc/test_args()
 	var/obj/O = new()
 	O.name = "meow"
-	var/list/ret = call_ext("fakelib.dll", "byond:test_obj")(O)
-	world.log << "ret: [json_encode(ret)]"
-
-
-/proc/ptr_bug()
-	var/a=3, b=4
-	var/p = &a
-	var/p2 = &a
-	world.log << *p   // same as world << a
-	*p = 5    // same as a = 5
-	world.log << *p
-	var/ret = call_ext("fakelib.dll", "byond:test_ptr")(p2) // runtime error: bad pointer
-
-	// (if test_ptr is stubbed out we can check 
-	world.log << "number: [*p]" 
-	world.log << "ret: [ret]"
-
-/proc/test_list()
-	var/list/L = list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-	var/ret = call_ext("fakelib.dll", "byond:test_list")(L)
-	world.log << "list: [json_encode(L)]"
-	world.log << "ret: [json_encode(ret)]"
+	var/obj/ret = call_ext("byondapi_test.dll", "byond:test_args")(O)
+	
+	if (ret.name != O.name)
+		throw EXCEPTION("Object did not make it through FFI")

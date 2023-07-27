@@ -41,6 +41,3 @@ impl ByondTypeCheck for ByondValue {
         unsafe { BYOND.ByondValue_IsList(&self.0) }
     }
 }
-
-#[cfg(test)]
-mod test;

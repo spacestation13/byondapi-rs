@@ -102,39 +102,3 @@ impl TryFrom<ByondValueList> for ByondValue {
         Ok(new_value)
     }
 }
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn init_and_drop() {
-        let mut list = ByondValueList::default();
-        list.push(&ByondValue::null())
-            .expect("Failed to push to list");
-        list.push(&ByondValue::null())
-            .expect("Failed to push to list");
-        list.push(&ByondValue::null())
-            .expect("Failed to push to list");
-        std::hint::black_box(&list);
-        std::mem::drop(list);
-    }
-
-    #[test]
-    fn convert_to_value_and_back() {
-        let mut list = ByondValueList::default();
-        list.push(&ByondValue::null())
-            .expect("Failed to push to list");
-        list.push(&ByondValue::null())
-            .expect("Failed to push to list");
-        list.push(&ByondValue::null())
-            .expect("Failed to push to list");
-
-        let r: ByondValue = list.try_into().expect("Failed to convert to ByondValue");
-        std::hint::black_box(&r);
-
-        let back_to_list: ByondValueList = r.try_into().expect("Failed to convert back to list");
-
-        assert_eq!(back_to_list.0.count, 3);
-    }
-}

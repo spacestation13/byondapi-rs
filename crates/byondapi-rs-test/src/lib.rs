@@ -1,60 +1,21 @@
-use byondapi::{list::ByondValueList, value::ByondValue};
+#![allow(clippy::missing_safety_doc)]
+use byondapi::value::ByondValue;
 
-#[no_mangle]
-/// # Safety
-/// It's fucked
-pub unsafe extern "cdecl" fn test_list(
-    argc: byondapi_sys::u4c,
-    argv: *const ByondValue,
-) -> ByondValue {
-    let list: ByondValue = argv.read();
-    let mut list: ByondValueList = list.try_into().unwrap();
-
-    let _ = list.push(&(11.0).into());
-
-    list.try_into().unwrap()
+fn parse_args(argc: byondapi_sys::u4c, argv: *mut ByondValue) -> &'static mut [ByondValue] {
+    unsafe { std::slice::from_raw_parts_mut(argv, argc as usize) }
 }
 
 #[no_mangle]
-/// # Safety
-/// It's fucked
-pub unsafe extern "cdecl" fn test_obj(
-    argc: byondapi_sys::u4c,
-    argv: *const ByondValue,
+pub unsafe extern "C" fn test_connection(
+    _argc: byondapi_sys::u4c,
+    _argv: *mut ByondValue,
 ) -> ByondValue {
-    if argc != 1 {
-        return ByondValue::null();
-    }
-
-    let mut value: ByondValue = argv.read();
-    let _ = value.write_var("name", &"woof".try_into().unwrap());
-    let ret = value.read_var("name").unwrap();
-
-    value.call("testproc", &[]).unwrap();
-
-    ret
+    ByondValue::new_num(69.0)
 }
 
 #[no_mangle]
-/// # Safety
-/// It's fucked
-pub unsafe extern "cdecl" fn test_ptr(
-    argc: byondapi_sys::u4c,
-    argv: *const ByondValue,
-) -> ByondValue {
-    let value: ByondValue = argv.read();
-
-    let new_num: ByondValue = (1.0).into();
-    let res = new_num.write_ptr(&value);
-
-    let _ = std::fs::write(
-        "meow.txt",
-        format!("argv: {:#?}\n result: {:#?}", value, res),
-    );
-
-    if res.is_ok() {
-        (1.0).into()
-    } else {
-        (-1.0).into()
-    }
+pub unsafe extern "C" fn test_args(argc: byondapi_sys::u4c, argv: *mut ByondValue) -> ByondValue {
+    let args = parse_args(argc, argv);
+    assert_eq!(args.len(), 1);
+    args[0].clone()
 }

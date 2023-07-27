@@ -1,5 +1,5 @@
 [package]
-name = "fakelib"
+name = "byondapi-test"
 version = "0.1.0"
 edition = "2021"
 
@@ -11,3 +11,5 @@ crate-type = ["cdylib"]
 [dependencies]
 byondapi = { path = "../byondapi-rs" }
 byondapi-sys = { path = "../byondapi-sys" }
+tempfile = "3.7.0"
+test-cdylib = "1.1.0"
