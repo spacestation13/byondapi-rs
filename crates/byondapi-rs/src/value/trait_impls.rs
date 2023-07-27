@@ -1,7 +1,5 @@
 use std::fmt::Debug;
 
-use crate::list::ByondValueList;
-
 use super::*;
 
 // Memory handling
