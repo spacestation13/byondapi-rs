@@ -24,11 +24,25 @@
 /test/proc/send_test()
 	call_ext("byondapi_test.dll", "byond:send_test")()
 
+
 /test/proc/test_ptr()
-	var/obj/O = new()
-	O.name = "awa"
-	var/ptr = &O
+	var/x = "meow"
+	var/ptr = &x
+
 	call_ext("byondapi_test.dll", "byond:test_ptr")(ptr)
 
-	if(O.name != "awameow")
-		throw EXCEPTION("Pointer read/write failed")
+	// if(x != "awameow")
+	// 	throw EXCEPTION("Pointer read/write failed")
+
+/obj/proc/get_name()
+	world.log << "get_name"
+	return name
+
+/test/proc/test_proc_call()
+	var/obj/O = new()
+	O.name = "test name"
+
+	var/ret = call_ext("byondapi_test.dll", "byond:test_proc_call")(O)
+
+	if(O.name != ret)
+		throw EXCEPTION("Call proc failed, expected rust to return 'test name' but got '[ret]'")

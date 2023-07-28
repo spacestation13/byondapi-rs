@@ -33,12 +33,27 @@ pub unsafe extern "C" fn send_test(_argc: byondapi_sys::u4c, _argv: *mut ByondVa
 pub unsafe extern "C" fn test_ptr(argc: byondapi_sys::u4c, argv: *mut ByondValue) -> ByondValue {
     let args = parse_args(argc, argv);
 
-    let obj = args[0].read_pointer().unwrap();
-    let curr_name = obj.read_var("name").unwrap();
+    let strobj = args[0].read_pointer().unwrap();
+    let new_name: ByondValue = format!("{}meow", strobj.get_string().unwrap())
+        .try_into()
+        .unwrap();
 
-    let new_name = format!("{}meow", curr_name.get_string().unwrap());
-
-    args[0].write_ptr(&new_name.try_into().unwrap()).unwrap();
+    new_name.write_ptr(&args[0]).unwrap();
 
     ByondValue::null()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn test_proc_call(
+    argc: byondapi_sys::u4c,
+    argv: *mut ByondValue,
+) -> ByondValue {
+    let args = parse_args(argc, argv);
+
+    let result = args[0].call("getname_gmsrkp/nobj/", &[]);
+
+    match result {
+        Ok(res) => res,
+        Err(e) => format!("{:#?}", e).try_into().unwrap(),
+    }
 }

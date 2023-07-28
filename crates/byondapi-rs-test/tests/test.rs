@@ -68,7 +68,7 @@ fn build_dylib() -> PathBuf {
 fn compile() {
     let dm_compiler = find_dm().expect("To run this integration test you must place a copy of BYOND binaries in dm_project/byond/bin");
 
-    Command::new(dm_compiler)
+    let output = Command::new(dm_compiler)
         .current_dir(project_dir())
         .arg("dm_project.dme")
         .output()
@@ -79,7 +79,8 @@ fn compile() {
             .join("dm_project")
             .join("dm_project.dmb")
             .exists(),
-        "dm_project.dmb was not created"
+        "dm_project.dmb was not created: {:#?}",
+        output
     )
 }
 
