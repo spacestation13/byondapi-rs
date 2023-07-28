@@ -81,6 +81,10 @@ impl ByondValue {
     /// Call a proc using self as src. Fails if this isn't a ref type.
     ///
     /// Implicitly set waitfor=0, will never block.
+    ///
+    /// # WARNING FOR BYOND 515.1610
+    /// This is treated as verb name, so underscores are replaced with spaces.
+    /// For example `/obj/proc/get_name` would have to be called as `obj.call("get name")`.
     pub fn call(&self, name: &str, args: &[ByondValue]) -> Result<ByondValue, Error> {
         let c_string = CString::new(name).unwrap();
         let c_str = c_string.as_c_str();
