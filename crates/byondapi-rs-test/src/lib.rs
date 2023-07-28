@@ -1,6 +1,7 @@
 #![allow(clippy::missing_safety_doc)]
 
 use byondapi::{
+    list::ByondValueList,
     parse_args,
     value::{pointer::ByondValuePointer, ByondValue},
 };
@@ -85,4 +86,39 @@ pub unsafe extern "C" fn test_readwrite_var(
         Ok(res) => res,
         Err(e) => format!("{:#?}", e).try_into().unwrap(),
     }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn test_list_push(
+    argc: byondapi_sys::u4c,
+    argv: *mut ByondValue,
+) -> ByondValue {
+    let args = parse_args(argc, argv);
+
+    let mut list: ByondValueList = match (&args[0]).try_into() {
+        Ok(list) => list,
+        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
+    };
+
+    match list.push(&ByondValue::new_num(8.0)) {
+        Ok(_) => {}
+        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
+    };
+
+    list.try_into().unwrap()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn test_list_double(
+    argc: byondapi_sys::u4c,
+    argv: *mut ByondValue,
+) -> ByondValue {
+    let args = parse_args(argc, argv);
+
+    let mut _list: ByondValueList = match (&args[0]).try_into() {
+        Ok(list) => list,
+        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
+    };
+
+    ByondValue::null()
 }

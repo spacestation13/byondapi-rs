@@ -77,10 +77,10 @@ impl Drop for ByondValueList {
     }
 }
 
-impl TryFrom<ByondValue> for ByondValueList {
+impl TryFrom<&ByondValue> for ByondValueList {
     type Error = Error;
 
-    fn try_from(value: ByondValue) -> Result<Self, Self::Error> {
+    fn try_from(value: &ByondValue) -> Result<Self, Self::Error> {
         let mut new_list = ByondValueList::new();
 
         unsafe { map_byond_error!(BYOND.Byond_ReadList(&value.0, &mut new_list.0))? }
@@ -89,10 +89,10 @@ impl TryFrom<ByondValue> for ByondValueList {
     }
 }
 
-impl TryFrom<ByondValueList> for ByondValue {
+impl TryFrom<&ByondValueList> for ByondValue {
     type Error = Error;
 
-    fn try_from(value: ByondValueList) -> Result<Self, Self::Error> {
+    fn try_from(value: &ByondValueList) -> Result<Self, Self::Error> {
         let new_value = ByondValue::new_list().unwrap();
 
         unsafe {
@@ -100,5 +100,21 @@ impl TryFrom<ByondValueList> for ByondValue {
         }
 
         Ok(new_value)
+    }
+}
+
+impl TryFrom<ByondValue> for ByondValueList {
+    type Error = Error;
+
+    fn try_from(value: ByondValue) -> Result<Self, Self::Error> {
+        (&value).try_into()
+    }
+}
+
+impl TryFrom<ByondValueList> for ByondValue {
+    type Error = Error;
+
+    fn try_from(value: ByondValueList) -> Result<Self, Self::Error> {
+        (&value).try_into()
     }
 }
