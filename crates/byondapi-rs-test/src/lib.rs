@@ -72,3 +72,17 @@ pub unsafe extern "C" fn test_proc_call(
         Err(e) => format!("{:#?}", e).try_into().unwrap(),
     }
 }
+
+#[no_mangle]
+pub unsafe extern "C" fn test_readwrite_var(
+    argc: byondapi_sys::u4c,
+    argv: *mut ByondValue,
+) -> ByondValue {
+    let args = parse_args(argc, argv);
+    let object = &args[0];
+
+    match object.read_var("name") {
+        Ok(res) => res,
+        Err(e) => format!("{:#?}", e).try_into().unwrap(),
+    }
+}
