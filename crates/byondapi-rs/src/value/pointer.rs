@@ -3,13 +3,18 @@ use crate::{prelude::ByondValue, static_global::BYOND, Error};
 #[repr(transparent)]
 pub struct ByondValuePointer(pub ByondValue);
 
+/// FIXME: Use a Byond_IsPtr here instead of checking the type by hand
+fn is_pointer_shim(value: &ByondValue) -> bool {
+    let type_ = unsafe { BYOND.ByondValue_Type(&value.0) };
+    type_ == 0x3C
+}
+
 impl ByondValuePointer {
     pub fn new(value: ByondValue) -> Result<Self, Error> {
-        // FIXME: Use a Byond_IsPtr here instead of checking the type
-        if value.0.type_ != 0x3C {
-            Err(Error::InvalidConversion)
-        } else {
+        if is_pointer_shim(&value) {
             Ok(Self(value))
+        } else {
+            Err(Error::InvalidConversion)
         }
     }
 
