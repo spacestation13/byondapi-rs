@@ -23,3 +23,12 @@
 
 /test/proc/send_test()
 	call_ext("byondapi_test.dll", "byond:send_test")()
+
+/test/proc/test_ptr()
+	var/obj/O = new()
+	O.name = "awa"
+	var/ptr = &O
+	call_ext("byondapi_test.dll", "byond:test_ptr")(ptr)
+
+	if(O.name != "awameow")
+		throw EXCEPTION("Pointer read/write failed")

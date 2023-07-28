@@ -52,6 +52,16 @@ impl ByondValue {
 
 /// # Accessors
 impl ByondValue {
+    pub fn read_pointer(&self) -> Result<ByondValue, Error> {
+        let mut new_value = ByondValue::new();
+
+        unsafe {
+            map_byond_error!(BYOND.Byond_ReadPointer(&self.0, &mut new_value.0))?;
+        }
+
+        Ok(new_value)
+    }
+
     pub fn read_var(&self, name: &str) -> Result<ByondValue, Error> {
         let c_string = CString::new(name).unwrap();
         let c_str = c_string.as_c_str();

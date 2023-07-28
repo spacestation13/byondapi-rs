@@ -8,7 +8,7 @@ use tempfile::TempDir;
 #[test]
 #[ignore]
 #[cfg(windows)]
-fn test_byondapi() {
+fn test_byondapi_with_dreamdaemon() {
     let dll = build_dylib();
     compile();
 
