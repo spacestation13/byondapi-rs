@@ -1,11 +1,11 @@
-use crate::{prelude::ByondValue, static_global::BYOND, Error};
+use crate::{prelude::ByondValue, static_global::BYOND, typecheck_trait::ByondTypeCheck, Error};
 
 #[repr(transparent)]
 pub struct ByondValuePointer(pub ByondValue);
 
 /// FIXME: Use a Byond_IsPtr here instead of checking the type by hand
 fn is_pointer_shim(value: &ByondValue) -> bool {
-    let type_ = unsafe { BYOND.ByondValue_Type(&value.0) };
+    let type_ = value.get_type();
     type_ == 0x3C
 }
 
