@@ -55,13 +55,16 @@
 	if(O.name != ret)
 		throw EXCEPTION("Call proc failed, expected rust to return 'test name' but got '[ret]'")
 
-/test/proc/test_list()
+/test/proc/test_list_push()
 	var/list/L = list(1, 2, 3, 4, 5, 6, 7)
 
 	var/list/ret = call_ext("byondapi_test.dll", "byond:test_list_push")(L)
 
 	if(!islist(ret) || ret[8] != 8)
 		throw EXCEPTION("List push failed")
+
+/test/proc/test_list_double()
+	var/list/L = list(1, 2, 3, 4, 5, 6, 7)
 
 	var/list/doubled = call_ext("byondapi_test.dll", "byond:test_list_double")(L)
 	if(!islist(doubled) || doubled[3] != 6)
