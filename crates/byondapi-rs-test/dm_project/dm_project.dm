@@ -31,11 +31,10 @@
 
 	call_ext("byondapi_test.dll", "byond:test_ptr")(ptr)
 
-	// if(x != "awameow")
-	// 	throw EXCEPTION("Pointer read/write failed")
+	if(x != "awameow")
+		throw EXCEPTION("Pointer read/write failed")
 
 /obj/proc/get_name()
-	world.log << "get_name"
 	return name
 
 /test/proc/test_proc_call()

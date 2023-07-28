@@ -44,24 +44,10 @@ impl ByondValue {
     pub fn set_ref(&mut self, type_: ByondValueType, ref_: u4c) {
         unsafe { BYOND.ByondValue_SetRef(&mut self.0, type_, ref_) }
     }
-
-    pub fn write_ptr(&self, ptr: &ByondValue) -> Result<(), Error> {
-        unsafe { map_byond_error!(BYOND.Byond_WritePointer(&ptr.0, &self.0)) }
-    }
 }
 
 /// # Accessors
 impl ByondValue {
-    pub fn read_pointer(&self) -> Result<ByondValue, Error> {
-        let mut new_value = ByondValue::new();
-
-        unsafe {
-            map_byond_error!(BYOND.Byond_ReadPointer(&self.0, &mut new_value.0))?;
-        }
-
-        Ok(new_value)
-    }
-
     pub fn read_var(&self, name: &str) -> Result<ByondValue, Error> {
         let c_string = CString::new(name).unwrap();
         let c_str = c_string.as_c_str();
