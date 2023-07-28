@@ -10,12 +10,9 @@ fn is_pointer_shim(value: &ByondValue) -> bool {
 }
 
 impl ByondValuePointer {
+    /// If the value is actually a pointer, this will wrap it in a comfy type. Otherwise it fails.
     pub fn new(value: ByondValue) -> Result<Self, Error> {
-        if is_pointer_shim(&value) {
-            Ok(Self(value))
-        } else {
-            Err(Error::InvalidConversion)
-        }
+        value.try_into()
     }
 
     /// Read from this pointer and get a new [`ByondValue`]
@@ -39,6 +36,10 @@ impl TryFrom<ByondValue> for ByondValuePointer {
     type Error = Error;
 
     fn try_from(value: ByondValue) -> Result<Self, Self::Error> {
-        ByondValuePointer::new(value)
+        if is_pointer_shim(&value) {
+            Ok(Self(value))
+        } else {
+            Err(Error::InvalidConversion)
+        }
     }
 }
