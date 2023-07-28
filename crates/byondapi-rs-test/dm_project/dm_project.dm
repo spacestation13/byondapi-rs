@@ -65,4 +65,4 @@
 
 	var/list/doubled = call_ext("byondapi_test.dll", "byond:test_list_double")(L)
 	if(!islist(doubled) || doubled[3] != 6)
-		throw EXCEPTION("List iter failed")
+		throw EXCEPTION("List iter failed [json_encode(doubled)]")

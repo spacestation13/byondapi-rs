@@ -6,6 +6,11 @@ use byondapi::{
     value::{pointer::ByondValuePointer, ByondValue},
 };
 
+#[allow(dead_code)]
+fn write_log(x: &str) {
+    std::fs::write("./rust_log.txt", x).unwrap()
+}
+
 #[no_mangle]
 pub unsafe extern "C" fn test_connection(
     _argc: byondapi_sys::u4c,
@@ -115,10 +120,17 @@ pub unsafe extern "C" fn test_list_double(
 ) -> ByondValue {
     let args = parse_args(argc, argv);
 
-    let mut _list: ByondValueList = match (&args[0]).try_into() {
+    let list: ByondValueList = match (&args[0]).try_into() {
         Ok(list) => list,
         Err(e) => return format!("{:#?}", e).try_into().unwrap(),
     };
 
-    ByondValue::null()
+    let collection: Vec<ByondValue> = list
+        .iter()
+        .map(|f| (f.get_number().unwrap() * 2.).try_into().unwrap())
+        .collect();
+
+    let list: ByondValueList = collection.as_slice().try_into().unwrap();
+
+    list.try_into().unwrap()
 }

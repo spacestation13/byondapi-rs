@@ -1,6 +1,6 @@
 use std::{fmt::Debug, mem::MaybeUninit};
 
-use byondapi_sys::{u4c, CByondValueList};
+use byondapi_sys::CByondValueList;
 
 use crate::{prelude::ByondValue, static_global::BYOND, Error};
 
@@ -27,27 +27,16 @@ impl ByondValueList {
     pub fn new() -> Self {
         Default::default()
     }
-
-    pub fn with_capacity(capacity: usize) -> Self {
-        let mut new_inner = MaybeUninit::uninit();
-
-        let new_inner = unsafe {
-            // Safety: new_inner is going to an initialization function, it will only write to the pointer.
-            BYOND.ByondValueList_InitCount(new_inner.as_mut_ptr(), capacity as u4c);
-            // Safety: ByondValue_Init will have initialized the new_inner.
-            new_inner.assume_init()
-        };
-
-        Self(new_inner)
-    }
 }
 
 /// # Accessors
 impl ByondValueList {
+    /// Add a copy of value to the end of the list
     pub fn push(&mut self, value: &ByondValue) -> Result<(), Error> {
         unsafe { map_byond_error!(BYOND.ByondValueList_Add(&mut self.0, &value.0)) }
     }
 
+    /// Add a copy of value at a specific index
     pub fn insert(&mut self, index: usize, element: &ByondValue) -> Result<(), Error> {
         unsafe {
             map_byond_error!(BYOND.ByondValueList_InsertAt(&mut self.0, index as i32, &element.0))
@@ -116,5 +105,49 @@ impl TryFrom<ByondValueList> for ByondValue {
 
     fn try_from(value: ByondValueList) -> Result<Self, Self::Error> {
         (&value).try_into()
+    }
+}
+
+#[derive(Debug)]
+pub struct Iter<'a> {
+    num: u32,
+    list: &'a ByondValueList,
+}
+
+impl<'a> Iterator for Iter<'a> {
+    type Item = ByondValue;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let ret = if self.num < self.list.0.count {
+            let ptr = unsafe { &*self.list.0.items.add(self.num as usize) };
+            Some(ptr.try_into().unwrap())
+        } else {
+            None
+        };
+
+        self.num += 1;
+
+        ret
+    }
+}
+
+impl<'a> ByondValueList {
+    /// Get an iterator for this list
+    pub fn iter(&'a self) -> Iter<'a> {
+        Iter { num: 0, list: self }
+    }
+}
+
+impl TryFrom<&[ByondValue]> for ByondValueList {
+    type Error = Error;
+
+    fn try_from(value: &[ByondValue]) -> Result<Self, Self::Error> {
+        let mut list = Self::new();
+
+        for x in value {
+            list.push(x)?;
+        }
+
+        Ok(list)
     }
 }

@@ -15,7 +15,8 @@ fn test_byondapi_with_dreamdaemon() {
     let tempdir = tempfile::tempdir().expect("Failed to create temporary directory");
     copy_to_tmp(&dll, &tempdir);
     run_dreamdaemon(&tempdir);
-    check_output(&tempdir);
+    check_output_rust(&tempdir);
+    check_output_dd(&tempdir);
 }
 
 fn bin_path() -> PathBuf {
@@ -111,7 +112,7 @@ fn run_dreamdaemon(tempdir: &TempDir) {
     // println!("{:#?}", _dd_output);
 }
 
-fn check_output(tempdir: &TempDir) {
+fn check_output_dd(tempdir: &TempDir) {
     let log = tempdir.path().join("dd_log.txt");
 
     assert!(log.exists(), "The test did not produce any output");
@@ -124,4 +125,14 @@ fn check_output(tempdir: &TempDir) {
         !log.contains("runtime error:"),
         "Log contained runtime errors!"
     );
+}
+
+fn check_output_rust(tempdir: &TempDir) {
+    let log = tempdir.path().join("rust_log.txt");
+
+    if log.exists() {
+        let log = std::fs::read_to_string(log).expect("Failed to read log");
+        eprintln!("{}", log);
+        panic!("Rust error log was produced!");
+    }
 }
