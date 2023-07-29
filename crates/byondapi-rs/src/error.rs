@@ -6,6 +6,8 @@ use crate::static_global::BYOND;
 pub enum Error {
     /// This error is thrown when you try to convert a ByondValue into a type which it does not represent.
     InvalidConversion,
+    /// This error is thrown from call when you try to call something that isn't in BYOND's string tree (thus is not a valid proc)
+    InvalidProc,
     /// Thrown when trying to get a String from a ByondValue.
     NonUtf8String,
     /// Internal BYOND API error

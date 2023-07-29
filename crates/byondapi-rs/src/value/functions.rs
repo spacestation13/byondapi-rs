@@ -89,14 +89,17 @@ impl ByondValue {
         let c_string = CString::new(name).unwrap();
         let c_str = c_string.as_c_str();
 
+        let str_id = unsafe { BYOND.Byond_GetStrId(c_str.as_ptr()) };
+        if str_id == 0 {
+            return Err(Error::InvalidProc);
+        }
+
         let ptr = args.as_ptr();
-
         let mut new_value = ByondValue::new();
-
         unsafe {
-            map_byond_error!(BYOND.Byond_CallProc(
+            map_byond_error!(BYOND.Byond_CallProcByStrId(
                 &self.0,
-                c_str.as_ptr(),
+                str_id,
                 ptr as *const byondapi_sys::CByondValue,
                 args.len() as u32,
                 &mut new_value.0
