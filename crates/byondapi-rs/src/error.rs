@@ -1,3 +1,4 @@
+//! Error types for any problems this runs into, including internal BYOND errors.
 use std::ffi::{CStr, CString};
 
 use crate::static_global::BYOND;

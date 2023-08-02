@@ -80,3 +80,11 @@ impl ByondValue {
         Ok(new_self)
     }
 }
+
+impl<'a> ByondValue {
+    /// # Safety
+    /// The [`CByondValue`] must be initialized.
+    pub unsafe fn from_ref(s: &'a CByondValue) -> &'a Self {
+        unsafe { std::mem::transmute(s) }
+    }
+}

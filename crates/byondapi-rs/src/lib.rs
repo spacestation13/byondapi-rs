@@ -22,3 +22,8 @@ pub unsafe fn parse_args(
 ) -> &'static mut [ByondValue] {
     unsafe { std::slice::from_raw_parts_mut(argv, argc as usize) }
 }
+
+/// Re-export of byondapi_sys for all low level things you may run into.
+pub mod sys {
+    pub use byondapi_sys::*;
+}

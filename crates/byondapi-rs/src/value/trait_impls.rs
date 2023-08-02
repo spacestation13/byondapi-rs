@@ -26,21 +26,6 @@ impl Drop for ByondValue {
 }
 
 // From Impls
-impl From<&CByondValue> for ByondValue {
-    fn from(value: &CByondValue) -> Self {
-        let mut new_inner = MaybeUninit::uninit();
-
-        let new_inner = unsafe {
-            // Safety: new_inner is going to an initialization function, it will only write to the pointer.
-            BYOND.ByondValue_CopyFrom(new_inner.as_mut_ptr(), value);
-            // Safety: ByondValue_Init will have initialized the new_inner.
-            new_inner.assume_init()
-        };
-
-        Self(new_inner)
-    }
-}
-
 impl From<f32> for ByondValue {
     fn from(value: f32) -> Self {
         ByondValue::new_num(value)

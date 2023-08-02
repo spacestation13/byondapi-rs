@@ -1,5 +1,7 @@
+//! This trait allows checking what a [`crate::prelude::ByondValue`] actually represents before doing something with it
 use byondapi_sys::ByondValueType;
 
+/// This trait allows checking what a [`crate::prelude::ByondValue`] actually represents before doing something with it
 pub trait ByondTypeCheck {
     /// This gets the actual type.
     fn get_type(&self) -> ByondValueType;

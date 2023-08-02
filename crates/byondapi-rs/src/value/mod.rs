@@ -1,3 +1,4 @@
+//! [Newtype](https://doc.rust-lang.org/rust-by-example/generics/new_types.html) pattern over [`CByondValue`]
 use std::{
     ffi::{CStr, CString},
     mem::MaybeUninit,
@@ -7,8 +8,9 @@ use byondapi_sys::{u4c, ByondValueType, CByondValue};
 
 use crate::{error::Error, static_global::BYOND, typecheck_trait::ByondTypeCheck};
 
+/// [Newtype](https://doc.rust-lang.org/rust-by-example/generics/new_types.html) pattern over [`CByondValue`]
 #[repr(transparent)]
-pub struct ByondValue(pub(crate) CByondValue);
+pub struct ByondValue(pub CByondValue);
 
 /// It is safe to send ByondValue with ownership, but it is not safe to have references between threads.
 unsafe impl Send for ByondValue {}

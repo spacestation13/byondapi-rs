@@ -1,11 +1,13 @@
+//! [Newtype](https://doc.rust-lang.org/rust-by-example/generics/new_types.html) pattern over [`CByondValueList`]
 use std::{fmt::Debug, mem::MaybeUninit};
 
-use byondapi_sys::CByondValueList;
+use byondapi_sys::{CByondValue, CByondValueList};
 
 use crate::{prelude::ByondValue, static_global::BYOND, Error};
 
+/// [Newtype](https://doc.rust-lang.org/rust-by-example/generics/new_types.html) pattern over [`CByondValueList`]
 #[repr(transparent)]
-pub struct ByondValueList(pub(crate) CByondValueList);
+pub struct ByondValueList(pub CByondValueList);
 
 impl Default for ByondValueList {
     fn default() -> Self {
@@ -82,6 +84,10 @@ impl TryFrom<&ByondValueList> for ByondValue {
     type Error = Error;
 
     fn try_from(value: &ByondValueList) -> Result<Self, Self::Error> {
+        // The API must be called in this order:
+        // ByondValue_Init(&value) // Initializes the value
+        // Byond_CreateList(&value) // Creates a list() inside DM
+        // Byond_WriteList(&value, &list) // Copies the CByondList into the dm list()
         let new_value = ByondValue::new_list().unwrap();
 
         unsafe {
@@ -115,12 +121,13 @@ pub struct Iter<'a> {
 }
 
 impl<'a> Iterator for Iter<'a> {
-    type Item = ByondValue;
+    type Item = &'a ByondValue;
 
     fn next(&mut self) -> Option<Self::Item> {
         let ret = if self.num < self.list.0.count {
-            let ptr = unsafe { &*self.list.0.items.add(self.num as usize) };
-            Some(ptr.try_into().unwrap())
+            let ptr: &'a CByondValue = unsafe { &*self.list.0.items.add(self.num as usize) };
+            // Safety: Byond guarantees the CByondValueList items are valid, we maintain this invariant when adding to it.
+            Some(unsafe { ByondValue::from_ref(ptr) })
         } else {
             None
         };
