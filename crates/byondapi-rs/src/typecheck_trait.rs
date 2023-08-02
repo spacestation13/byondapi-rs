@@ -14,4 +14,6 @@ pub trait ByondTypeCheck {
     fn is_str(&self) -> bool;
     /// Check if this is a list.
     fn is_list(&self) -> bool;
+    /// Check if this is a pointer.
+    fn is_ptr(&self) -> bool;
 }

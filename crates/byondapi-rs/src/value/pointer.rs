@@ -1,13 +1,8 @@
-use crate::{prelude::ByondValue, static_global::BYOND, typecheck_trait::ByondTypeCheck, Error};
+use super::ByondValue;
+use crate::{static_global::BYOND, typecheck_trait::ByondTypeCheck, Error};
 
 #[repr(transparent)]
 pub struct ByondValuePointer(pub ByondValue);
-
-/// FIXME: Use a Byond_IsPtr here instead of checking the type by hand
-fn is_pointer_shim(value: &ByondValue) -> bool {
-    let type_ = value.get_type();
-    type_ == 0x3C
-}
 
 impl ByondValuePointer {
     /// If the value is actually a pointer, this will wrap it in a comfy type. Otherwise it fails.
@@ -36,7 +31,7 @@ impl TryFrom<ByondValue> for ByondValuePointer {
     type Error = Error;
 
     fn try_from(value: ByondValue) -> Result<Self, Self::Error> {
-        if is_pointer_shim(&value) {
+        if value.is_ptr() {
             Ok(Self(value))
         } else {
             Err(Error::InvalidConversion)
