@@ -1,9 +1,8 @@
 //! [Newtype](https://doc.rust-lang.org/rust-by-example/generics/new_types.html) pattern over [`CByondValueList`]
 use std::{fmt::Debug, mem::MaybeUninit};
 
-use byondapi_sys::{CByondValue, CByondValueList};
-
-use crate::{prelude::ByondValue, static_global::BYOND, Error};
+use crate::{static_global::BYOND, value::ByondValue, Error};
+use byondapi_sys::CByondValueList;
 
 /// [Newtype](https://doc.rust-lang.org/rust-by-example/generics/new_types.html) pattern over [`CByondValueList`]
 #[repr(transparent)]
@@ -114,34 +113,17 @@ impl TryFrom<ByondValueList> for ByondValue {
     }
 }
 
-#[derive(Debug)]
-pub struct Iter<'a> {
-    num: u32,
-    list: &'a ByondValueList,
-}
-
-impl<'a> Iterator for Iter<'a> {
-    type Item = &'a ByondValue;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let ret = if self.num < self.list.0.count {
-            let ptr: &'a CByondValue = unsafe { &*self.list.0.items.add(self.num as usize) };
-            // Safety: Byond guarantees the CByondValueList items are valid, we maintain this invariant when adding to it.
-            Some(unsafe { ByondValue::from_ref(ptr) })
-        } else {
-            None
-        };
-
-        self.num += 1;
-
-        ret
-    }
-}
-
 impl<'a> ByondValueList {
     /// Get an iterator for this list
-    pub fn iter(&'a self) -> Iter<'a> {
-        Iter { num: 0, list: self }
+    pub fn iter(&'a self) -> std::slice::Iter<'a, ByondValue> {
+        let slice: &[ByondValue] = self.into();
+        slice.iter()
+    }
+
+    /// Get a mutable iterator for this list
+    pub fn iter_mut(&'a mut self) -> std::slice::IterMut<'a, ByondValue> {
+        let slice: &mut [ByondValue] = self.into();
+        slice.iter_mut()
     }
 }
 
@@ -156,5 +138,67 @@ impl TryFrom<&[ByondValue]> for ByondValueList {
         }
 
         Ok(list)
+    }
+}
+
+/// # Safety
+/// See the constraints in [`std::slice::from_raw_parts#safety`]
+/// - `data` is valid for `len * mem::size_of::<ByondValue>()`
+///     - The entire memory range is contained within a `malloc()` block
+///     - zero length slices are just constructed normally
+/// - `data` points to `len` consecutive properly initialized values of [`ByondValue`]
+/// - The lifetime is based on the lifetime of the list
+/// - The total size is never going to be larger than `isize::MAX`
+impl<'a> From<&'a ByondValueList> for &'a [ByondValue] {
+    fn from(value: &'a ByondValueList) -> Self {
+        unsafe {
+            let count = value.0.count;
+            if count == 0 {
+                &[]
+            } else {
+                std::slice::from_raw_parts(
+                    value.0.items as *const ByondValue,
+                    value.0.count as usize,
+                )
+            }
+        }
+    }
+}
+
+/// # Safety
+/// See the constraints in [`std::slice::from_raw_parts_mut#safety`]
+/// - `data` is valid for `len * mem::size_of::<ByondValue>()`
+///   - The entire memory range is contained within a `malloc()` block
+///   - zero length slices are just constructed normally
+/// - `data` points to `len` consecutive properly initialized values of [`ByondValue`]
+/// - The lifetime is based on the lifetime of the list
+/// - The total size is never going to be larger than `isize::MAX`
+impl<'a> From<&'a mut ByondValueList> for &'a mut [ByondValue] {
+    fn from(value: &'a mut ByondValueList) -> Self {
+        unsafe {
+            let count = value.0.count;
+            if count == 0 {
+                &mut []
+            } else {
+                std::slice::from_raw_parts_mut(
+                    value.0.items as *mut ByondValue,
+                    value.0.count as usize,
+                )
+            }
+        }
+    }
+}
+
+/// Clones the list into a vec
+impl From<ByondValueList> for Vec<ByondValue> {
+    fn from(value: ByondValueList) -> Self {
+        value.iter().cloned().collect()
+    }
+}
+
+/// Clones the list into a vec
+impl From<&ByondValueList> for Vec<ByondValue> {
+    fn from(value: &ByondValueList) -> Self {
+        value.iter().cloned().collect()
     }
 }

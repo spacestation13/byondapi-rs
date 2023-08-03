@@ -30,6 +30,7 @@ impl ByondValue {
 
     /// Get the underlying ref number to this value
     pub fn get_ref(&self) -> Result<u4c, Error> {
+        // ByondValue_GetRef already checks our type to make sure we are a ref.
         let ref_ = unsafe { BYOND.ByondValue_GetRef(&self.0) };
         if ref_ != 0 {
             Ok(ref_ as u4c)
