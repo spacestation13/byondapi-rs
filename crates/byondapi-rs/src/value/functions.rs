@@ -88,7 +88,7 @@ impl ByondValue {
     ///
     /// Implicitly set waitfor=0, will never block.
     ///
-    /// # WARNING FOR BYOND 515.1610
+    /// # WARNING FOR BYOND 515.1609 and 515.1610
     /// This is treated as verb name, so underscores are replaced with spaces.
     /// For example `/obj/proc/get_name` would have to be called as `obj.call("get name")`.
     pub fn call(&self, name: &str, args: &[ByondValue]) -> Result<ByondValue, Error> {
