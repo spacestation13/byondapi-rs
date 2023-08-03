@@ -134,3 +134,44 @@ pub unsafe extern "C" fn test_list_double(
 
     list.try_into().unwrap()
 }
+
+#[no_mangle]
+pub unsafe extern "C" fn test_list_index(
+    argc: byondapi_sys::u4c,
+    argv: *mut ByondValue,
+) -> ByondValue {
+    let args = parse_args(argc, argv);
+
+    let list: ByondValueList = match (&args[0]).try_into() {
+        Ok(list) => list,
+        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
+    };
+
+    list[3].clone()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn test_list_pop(
+    argc: byondapi_sys::u4c,
+    argv: *mut ByondValue,
+) -> ByondValue {
+    let args = parse_args(argc, argv);
+
+    let mut list: ByondValueList = match (&args[0]).try_into() {
+        Ok(list) => list,
+        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
+    };
+
+    let element = match list.pop() {
+        Ok(x) => x,
+        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
+    };
+
+    if list.0.count != 4 {
+        return "pop did not actually remove item from list"
+            .try_into()
+            .unwrap();
+    }
+
+    element
+}

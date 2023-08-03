@@ -69,3 +69,19 @@
 	var/list/doubled = call_ext("byondapi_test.dll", "byond:test_list_double")(L)
 	if(!islist(doubled) || doubled[3] != 6)
 		throw EXCEPTION("List iter failed [json_encode(doubled)]")
+
+/test/proc/test_list_index()
+	var/list/L = list(1, 2, 3, 4, 5)
+
+	var/ret = call_ext("byondapi_test.dll", "byond:test_list_index")(L)
+
+	if(ret != 4)
+		throw EXCEPTION("List index access failed [json_encode(ret)]")
+
+/test/proc/test_list_pop()
+	var/list/L = list(1, 2, 3, 4, 5)
+
+	var/ret = call_ext("byondapi_test.dll", "byond:test_list_pop")(L)
+
+	if(ret != 5)
+		throw EXCEPTION("List pop failed [json_encode(ret)]")

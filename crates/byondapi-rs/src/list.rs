@@ -37,11 +37,44 @@ impl ByondValueList {
         unsafe { map_byond_error!(BYOND.ByondValueList_Add(&mut self.0, &value.0)) }
     }
 
+    /// Remove the last element from the list
+    pub fn pop(&mut self) -> Result<ByondValue, Error> {
+        self.remove(self.0.count as usize)
+    }
+
     /// Add a copy of value at a specific index
     pub fn insert(&mut self, index: usize, element: &ByondValue) -> Result<(), Error> {
         unsafe {
             map_byond_error!(BYOND.ByondValueList_InsertAt(&mut self.0, index as i32, &element.0))
         }
+    }
+
+    /// Remove a value at a specific index
+    pub fn remove(&mut self, index: usize) -> Result<ByondValue, Error> {
+        let element = self[index].clone();
+
+        let num_removed = unsafe { BYOND.ByondValueList_RemoveAt(&mut self.0, index as u32, 1) };
+        if num_removed != 1 {
+            Err(Error::get_last_byond_error())
+        } else {
+            Ok(element)
+        }
+    }
+}
+
+impl std::ops::Index<usize> for ByondValueList {
+    type Output = ByondValue;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        let slice: &[ByondValue] = self.into();
+        &slice[index]
+    }
+}
+
+impl std::ops::IndexMut<usize> for ByondValueList {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        let slice: &mut [ByondValue] = self.into();
+        &mut slice[index]
     }
 }
 

@@ -71,7 +71,7 @@ fn compile() {
 
     let output = Command::new(dm_compiler)
         .current_dir(project_dir())
-        .arg("dm_project.dme")
+        .arg("dm_project.dm")
         .output()
         .expect("Failed to compile DM project");
 
