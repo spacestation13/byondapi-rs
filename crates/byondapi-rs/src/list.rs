@@ -8,25 +8,25 @@ use byondapi_sys::CByondValueList;
 #[repr(transparent)]
 pub struct ByondValueList(pub CByondValueList);
 
-impl Default for ByondValueList {
-    fn default() -> Self {
-        let mut new_inner = MaybeUninit::uninit();
-
-        let new_inner = unsafe {
-            // Safety: new_inner is going to an initialization function, it will only write to the pointer.
-            BYOND.ByondValueList_Init(new_inner.as_mut_ptr());
-            // Safety: ByondValue_Init will have initialized the new_inner.
-            new_inner.assume_init()
-        };
-
-        Self(new_inner)
-    }
-}
-
 /// # Constructors
 impl ByondValueList {
     pub fn new() -> Self {
         Default::default()
+    }
+}
+
+/// # Helpers
+impl ByondValueList {
+    pub fn capacity(&self) -> usize {
+        self.0.capacity as usize
+    }
+
+    pub fn len(&self) -> usize {
+        self.0.count as usize
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 }
 
@@ -62,6 +62,7 @@ impl ByondValueList {
     }
 }
 
+// Indexing
 impl std::ops::Index<usize> for ByondValueList {
     type Output = ByondValue;
 
@@ -97,6 +98,21 @@ impl Drop for ByondValueList {
     fn drop(&mut self) {
         // Safety: We are being dropped, it is okay to free our inner CByondValue.
         unsafe { BYOND.ByondValueList_Free(&mut self.0) }
+    }
+}
+
+impl Default for ByondValueList {
+    fn default() -> Self {
+        let mut new_inner = MaybeUninit::uninit();
+
+        let new_inner = unsafe {
+            // Safety: new_inner is going to an initialization function, it will only write to the pointer.
+            BYOND.ByondValueList_Init(new_inner.as_mut_ptr());
+            // Safety: ByondValue_Init will have initialized the new_inner.
+            new_inner.assume_init()
+        };
+
+        Self(new_inner)
     }
 }
 
