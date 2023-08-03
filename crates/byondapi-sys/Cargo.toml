@@ -6,7 +6,7 @@ edition = "2021"
 description = "Raw bindgen bindings for byondapi"
 readme = "README.md"
 license = "MIT"
-repository = "https://github.com/spacestation13/byondapi-sys"
+repository = "https://github.com/spacestation13/byondapi-rs"
 keywords = ["byond", "byondapi"]
 exclude = [".vscode/*"]
 
