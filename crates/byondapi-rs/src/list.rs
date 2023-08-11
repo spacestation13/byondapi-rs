@@ -39,7 +39,7 @@ impl ByondValueList {
 
     /// Remove the last element from the list
     pub fn pop(&mut self) -> Result<ByondValue, Error> {
-        self.remove(self.0.count as usize)
+        self.remove((self.0.count as usize) - 1)
     }
 
     /// Add a copy of value at a specific index
