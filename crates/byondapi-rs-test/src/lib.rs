@@ -11,16 +11,25 @@ fn write_log(x: &str) {
     std::fs::write("./rust_log.txt", x).unwrap()
 }
 
+use std::panic;
+fn setup_panic_handler() {
+    panic::set_hook(Box::new(|info| {
+        write_log(&format!("Panic {:#?}", info));
+    }))
+}
+
 #[no_mangle]
 pub unsafe extern "C" fn test_connection(
     _argc: byondapi_sys::u4c,
     _argv: *mut ByondValue,
 ) -> ByondValue {
+    setup_panic_handler();
     ByondValue::new_num(69.0)
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn test_args(argc: byondapi_sys::u4c, argv: *mut ByondValue) -> ByondValue {
+    setup_panic_handler();
     let args = parse_args(argc, argv);
     assert_eq!(args.len(), 1);
     args[0].clone()
@@ -28,6 +37,7 @@ pub unsafe extern "C" fn test_args(argc: byondapi_sys::u4c, argv: *mut ByondValu
 
 #[no_mangle]
 pub unsafe extern "C" fn send_test(_argc: byondapi_sys::u4c, _argv: *mut ByondValue) -> ByondValue {
+    setup_panic_handler();
     // let args = parse_args(argc, argv);
     let new_value = ByondValue::new_str("Meow").unwrap();
 
@@ -40,6 +50,7 @@ pub unsafe extern "C" fn send_test(_argc: byondapi_sys::u4c, _argv: *mut ByondVa
 
 #[no_mangle]
 pub unsafe extern "C" fn test_ptr(argc: byondapi_sys::u4c, argv: *mut ByondValue) -> ByondValue {
+    setup_panic_handler();
     let args = parse_args(argc, argv);
     let pointer = match ByondValuePointer::new(args[0].clone()) {
         Ok(ptr) => ptr,
@@ -68,6 +79,7 @@ pub unsafe extern "C" fn test_proc_call(
     argc: byondapi_sys::u4c,
     argv: *mut ByondValue,
 ) -> ByondValue {
+    setup_panic_handler();
     let args = parse_args(argc, argv);
 
     // FIXME: Byond will change this in the future
@@ -84,6 +96,7 @@ pub unsafe extern "C" fn test_readwrite_var(
     argc: byondapi_sys::u4c,
     argv: *mut ByondValue,
 ) -> ByondValue {
+    setup_panic_handler();
     let args = parse_args(argc, argv);
     let object = &args[0];
 
@@ -98,6 +111,7 @@ pub unsafe extern "C" fn test_list_push(
     argc: byondapi_sys::u4c,
     argv: *mut ByondValue,
 ) -> ByondValue {
+    setup_panic_handler();
     let args = parse_args(argc, argv);
 
     let mut list: ByondValueList = match (&args[0]).try_into() {
@@ -118,6 +132,7 @@ pub unsafe extern "C" fn test_list_double(
     argc: byondapi_sys::u4c,
     argv: *mut ByondValue,
 ) -> ByondValue {
+    setup_panic_handler();
     let args = parse_args(argc, argv);
 
     let list: ByondValueList = match (&args[0]).try_into() {
@@ -140,6 +155,7 @@ pub unsafe extern "C" fn test_list_index(
     argc: byondapi_sys::u4c,
     argv: *mut ByondValue,
 ) -> ByondValue {
+    setup_panic_handler();
     let args = parse_args(argc, argv);
 
     let list: ByondValueList = match (&args[0]).try_into() {
@@ -155,6 +171,7 @@ pub unsafe extern "C" fn test_list_pop(
     argc: byondapi_sys::u4c,
     argv: *mut ByondValue,
 ) -> ByondValue {
+    setup_panic_handler();
     let args = parse_args(argc, argv);
 
     let mut list: ByondValueList = match (&args[0]).try_into() {
