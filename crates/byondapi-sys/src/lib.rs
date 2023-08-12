@@ -73,6 +73,10 @@ impl ByondApi {
 
         Ok(ByondApi { _internal, version })
     }
+
+    pub fn get_version(&self) -> (u32, u32) {
+        self.version
+    }
 }
 
 impl ByondApi {
