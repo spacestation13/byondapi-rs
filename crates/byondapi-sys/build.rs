@@ -15,6 +15,11 @@ fn get_header() -> PathBuf {
         .join("headers")
         .join("515-1610")
         .join("byondapi.h");
+    #[cfg(feature = "515-1611")]
+    return Path::new(&std::env::var("CARGO_MANIFEST_DIR").unwrap())
+        .join("headers")
+        .join("515-1611")
+        .join("byondapi.h");
 }
 
 fn copy_wrapper(lib_dir: &Path) -> PathBuf {
