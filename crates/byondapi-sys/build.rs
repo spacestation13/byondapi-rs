@@ -1,25 +1,29 @@
 use std::path::{Path, PathBuf};
 
 fn main() {
-    bindgen();
+    generate_all();
 }
 
-fn get_header() -> PathBuf {
-    #[cfg(feature = "515-1609")]
-    return Path::new(&std::env::var("CARGO_MANIFEST_DIR").unwrap())
-        .join("headers")
-        .join("515-1609")
-        .join("byondapi.h");
-    #[cfg(feature = "515-1610")]
-    return Path::new(&std::env::var("CARGO_MANIFEST_DIR").unwrap())
-        .join("headers")
-        .join("515-1610")
-        .join("byondapi.h");
-    #[cfg(feature = "515-1611")]
-    return Path::new(&std::env::var("CARGO_MANIFEST_DIR").unwrap())
-        .join("headers")
-        .join("515-1611")
-        .join("byondapi.h");
+fn get_version(x: &str) -> (u32, u32) {
+    let vec: Vec<_> = x.split('-').take(2).collect();
+    (vec[0].parse().unwrap(), vec[1].parse().unwrap())
+}
+
+fn get_headers() -> Vec<(PathBuf, (u32, u32))> {
+    let base_path = Path::new(&std::env::var("CARGO_MANIFEST_DIR").unwrap()).join("headers");
+
+    base_path
+        .read_dir()
+        .expect("headers folder fucked up")
+        .filter_map(|f| {
+            if let Ok(file) = f {
+                Some(file.file_name().to_string_lossy().into_owned())
+            } else {
+                None
+            }
+        })
+        .map(|f| (base_path.join(&f).join("byondapi.h"), get_version(&f)))
+        .collect()
 }
 
 fn copy_wrapper(lib_dir: &Path) -> PathBuf {
@@ -36,52 +40,28 @@ fn copy_wrapper(lib_dir: &Path) -> PathBuf {
     wrapper_path
 }
 
-fn bindgen() {
+fn generate_all() {
     let out_dir = PathBuf::from(std::env::var("OUT_DIR").expect("OUT_DIR not defined"));
 
-    let vendored_header = get_header();
-    std::fs::copy(&vendored_header, out_dir.join("byondapi.h"))
-        .expect("Failed to copy header to OUT_DIR");
-    let wrapper = copy_wrapper(&out_dir);
+    get_headers().iter().for_each(|(path, version)| {
+        let target = out_dir.join("byondapi.h");
+        std::fs::copy(path, target).expect("Failed to copy to out_dir");
+        let wrapper = copy_wrapper(&out_dir);
 
-    // Make byondapi-c interface header a dependency of the build
-    println!(
-        "cargo:rerun-if-changed={}",
-        vendored_header.to_string_lossy()
-    );
+        let mut builder = bindgen::Builder::default()
+            .header(wrapper.to_string_lossy())
+            .dynamic_library_name("ByondApi")
+            .dynamic_link_require_all(true)
+            // Also make headers included by main header dependencies of the build
+            .parse_callbacks(Box::new(bindgen::CargoCallbacks));
 
-    let mut builder = bindgen::Builder::default()
-        .header(wrapper.to_string_lossy())
-        .dynamic_library_name("ByondApi")
-        .dynamic_link_require_all(true)
-        // Also make headers included by main header dependencies of the build
-        .parse_callbacks(Box::new(bindgen::CargoCallbacks));
+        // Disable copy on refcounted types
+        builder = builder.no_copy("CByondValue").no_copy("CByondValueList");
 
-    // Disable copy on refcounted types
-    builder = builder.no_copy("CByondValue").no_copy("CByondValueList");
-
-    // TODO: Enable C++ conversion when bindgen supports CUnwind correctly
-    // let rust_version = rustc_version::version().unwrap();
-
-    // if rust_version.major > 1 || (rust_version.major == 1 && rust_version.minor > 72) {
-    // builder = builder
-    //     // Tweaks
-    //     .override_abi(bindgen::Abi::CUnwind, "Byond_GetVar")
-    //         .override_abi(bindgen::Abi::CUnwind, "Byond_SetVar")
-    //         .override_abi(bindgen::Abi::CUnwind, "Byond_GetVarByStrId")
-    //         .override_abi(bindgen::Abi::CUnwind, "Byond_SetVarByStrId")
-    //         .override_abi(bindgen::Abi::CUnwind, "Byond_CreateList")
-    //         .override_abi(bindgen::Abi::CUnwind, "Byond_GetList")
-    //         .override_abi(bindgen::Abi::CUnwind, "Byond_SetList")
-    //         .override_abi(bindgen::Abi::CUnwind, "Byond_ReadPointer")
-    //         .override_abi(bindgen::Abi::CUnwind, "Byond_WritePointer")
-    //         .override_abi(bindgen::Abi::CUnwind, "Byond_CallProc")
-    //         .override_abi(bindgen::Abi::CUnwind, "Byond_CallProcByStrId");
-    // }
-
-    builder
-        .generate()
-        .expect("Unable to generate bindings")
-        .write_to_file(out_dir.join("bindings.rs"))
-        .expect("Couldn't write bindings!");
+        builder
+            .generate()
+            .expect("Unable to generate bindings")
+            .write_to_file(out_dir.join(format!("bindings_{}_{}.rs", version.0, version.1)))
+            .expect("Couldn't write bindings!");
+    });
 }

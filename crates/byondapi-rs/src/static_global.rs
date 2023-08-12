@@ -16,7 +16,8 @@ pub fn init_lib() -> byondapi_sys::ByondApi {
         }
     };
 
-    unsafe { byondapi_sys::init_from_library(library) }.expect("Failed to initialize library.")
+    unsafe { byondapi_sys::ByondApi::init_from_library(library) }
+        .expect("Failed to initialize library.")
 }
 
 #[cfg(target_os = "linux")]

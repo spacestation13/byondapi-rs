@@ -1,6 +1,6 @@
 [package]
 name = "byondapi-sys"
-version = "0.9.0"
+version = "0.10.0"
 authors = ["tigercat2000 <nick.pilant@gmail.com>"]
 edition = "2021"
 description = "Raw bindgen bindings for byondapi"
@@ -15,12 +15,6 @@ exclude = [".vscode/*"]
 [package.metadata.docs.rs]
 default-target = "i686-unknown-linux-gnu"
 targets = [] # Do not build the doc with any other target than the default.
-
-[features]
-default = ["515-1611"]
-515-1609 = []
-515-1610 = []
-515-1611 = []
 
 [dependencies]
 libloading = "0.8.0"
