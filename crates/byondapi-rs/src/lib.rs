@@ -5,6 +5,7 @@ mod static_global;
 
 #[macro_use]
 pub mod error;
+pub mod map;
 pub use error::Error;
 
 pub mod list;

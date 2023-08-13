@@ -2,6 +2,7 @@
 
 use byondapi::{
     list::ByondValueList,
+    map::{byond_block, byond_length, ByondXYZ},
     parse_args,
     value::{pointer::ByondValuePointer, ByondValue},
 };
@@ -191,4 +192,64 @@ pub unsafe extern "C" fn test_list_pop(
     }
 
     element
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn test_length_with_list(
+    argc: byondapi_sys::u4c,
+    argv: *mut ByondValue,
+) -> ByondValue {
+    setup_panic_handler();
+    let args = parse_args(argc, argv);
+
+    let list: ByondValueList = match (&args[0]).try_into() {
+        Ok(list) => list,
+        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
+    };
+
+    let value: ByondValue = match list.try_into() {
+        Ok(x) => x,
+        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
+    };
+
+    match byond_length(&value) {
+        Ok(x) => x,
+        Err(e) => format!("{:#?}", e).try_into().unwrap(),
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn test_block(argc: byondapi_sys::u4c, argv: *mut ByondValue) -> ByondValue {
+    setup_panic_handler();
+    let _args = parse_args(argc, argv);
+
+    let block = match byond_block(
+        ByondXYZ::with_coords((1, 1, 1)),
+        ByondXYZ::with_coords((2, 2, 1)),
+    ) {
+        Ok(list) => list,
+        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
+    };
+
+    if block.len() != 4 {
+        return format!("block returned {} turfs when we expected 4", block.len())
+            .try_into()
+            .unwrap();
+    }
+
+    (block.len() as f32).into()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn test_length_with_str(
+    argc: byondapi_sys::u4c,
+    argv: *mut ByondValue,
+) -> ByondValue {
+    setup_panic_handler();
+    let args = parse_args(argc, argv);
+
+    match byond_length(&args[0]) {
+        Ok(x) => x,
+        Err(e) => format!("{:#?}", e).try_into().unwrap(),
+    }
 }

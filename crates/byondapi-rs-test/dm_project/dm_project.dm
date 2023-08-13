@@ -85,3 +85,33 @@
 
 	if(ret != 5)
 		throw EXCEPTION("List pop failed [json_encode(ret)]")
+
+/test/proc/test_length_with_list()
+	var/list/L = list(1, 2, 3, 4, 5)
+
+	var/ret = call_ext("byondapi_test.dll", "byond:test_length_with_list")(L)
+
+	if(ret != 5)
+		throw EXCEPTION("List length failed [json_encode(ret)]")
+
+/test/proc/test_block()
+	world.maxz = 1
+	world.maxx = 2
+	world.maxy = 2
+
+	var/ret = call_ext("byondapi_test.dll", "byond:test_block")()
+
+	if(ret != 4)
+		throw EXCEPTION("Block failed [json_encode(ret)]")
+
+	world.maxz = 0
+	world.maxx = 0
+	world.maxy = 0
+
+/test/proc/test_length_with_str()
+	var/str = "meowman"
+
+	var/ret = call_ext("byondapi_test.dll", "byond:test_length_with_str")(str)
+
+	if(ret != 7)
+		throw EXCEPTION("str length failed [json_encode(ret)]")

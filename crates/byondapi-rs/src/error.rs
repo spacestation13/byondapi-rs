@@ -15,6 +15,8 @@ pub enum Error {
     ByondError(ByondError),
     /// When the BYOND API doesn't tell us what the error is
     UnknownByondError,
+    /// Thrown by us when we know this call will panic internally because of the version
+    NotAvailableForThisByondVersion,
 }
 
 impl Error {
