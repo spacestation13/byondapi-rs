@@ -135,4 +135,12 @@ impl ByondValue {
     pub fn read_string<T: Into<Vec<u8>>>(&self, name: T) -> Result<String, Error> {
         self.read_var(name)?.try_into()
     }
+
+    /// Reads a list through the ref. Fails if this isn't a ref type or this isn't a list.
+    pub fn read_list<T: Into<Vec<u8>>>(
+        &self,
+        name: T,
+    ) -> Result<crate::prelude::ByondValueList, Error> {
+        self.read_var(name)?.try_into()
+    }
 }
