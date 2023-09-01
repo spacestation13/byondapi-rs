@@ -253,3 +253,41 @@ pub unsafe extern "C" fn test_length_with_str(
         Err(e) => format!("{:#?}", e).try_into().unwrap(),
     }
 }
+#[no_mangle]
+pub unsafe extern "C" fn test_list_key_lookup(
+    argc: byondapi_sys::u4c,
+    argv: *mut ByondValue,
+) -> ByondValue {
+    setup_panic_handler();
+    let args = parse_args(argc, argv);
+
+    let list = &args[0];
+
+    let num: f32 = match list.read_list_index(&ByondValue::try_from("cat").unwrap()) {
+        Ok(x) => x.try_into().unwrap(),
+        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
+    };
+    assert_eq!(num, 7.0);
+
+    let num: f32 = match list.read_list_index(&ByondValue::try_from("dog").unwrap()) {
+        Ok(x) => x.try_into().unwrap(),
+        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
+    };
+    assert_eq!(num, 5.0);
+
+    let num: f32 = match list.read_list_index(&ByondValue::try_from("parrot").unwrap()) {
+        Ok(x) => x.try_into().unwrap(),
+        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
+    };
+    assert_eq!(num, 4.0);
+
+    match list.write_list_index(
+        &ByondValue::try_from("parrot").unwrap(),
+        &ByondValue::try_from(14.0).unwrap(),
+    ) {
+        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
+        Ok(_) => {}
+    };
+
+    ByondValue::new()
+}

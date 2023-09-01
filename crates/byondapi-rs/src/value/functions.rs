@@ -124,6 +124,26 @@ impl ByondValue {
     }
 }
 
+/// # List operations by key instead of indices (why are they even here lumlum?????)
+impl ByondValue {
+    /// Reads a value by key through the ref. Fails if this isn't a list.
+    pub fn read_list_index(&self, index: &ByondValue) -> Result<ByondValue, Error> {
+        let mut result = ByondValue::new();
+        unsafe {
+            map_byond_error!(BYOND.Byond_ReadListIndex(&self.0, &index.0, &mut result.0))?;
+        }
+        Ok(result)
+    }
+
+    /// Writes a value by key through the ref. Fails if this isn't a list.
+    pub fn write_list_index(&self, index: &ByondValue, value: &ByondValue) -> Result<(), Error> {
+        unsafe {
+            map_byond_error!(BYOND.Byond_WriteListIndex(&self.0, &index.0, &value.0))?;
+        }
+        Ok(())
+    }
+}
+
 /// # Helpers
 impl ByondValue {
     /// Reads a number through the ref. Fails if this isn't a ref type or this isn't a number.

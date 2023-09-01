@@ -67,7 +67,7 @@ impl ByondApi {
         let _internal: Box<dyn Any> = match version {
             (515, 1609) => Box::new(byond515_1609::ByondApi::from_library(lib)?),
             (515, 1610) => Box::new(byond515_1610::ByondApi::from_library(lib)?),
-            (515, 1611..=1612) => Box::new(byond515_1611::ByondApi::from_library(lib)?),
+            (515, 1611..=1614) => Box::new(byond515_1611::ByondApi::from_library(lib)?),
             x => return Err(::libloading::Error::DlSymUnknown),
         };
 
@@ -115,7 +115,7 @@ macro_rules! generate_match {
                 .get_lib::<byond515_1609::ByondApi>().$function($($arg),*),
             (515, 1610) => $self
                 .get_lib::<byond515_1610::ByondApi>().$function($($arg),*),
-            (515, 1611..=1612) => $self
+            (515, 1611..=1614) => $self
                 .get_lib::<byond515_1611::ByondApi>().$function($($arg),*),
             x => panic!("Unknown byond version {:?}", x),
         }
@@ -128,7 +128,7 @@ macro_rules! generate_match_1610 {
         match $self.version {
             (515, 1610) => $self
                 .get_lib::<byond515_1610::ByondApi>().$function($($arg),*),
-            (515, 1611..=1612) => $self
+            (515, 1611..=1614) => $self
                 .get_lib::<byond515_1611::ByondApi>().$function($($arg),*),
             x => panic!("Unsupported byond version for {:?}- {:?}", stringify!($function), x),
         }
@@ -139,7 +139,7 @@ macro_rules! generate_match_1610 {
 macro_rules! generate_match_1611 {
     ($self: ident, $function: ident $(, $arg:expr)*) => {
         match $self.version {
-            (515, 1611..=1612) => $self
+            (515, 1611..=1614) => $self
                 .get_lib::<byond515_1611::ByondApi>().$function($($arg),*),
             x => panic!("Unsupported byond version for {:?}- {:?}", stringify!($function), x),
         }

@@ -115,3 +115,11 @@
 
 	if(ret != 7)
 		throw EXCEPTION("str length failed [json_encode(ret)]")
+
+/test/proc/test_list_key_lookup()
+	var/list/L = list("cat" = 7, "dog" = 5, "parrot" = 4)
+
+	call_ext("byondapi_test.dll", "byond:test_list_key_lookup")(L)
+
+	if(L["parrot"] != 14)
+		throw EXCEPTION("list modification by key failed")
