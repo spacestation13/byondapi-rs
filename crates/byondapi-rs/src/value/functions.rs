@@ -48,7 +48,7 @@ impl ByondValue {
     }
 
     /// Replaces whatever is currently in this value with a string
-    pub fn set_str(&mut self, f: &str) -> Result<(), Error> {
+    pub fn set_str<T: Into<Vec<u8>>>(&mut self, f: T) -> Result<(), Error> {
         let c_string = CString::new(f).unwrap();
         let c_str = c_string.as_c_str();
         unsafe { map_byond_error!(BYOND.ByondValue_SetStr(&mut self.0, c_str.as_ptr())) }
@@ -63,7 +63,7 @@ impl ByondValue {
 /// # Accessors
 impl ByondValue {
     /// Read a variable through the ref. Fails if this isn't a ref type.
-    pub fn read_var(&self, name: &str) -> Result<ByondValue, Error> {
+    pub fn read_var<T: Into<Vec<u8>>>(&self, name: T) -> Result<ByondValue, Error> {
         let c_string = CString::new(name).unwrap();
         let c_str = c_string.as_c_str();
 
@@ -77,7 +77,11 @@ impl ByondValue {
     }
 
     /// Write to a variable through the ref. Fails if this isn't a ref type.
-    pub fn write_var(&mut self, name: &str, other: &ByondValue) -> Result<(), Error> {
+    pub fn write_var<T: Into<Vec<u8>>>(
+        &mut self,
+        name: T,
+        other: &ByondValue,
+    ) -> Result<(), Error> {
         let c_string = CString::new(name).unwrap();
         let c_str = c_string.as_c_str();
 
@@ -91,7 +95,11 @@ impl ByondValue {
     /// # WARNING FOR BYOND 515.1609 and 515.1610
     /// This is treated as verb name, so underscores are replaced with spaces.
     /// For example `/obj/proc/get_name` would have to be called as `obj.call("get name")`.
-    pub fn call(&self, name: &str, args: &[ByondValue]) -> Result<ByondValue, Error> {
+    pub fn call<T: Into<Vec<u8>>>(
+        &self,
+        name: T,
+        args: &[ByondValue],
+    ) -> Result<ByondValue, Error> {
         let c_string = CString::new(name).unwrap();
         let c_str = c_string.as_c_str();
 
@@ -113,5 +121,18 @@ impl ByondValue {
         }
 
         Ok(new_value)
+    }
+}
+
+/// # Helpers
+impl ByondValue {
+    /// Reads a number through the ref. Fails if this isn't a ref type or this isn't a number.
+    pub fn read_number<T: Into<Vec<u8>>>(&self, name: T) -> Result<f32, Error> {
+        self.read_var(name)?.try_into()
+    }
+
+    /// Reads a string through the ref. Fails if this isn't a ref type or this isn't a string.
+    pub fn read_string<T: Into<Vec<u8>>>(&self, name: T) -> Result<String, Error> {
+        self.read_var(name)?.try_into()
     }
 }

@@ -8,7 +8,7 @@ use byondapi::{
 };
 
 #[allow(dead_code)]
-fn write_log(x: &str) {
+fn write_log<T: AsRef<[u8]>>(x: T) {
     std::fs::write("./rust_log.txt", x).unwrap()
 }
 
