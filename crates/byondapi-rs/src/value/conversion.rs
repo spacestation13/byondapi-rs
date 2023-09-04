@@ -4,6 +4,17 @@ use super::ByondValue;
 use crate::{static_global::BYOND, typecheck_trait::ByondTypeCheck, Error};
 
 // From Impls
+
+impl From<bool> for ByondValue {
+    fn from(value: bool) -> Self {
+        if value {
+            ByondValue::new_num(1.0)
+        } else {
+            ByondValue::new_num(0.0)
+        }
+    }
+}
+
 impl From<f32> for ByondValue {
     fn from(value: f32) -> Self {
         ByondValue::new_num(value)
