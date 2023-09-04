@@ -23,14 +23,17 @@ pub fn init_lib() -> byondapi_sys::ByondApi {
 #[cfg(target_os = "linux")]
 pub fn init_lib() -> byondapi_sys::ByondApi {
     let library = libloading::os::unix::Library::this();
-    unsafe { byondapi_sys::init_from_library(library) }.unwrap_or(|| {
-        let message = format!(
-            "byondcore.dll is not loaded into the process as expected: {:#?}",
-            e
-        );
-        crate::error::crash_logging::log_to_file(&message);
-        panic!("{}", message)
-    })
+    match unsafe { byondapi_sys::ByondApi::init_from_library(library) } {
+        Err(e) => {
+            let message = format!(
+                "byondcore.dll is not loaded into the process as expected: {:#?}",
+                e
+            );
+            crate::error::crash_logging::log_to_file(&message);
+            panic!("{}", message)
+        }
+        Ok(res) => res,
+    }
 }
 
 lazy_static! {
