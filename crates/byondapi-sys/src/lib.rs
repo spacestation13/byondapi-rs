@@ -55,6 +55,7 @@ pub struct ByondApi {
 }
 
 unsafe impl Sync for ByondApi {}
+unsafe impl Send for ByondApi {}
 
 impl ByondApi {
     pub unsafe fn init_from_library<L>(library: L) -> Result<ByondApi, libloading::Error>

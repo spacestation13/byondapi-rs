@@ -1,5 +1,5 @@
 use super::ByondValue;
-use crate::{static_global::BYOND, typecheck_trait::ByondTypeCheck, Error};
+use crate::{static_global::byond, typecheck_trait::ByondTypeCheck, Error};
 
 #[repr(transparent)]
 pub struct ByondValuePointer(pub ByondValue);
@@ -15,7 +15,7 @@ impl ByondValuePointer {
         let mut new_value = ByondValue::new();
 
         unsafe {
-            map_byond_error!(BYOND.Byond_ReadPointer(&self.0 .0, &mut new_value.0))?;
+            map_byond_error!(byond().Byond_ReadPointer(&self.0 .0, &mut new_value.0))?;
         }
 
         Ok(new_value)
@@ -23,7 +23,7 @@ impl ByondValuePointer {
 
     /// Write a [`ByondValue`] through this pointer
     pub fn write(&self, value: &ByondValue) -> Result<(), Error> {
-        unsafe { map_byond_error!(BYOND.Byond_WritePointer(&self.0 .0, &value.0)) }
+        unsafe { map_byond_error!(byond().Byond_WritePointer(&self.0 .0, &value.0)) }
     }
 }
 

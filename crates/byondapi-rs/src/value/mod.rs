@@ -2,7 +2,7 @@
 
 use byondapi_sys::{ByondValueType, CByondValue};
 
-use crate::{static_global::BYOND, typecheck_trait::ByondTypeCheck};
+use crate::{static_global::byond, typecheck_trait::ByondTypeCheck};
 
 /// [Newtype](https://doc.rust-lang.org/rust-by-example/generics/new_types.html) pattern over [`CByondValue`]
 #[repr(transparent)]
@@ -27,27 +27,27 @@ fn is_pointer_shim(value: &ByondValue) -> bool {
 impl ByondTypeCheck for ByondValue {
     fn get_type(&self) -> ByondValueType {
         // Safety: This operation only fails if our CByondValue is invalid, which cannot happen.
-        unsafe { BYOND.ByondValue_Type(&self.0) }
+        unsafe { byond().ByondValue_Type(&self.0) }
     }
 
     fn is_null(&self) -> bool {
         // Safety: This operation only fails if our CByondValue is invalid, which cannot happen.
-        unsafe { BYOND.ByondValue_IsNull(&self.0) }
+        unsafe { byond().ByondValue_IsNull(&self.0) }
     }
 
     fn is_num(&self) -> bool {
         // Safety: This operation only fails if our CByondValue is invalid, which cannot happen.
-        unsafe { BYOND.ByondValue_IsNum(&self.0) }
+        unsafe { byond().ByondValue_IsNum(&self.0) }
     }
 
     fn is_str(&self) -> bool {
         // Safety: This operation only fails if our CByondValue is invalid, which cannot happen.
-        unsafe { BYOND.ByondValue_IsStr(&self.0) }
+        unsafe { byond().ByondValue_IsStr(&self.0) }
     }
 
     fn is_list(&self) -> bool {
         // Safety: This operation only fails if our CByondValue is invalid, which cannot happen.
-        unsafe { BYOND.ByondValue_IsList(&self.0) }
+        unsafe { byond().ByondValue_IsList(&self.0) }
     }
 
     fn is_ptr(&self) -> bool {

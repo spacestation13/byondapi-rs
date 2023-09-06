@@ -1,7 +1,7 @@
 //! Error types for any problems this runs into, including internal BYOND errors.
 use std::ffi::{CStr, CString};
 
-use crate::static_global::BYOND;
+use crate::static_global::byond;
 
 #[derive(Debug)]
 pub enum Error {
@@ -35,7 +35,7 @@ pub struct ByondError(CString);
 impl ByondError {
     pub fn get_last() -> Option<Self> {
         // Safety: It's always safe to call Byond_LastError
-        let ptr = unsafe { BYOND.Byond_LastError() };
+        let ptr = unsafe { byond().Byond_LastError() };
         if !ptr.is_null() {
             // Safety: We just have to trust that Byond gave us a valid cstring...
             let cstr = unsafe { CStr::from_ptr(ptr) };

@@ -1,7 +1,7 @@
 use std::ffi::{CStr, CString};
 
 use super::ByondValue;
-use crate::{static_global::BYOND, typecheck_trait::ByondTypeCheck, Error};
+use crate::{static_global::byond, typecheck_trait::ByondTypeCheck, Error};
 
 // From Impls
 
@@ -51,7 +51,7 @@ impl TryFrom<&ByondValue> for f32 {
 
     fn try_from(value: &ByondValue) -> Result<Self, Self::Error> {
         if value.is_num() {
-            Ok(unsafe { BYOND.ByondValue_GetNum(&value.0) })
+            Ok(unsafe { byond().ByondValue_GetNum(&value.0) })
         } else {
             Err(Error::InvalidConversion)
         }
@@ -71,7 +71,7 @@ impl TryFrom<&ByondValue> for CString {
 
     fn try_from(value: &ByondValue) -> Result<Self, Self::Error> {
         if value.is_str() {
-            let ptr = unsafe { BYOND.ByondValue_GetStr(&value.0) };
+            let ptr = unsafe { byond().ByondValue_GetStr(&value.0) };
             let cstr = unsafe { CStr::from_ptr(ptr) };
             Ok(cstr.to_owned())
         } else {

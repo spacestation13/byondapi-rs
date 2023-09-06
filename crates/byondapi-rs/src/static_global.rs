@@ -36,6 +36,9 @@ pub fn init_lib() -> byondapi_sys::ByondApi {
     }
 }
 
-lazy_static! {
-    pub static ref BYOND: byondapi_sys::ByondApi = init_lib();
+#[inline(always)]
+pub fn byond() -> &'static byondapi_sys::ByondApi {
+    BYOND.get_or_init(init_lib)
 }
+
+static BYOND: std::sync::OnceLock<byondapi_sys::ByondApi> = std::sync::OnceLock::new();

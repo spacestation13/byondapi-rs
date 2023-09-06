@@ -1,7 +1,7 @@
 //! [Newtype](https://doc.rust-lang.org/rust-by-example/generics/new_types.html) pattern over [`CByondValueList`]
 use std::{fmt::Debug, mem::MaybeUninit};
 
-use crate::{static_global::BYOND, value::ByondValue, Error};
+use crate::{static_global::byond, value::ByondValue, Error};
 use byondapi_sys::CByondValueList;
 
 /// [Newtype](https://doc.rust-lang.org/rust-by-example/generics/new_types.html) pattern over [`CByondValueList`]
@@ -34,7 +34,7 @@ impl ByondValueList {
 impl ByondValueList {
     /// Add a copy of value to the end of the list
     pub fn push(&mut self, value: &ByondValue) -> Result<(), Error> {
-        unsafe { map_byond_error!(BYOND.ByondValueList_Add(&mut self.0, &value.0)) }
+        unsafe { map_byond_error!(byond().ByondValueList_Add(&mut self.0, &value.0)) }
     }
 
     /// Remove the last element from the list
@@ -45,7 +45,7 @@ impl ByondValueList {
     /// Add a copy of value at a specific index
     pub fn insert(&mut self, index: usize, element: &ByondValue) -> Result<(), Error> {
         unsafe {
-            map_byond_error!(BYOND.ByondValueList_InsertAt(&mut self.0, index as i32, &element.0))
+            map_byond_error!(byond().ByondValueList_InsertAt(&mut self.0, index as i32, &element.0))
         }
     }
 
@@ -53,7 +53,7 @@ impl ByondValueList {
     pub fn remove(&mut self, index: usize) -> Result<ByondValue, Error> {
         let element = self[index].clone();
 
-        let num_removed = unsafe { BYOND.ByondValueList_RemoveAt(&mut self.0, index as u32, 1) };
+        let num_removed = unsafe { byond().ByondValueList_RemoveAt(&mut self.0, index as u32, 1) };
         if num_removed != 1 {
             Err(Error::get_last_byond_error())
         } else {
@@ -97,7 +97,7 @@ impl Debug for ByondValueList {
 impl Drop for ByondValueList {
     fn drop(&mut self) {
         // Safety: We are being dropped, it is okay to free our inner CByondValue.
-        unsafe { BYOND.ByondValueList_Free(&mut self.0) }
+        unsafe { byond().ByondValueList_Free(&mut self.0) }
     }
 }
 
@@ -107,7 +107,7 @@ impl Default for ByondValueList {
 
         let new_inner = unsafe {
             // Safety: new_inner is going to an initialization function, it will only write to the pointer.
-            BYOND.ByondValueList_Init(new_inner.as_mut_ptr());
+            byond().ByondValueList_Init(new_inner.as_mut_ptr());
             // Safety: ByondValue_Init will have initialized the new_inner.
             new_inner.assume_init()
         };
@@ -122,7 +122,7 @@ impl TryFrom<&ByondValue> for ByondValueList {
     fn try_from(value: &ByondValue) -> Result<Self, Self::Error> {
         let mut new_list = ByondValueList::new();
 
-        unsafe { map_byond_error!(BYOND.Byond_ReadList(&value.0, &mut new_list.0))? }
+        unsafe { map_byond_error!(byond().Byond_ReadList(&value.0, &mut new_list.0))? }
 
         Ok(new_list)
     }
@@ -139,7 +139,7 @@ impl TryFrom<&ByondValueList> for ByondValue {
         let new_value = ByondValue::new_list().unwrap();
 
         unsafe {
-            map_byond_error!(BYOND.Byond_WriteList(&new_value.0, &value.0))?;
+            map_byond_error!(byond().Byond_WriteList(&new_value.0, &value.0))?;
         }
 
         Ok(new_value)
