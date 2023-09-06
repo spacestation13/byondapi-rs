@@ -15,7 +15,7 @@ fn write_log<T: AsRef<[u8]>>(x: T) {
 use std::panic;
 fn setup_panic_handler() {
     panic::set_hook(Box::new(|info| {
-        write_log(&format!("Panic {:#?}", info));
+        write_log(format!("Panic {:#?}", info));
     }))
 }
 
@@ -281,12 +281,11 @@ pub unsafe extern "C" fn test_list_key_lookup(
     };
     assert_eq!(num, 4.0);
 
-    match list.write_list_index(
+    if let Err(e) = list.write_list_index(
         &ByondValue::try_from("parrot").unwrap(),
         &ByondValue::try_from(14.0).unwrap(),
     ) {
-        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
-        Ok(_) => {}
+        return format!("{:#?}", e).try_into().unwrap();
     };
 
     ByondValue::new()
