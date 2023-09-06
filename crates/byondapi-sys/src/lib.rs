@@ -3,12 +3,8 @@
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 #![allow(clippy::missing_safety_doc)]
-#![allow(unused)]
 
-use std::{
-    any::Any,
-    ffi::{c_char, c_float},
-};
+use std::ffi::{c_char, c_float};
 
 #[cfg(not(target_pointer_width = "32"))]
 compile_error!("BYOND API only functions with 32-bit targets");
