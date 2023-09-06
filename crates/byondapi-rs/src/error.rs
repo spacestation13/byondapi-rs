@@ -29,8 +29,26 @@ impl Error {
     }
 }
 
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::InvalidConversion => write!(f, "Cannot convert value to target type"),
+            Self::InvalidProc => write!(f, "Cannot call proc, proc doesn't exist"),
+            Self::NonUtf8String => write!(f, "String is not utf8"),
+            Self::ByondError(e) => write!(f, "Byondapi error: {:#?}", e.0),
+            Self::UnknownByondError => write!(f, "Unknown byondapi error"),
+            Self::NotAvailableForThisByondVersion => write!(
+                f,
+                "This call is not available on current version of the api"
+            ),
+        }
+    }
+}
+
+impl std::error::Error for Error {}
+
 #[derive(Debug)]
-pub struct ByondError(CString);
+pub struct ByondError(pub CString);
 
 impl ByondError {
     pub fn get_last() -> Option<Self> {
