@@ -26,7 +26,6 @@ walkdir = "2.3.3"
 
 [features]
 default = ["byond-515-1611"]
-
 byond-515-1611 = []
 byond-515-1610 = []
 byond-515-1609 = []

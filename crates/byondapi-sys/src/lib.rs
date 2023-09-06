@@ -99,6 +99,7 @@ pub use byond_rawbind::ByondValueType;
 pub use byond_rawbind::CByondValue;
 pub use byond_rawbind::CByondValueList;
 
+#[cfg(feature = "byond-515-1611")]
 pub use byond_rawbind::CByondXYZ;
 
 // Stabilized functions

@@ -2,6 +2,7 @@ mod static_global;
 
 #[macro_use]
 pub mod error;
+#[cfg(feature = "byond-515-1611")]
 pub mod map;
 pub use error::Error;
 
