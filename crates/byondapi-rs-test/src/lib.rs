@@ -290,8 +290,7 @@ pub unsafe extern "C" fn test_list_key_lookup(
     assert_eq!("parrot", key);
 
     let map = list
-        .try_iter()
-        .unwrap()
+        .iter()
         .map(|(k, v)| (k.get_string().unwrap(), v.get_number().unwrap() as u32))
         .collect::<Vec<_>>();
 

@@ -196,15 +196,14 @@ impl ByondValue {
         self.read_var(name)?.try_into()
     }
 
-    /// Try to iterate through the assoc values of the list if this value is a list, if it's not then fails, or the iterator will be empty.
+    /// Iterates through the assoc values of the list if this value is a list, if the value isn't a list then the iterator will be empty.
     /// Non assoc lists will have the second field of the tuple be null always
     /// (key, value) for proper assoc lists
-    pub fn try_iter(&self) -> Result<impl Iterator<Item = (ByondValue, ByondValue)> + '_, Error> {
-        Ok(ListIterator::new(self))
+    pub fn iter(&self) -> impl Iterator<Item = (ByondValue, ByondValue)> + '_ {
+        ListIterator::new(self)
     }
 }
 
-//why is it a f32? Fuck you, that's why.
 struct ListIterator<'a> {
     value: &'a ByondValue,
     ctr: u32,
