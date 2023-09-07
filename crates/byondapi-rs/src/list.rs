@@ -225,33 +225,13 @@ impl TryFrom<&[ByondValue]> for ByondValueList {
 
 impl<'a> From<&'a ByondValueList> for &'a [ByondValue] {
     fn from(value: &'a ByondValueList) -> Self {
-        unsafe {
-            let count = value.0.count;
-            if count == 0 {
-                &[]
-            } else {
-                std::slice::from_raw_parts(
-                    value.0.items as *const ByondValue,
-                    value.0.count as usize,
-                )
-            }
-        }
+        value
     }
 }
 
 impl<'a> From<&'a mut ByondValueList> for &'a mut [ByondValue] {
     fn from(value: &'a mut ByondValueList) -> Self {
-        unsafe {
-            let count = value.0.count;
-            if count == 0 {
-                &mut []
-            } else {
-                std::slice::from_raw_parts_mut(
-                    value.0.items as *mut ByondValue,
-                    value.0.count as usize,
-                )
-            }
-        }
+        value
     }
 }
 
