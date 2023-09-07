@@ -196,6 +196,9 @@ impl ByondValue {
         self.read_var(name)?.try_into()
     }
 
+    /// Try to iterate through the assoc values of the list if this value is a list, if it's not then fails
+    /// Non assoc lists will have the second field of the tuple be null always
+    /// (key, value) for proper assoc lists
     pub fn try_iter(&self) -> Result<impl Iterator<Item = (ByondValue, ByondValue)> + '_, Error> {
         Ok(ListIterator::new(
             self,
@@ -214,7 +217,7 @@ impl<'a> ListIterator<'a> {
     pub fn new(value: &'a ByondValue, length: usize) -> Self {
         ListIterator {
             value,
-            ctr: 1.0,
+            ctr: 1.0, //byondism, index starts at 1
             length,
         }
     }
