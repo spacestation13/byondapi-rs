@@ -127,7 +127,8 @@ impl ByondValue {
 /// # List operations by key instead of indices (why are they even here lumlum?????)
 impl ByondValue {
     /// Reads a value by key through the ref. Fails if this isn't a list.
-    pub fn read_list_index(&self, index: &ByondValue) -> Result<ByondValue, Error> {
+    pub fn read_list_index<I: TryInto<ByondValue>>(&self, index: I) -> Result<ByondValue, Error> {
+        let index: ByondValue = index.try_into().map_err(|_| Error::InvalidConversion)?;
         let mut result = ByondValue::new();
         unsafe {
             map_byond_error!(byond().Byond_ReadListIndex(&self.0, &index.0, &mut result.0))?;
@@ -136,7 +137,13 @@ impl ByondValue {
     }
 
     /// Writes a value by key through the ref. Fails if this isn't a list.
-    pub fn write_list_index(&self, index: &ByondValue, value: &ByondValue) -> Result<(), Error> {
+    pub fn write_list_index<I: TryInto<ByondValue>, V: TryInto<ByondValue>>(
+        &self,
+        index: I,
+        value: V,
+    ) -> Result<(), Error> {
+        let index: ByondValue = index.try_into().map_err(|_| Error::InvalidConversion)?;
+        let value: ByondValue = value.try_into().map_err(|_| Error::InvalidConversion)?;
         unsafe {
             map_byond_error!(byond().Byond_WriteListIndex(&self.0, &index.0, &value.0))?;
         }

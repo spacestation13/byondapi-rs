@@ -263,28 +263,25 @@ pub unsafe extern "C" fn test_list_key_lookup(
 
     let list = &args[0];
 
-    let num: f32 = match list.read_list_index(&ByondValue::try_from("cat").unwrap()) {
+    let num: f32 = match list.read_list_index("cat") {
         Ok(x) => x.try_into().unwrap(),
         Err(e) => return format!("{:#?}", e).try_into().unwrap(),
     };
     assert_eq!(num, 7.0);
 
-    let num: f32 = match list.read_list_index(&ByondValue::try_from("dog").unwrap()) {
+    let num: f32 = match list.read_list_index("dog") {
         Ok(x) => x.try_into().unwrap(),
         Err(e) => return format!("{:#?}", e).try_into().unwrap(),
     };
     assert_eq!(num, 5.0);
 
-    let num: f32 = match list.read_list_index(&ByondValue::try_from("parrot").unwrap()) {
+    let num: f32 = match list.read_list_index("parrot") {
         Ok(x) => x.try_into().unwrap(),
         Err(e) => return format!("{:#?}", e).try_into().unwrap(),
     };
     assert_eq!(num, 4.0);
 
-    if let Err(e) = list.write_list_index(
-        &ByondValue::try_from("parrot").unwrap(),
-        &ByondValue::try_from(14.0).unwrap(),
-    ) {
+    if let Err(e) = list.write_list_index("parrot", 14.0) {
         return format!("{:#?}", e).try_into().unwrap();
     };
 

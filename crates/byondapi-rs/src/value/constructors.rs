@@ -56,8 +56,8 @@ impl ByondValue {
         Self(new_inner)
     }
 
-    pub fn new_str<S: AsRef<str>>(s: S) -> Result<Self, Error> {
-        let c_str = CString::new(s.as_ref()).unwrap();
+    pub fn new_str<S: Into<Vec<u8>>>(s: S) -> Result<Self, Error> {
+        let c_str = CString::new(s.into()).unwrap();
 
         let mut new_inner = MaybeUninit::uninit();
 
