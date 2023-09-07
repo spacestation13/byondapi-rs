@@ -200,25 +200,20 @@ impl ByondValue {
     /// Non assoc lists will have the second field of the tuple be null always
     /// (key, value) for proper assoc lists
     pub fn try_iter(&self) -> Result<impl Iterator<Item = (ByondValue, ByondValue)> + '_, Error> {
-        Ok(ListIterator::new(
-            self,
-            self.builtin_length()?.get_number()? as usize,
-        ))
+        Ok(ListIterator::new(self))
     }
 }
 
 //why is it a f32? Fuck you, that's why.
 struct ListIterator<'a> {
     value: &'a ByondValue,
-    ctr: f32,
-    length: usize,
+    ctr: u32,
 }
 impl<'a> ListIterator<'a> {
-    pub fn new(value: &'a ByondValue, length: usize) -> Self {
+    pub fn new(value: &'a ByondValue) -> Self {
         ListIterator {
             value,
-            ctr: 1.0, //byondism, index starts at 1
-            length,
+            ctr: 1, //byondism, index starts at 1
         }
     }
 }
@@ -227,16 +222,13 @@ impl<'a> Iterator for ListIterator<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         let key = self
             .value
-            .read_list_index_internal(&ByondValue::from(self.ctr))
+            .read_list_index_internal(&ByondValue::from(self.ctr as f32))
             .ok()?;
         let value = self
             .value
             .read_list_index_internal(&key)
             .unwrap_or_else(|_| ByondValue::default());
-        self.ctr += 1.0;
+        self.ctr += 1;
         return Some((key, value));
-    }
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        (0, Some(self.length + 1))
     }
 }
