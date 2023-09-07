@@ -259,9 +259,9 @@ pub unsafe extern "C" fn test_list_key_lookup(
     argv: *mut ByondValue,
 ) -> ByondValue {
     setup_panic_handler();
-    let args = parse_args(argc, argv);
+    let mut args = parse_args(argc, argv);
 
-    let list = &args[0];
+    let list = args.get_mut(0).unwrap();
 
     let num: f32 = match list.read_list_index("cat") {
         Ok(x) => x.try_into().unwrap(),

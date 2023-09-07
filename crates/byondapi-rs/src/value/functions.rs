@@ -138,7 +138,7 @@ impl ByondValue {
 
     /// Writes a value by key through the ref. Fails if this isn't a list.
     pub fn write_list_index<I: TryInto<ByondValue>, V: TryInto<ByondValue>>(
-        &self,
+        &mut self,
         index: I,
         value: V,
     ) -> Result<(), Error> {
