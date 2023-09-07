@@ -15,11 +15,8 @@ use crate::value::ByondValue;
 /// # Safety
 /// Don't pass in a null argv pointer please god
 /// Just give this what BYOND gives you and pray for the best
-pub unsafe fn parse_args(
-    argc: byondapi_sys::u4c,
-    argv: *mut ByondValue,
-) -> &'static mut [ByondValue] {
-    unsafe { std::slice::from_raw_parts_mut(argv, argc as usize) }
+pub unsafe fn parse_args(argc: byondapi_sys::u4c, argv: *mut ByondValue) -> Vec<ByondValue> {
+    unsafe { std::slice::from_raw_parts_mut(argv, argc as usize).to_vec() }
 }
 
 /// Re-export of byondapi_sys for all low level things you may run into.
