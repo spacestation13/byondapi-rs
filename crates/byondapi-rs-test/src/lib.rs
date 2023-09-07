@@ -285,5 +285,24 @@ pub unsafe extern "C" fn test_list_key_lookup(
         return format!("{:#?}", e).try_into().unwrap();
     };
 
+    let key: String = list.read_list_index(3.0).unwrap().try_into().unwrap();
+
+    assert_eq!("parrot", key);
+
+    let map = list
+        .try_iter()
+        .unwrap()
+        .map(|(k, v)| (k.get_string().unwrap(), v.get_number().unwrap() as u32))
+        .collect::<Vec<_>>();
+
+    assert_eq!(
+        map,
+        vec![
+            ("cat".to_owned(), 7),
+            ("dog".to_owned(), 5),
+            ("parrot".to_owned(), 14)
+        ]
+    );
+
     ByondValue::new()
 }

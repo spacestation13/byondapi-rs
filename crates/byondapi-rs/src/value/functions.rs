@@ -129,11 +129,7 @@ impl ByondValue {
     /// Reads a value by key through the ref. Fails if this isn't a list.
     pub fn read_list_index<I: TryInto<ByondValue>>(&self, index: I) -> Result<ByondValue, Error> {
         let index: ByondValue = index.try_into().map_err(|_| Error::InvalidConversion)?;
-        let mut result = ByondValue::new();
-        unsafe {
-            map_byond_error!(byond().Byond_ReadListIndex(&self.0, &index.0, &mut result.0))?;
-        }
-        Ok(result)
+        self.read_list_index_internal(&index)
     }
 
     /// Writes a value by key through the ref. Fails if this isn't a list.
@@ -144,10 +140,39 @@ impl ByondValue {
     ) -> Result<(), Error> {
         let index: ByondValue = index.try_into().map_err(|_| Error::InvalidConversion)?;
         let value: ByondValue = value.try_into().map_err(|_| Error::InvalidConversion)?;
+        self.write_list_index_internal(&index, &value)
+    }
+
+    /// Reads a value by key through the ref. Fails if the index doesn't exist
+    pub fn read_list_index_internal(&self, index: &ByondValue) -> Result<ByondValue, Error> {
+        let mut result = ByondValue::new();
+        unsafe {
+            map_byond_error!(byond().Byond_ReadListIndex(&self.0, &index.0, &mut result.0))?;
+        }
+        Ok(result)
+    }
+
+    /// Writes a value by key through the ref. Dunno why it can fail
+    pub fn write_list_index_internal(
+        &mut self,
+        index: &ByondValue,
+        value: &ByondValue,
+    ) -> Result<(), Error> {
         unsafe {
             map_byond_error!(byond().Byond_WriteListIndex(&self.0, &index.0, &value.0))?;
         }
         Ok(())
+    }
+}
+
+/// # Builtins
+impl ByondValue {
+    pub fn builtin_length(&self) -> Result<ByondValue, Error> {
+        let mut result = ByondValue::new();
+        unsafe {
+            map_byond_error!(byond().Byond_Length(&self.0, &mut result.0))?;
+        }
+        Ok(result)
     }
 }
 
@@ -169,5 +194,46 @@ impl ByondValue {
         name: T,
     ) -> Result<crate::prelude::ByondValueList, Error> {
         self.read_var(name)?.try_into()
+    }
+
+    pub fn try_iter(&self) -> Result<impl Iterator<Item = (ByondValue, ByondValue)> + '_, Error> {
+        Ok(ListIterator::new(
+            self,
+            self.builtin_length()?.get_number()? as usize,
+        ))
+    }
+}
+
+//why is it a f32? Fuck you, that's why.
+struct ListIterator<'a> {
+    value: &'a ByondValue,
+    ctr: f32,
+    length: usize,
+}
+impl<'a> ListIterator<'a> {
+    pub fn new(value: &'a ByondValue, length: usize) -> Self {
+        ListIterator {
+            value,
+            ctr: 1.0,
+            length,
+        }
+    }
+}
+impl<'a> Iterator for ListIterator<'a> {
+    type Item = (ByondValue, ByondValue);
+    fn next(&mut self) -> Option<Self::Item> {
+        let key = self
+            .value
+            .read_list_index_internal(&ByondValue::from(self.ctr))
+            .ok()?;
+        let value = self
+            .value
+            .read_list_index_internal(&key)
+            .unwrap_or_else(|_| ByondValue::default());
+        self.ctr += 1.0;
+        return Some((key, value));
+    }
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (0, Some(self.length + 1))
     }
 }
