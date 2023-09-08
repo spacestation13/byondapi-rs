@@ -195,20 +195,6 @@ impl TryFrom<ByondValueList> for ByondValue {
     }
 }
 
-impl<'a> ByondValueList {
-    /// Get an iterator for this list
-    pub fn iter(&'a self) -> impl Iterator<Item = &ByondValue> + 'a {
-        let slice: &[ByondValue] = self.into();
-        slice.iter()
-    }
-
-    /// Get a mutable iterator for this list
-    pub fn iter_mut(&'a mut self) -> impl Iterator<Item = &mut ByondValue> + 'a {
-        let slice: &mut [ByondValue] = self.into();
-        slice.iter_mut()
-    }
-}
-
 impl TryFrom<&[ByondValue]> for ByondValueList {
     type Error = Error;
 
