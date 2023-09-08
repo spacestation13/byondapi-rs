@@ -200,21 +200,40 @@ impl ByondValue {
     /// Non assoc lists will have the second field of the tuple be null always
     /// (key, value) for proper assoc lists
     pub fn iter(&self) -> impl Iterator<Item = (ByondValue, ByondValue)> + '_ {
-        ListIterator::new(self)
+        ListIterator {
+            value: self,
+            ctr: 1,
+        }
+    }
+
+    /// Iterates through assoc keys of the list if this value is a list, the iterator will be empty if the value isn't a list
+    pub fn iter_keys(&self) -> impl Iterator<Item = ByondValue> + '_ {
+        ListKeyIterator {
+            value: self,
+            ctr: 1,
+        }
+    }
+}
+
+struct ListKeyIterator<'a> {
+    value: &'a ByondValue,
+    ctr: u32,
+}
+impl<'a> Iterator for ListKeyIterator<'a> {
+    type Item = ByondValue;
+    fn next(&mut self) -> Option<Self::Item> {
+        let key = self
+            .value
+            .read_list_index_internal(&ByondValue::from(self.ctr as f32))
+            .ok()?;
+        self.ctr += 1;
+        return Some(key);
     }
 }
 
 struct ListIterator<'a> {
     value: &'a ByondValue,
     ctr: u32,
-}
-impl<'a> ListIterator<'a> {
-    pub fn new(value: &'a ByondValue) -> Self {
-        ListIterator {
-            value,
-            ctr: 1, //byondism, index starts at 1
-        }
-    }
 }
 impl<'a> Iterator for ListIterator<'a> {
     type Item = (ByondValue, ByondValue);
