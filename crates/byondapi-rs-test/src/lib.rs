@@ -4,6 +4,7 @@ use byondapi::{
     list::ByondValueList,
     map::{byond_block, byond_length, ByondXYZ},
     parse_args,
+    typecheck_trait::ByondTypeCheck,
     value::{pointer::ByondValuePointer, ByondValue},
 };
 
@@ -304,4 +305,16 @@ pub unsafe extern "C" fn test_list_key_lookup(
     );
 
     ByondValue::new()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn test_ref(argc: byondapi_sys::u4c, argv: *mut ByondValue) -> ByondValue {
+    setup_panic_handler();
+    let args = parse_args(argc, argv);
+
+    let turf = args.get(0).unwrap();
+    let turf_type = turf.get_type();
+    let turf_id = turf.get_ref().unwrap();
+
+    ByondValue::try_from(format!("turf_id: {turf_id}, turf_type: {turf_type}")).unwrap()
 }

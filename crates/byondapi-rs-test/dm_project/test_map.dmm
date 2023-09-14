@@ -1,0 +1,16 @@
+"a" = (/turf/turf_type_a,/area)
+"b" = (/turf,/area)
+"c" = (/turf/turf_type_b,/area)
+
+(1,1,1) = {"
+aaaaaaaaaa
+bbbaaaaaaa
+bbaaaaaaaa
+abbbbbbbbb
+bbbbbbbbbb
+bbbbbbbbbb
+bbbbbbbbbb
+bbbbbbbbbb
+bbbbbbbbbb
+acbbbbbbbc
+"}

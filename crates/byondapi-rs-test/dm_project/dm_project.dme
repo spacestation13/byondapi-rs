@@ -1,3 +1,9 @@
+#include "test_map.dmm"
+
+/turf/turf_type_a
+	color = "#FF0000"
+/turf/turf_type_b
+	color = "#00FF00"
 
 /world/New()
 	world.log = file("dd_log.txt")
@@ -17,13 +23,18 @@
 	var/obj/O = new()
 	O.name = "meow"
 	var/obj/ret = call_ext("byondapi_test.dll", "byond:test_args")(O)
-	
+
 	if (ret.name != O.name)
 		throw EXCEPTION("Object did not make it through FFI")
 
 /test/proc/send_test()
 	call_ext("byondapi_test.dll", "byond:send_test")()
 
+
+/test/proc/test_ref()
+	var/turf/T = locate(1,1,1)
+	var/ret = call_ext("byondapi_test.dll", "byond:test_ref")(T)
+	world.log << ret
 
 /test/proc/test_ptr()
 	var/x = "meow"
@@ -123,3 +134,13 @@
 
 	if(L["parrot"] != 14)
 		throw EXCEPTION("list modification by key failed")
+// BEGIN_INTERNALS
+// END_INTERNALS
+// BEGIN_FILE_DIR
+#define FILE_DIR .
+// END_FILE_DIR
+// BEGIN_PREFERENCES
+// END_PREFERENCES
+// BEGIN_INCLUDE
+#include "test_map.dmm"
+// END_INCLUDE
