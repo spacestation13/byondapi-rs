@@ -3,7 +3,7 @@ use std::ffi::CString;
 use byondapi_sys::{u4c, ByondValueType, CByondValue};
 
 use super::ByondValue;
-use crate::{static_global::byond, Error};
+use crate::{static_global::byond, typecheck_trait::ByondTypeCheck, Error};
 
 /// # Compatibility with the C++ API
 impl ByondValue {
@@ -30,13 +30,10 @@ impl ByondValue {
 
     /// Get the underlying ref number to this value
     pub fn get_ref(&self) -> Result<u4c, Error> {
-        // ByondValue_GetRef already checks our type to make sure we are a ref.
-        let ref_ = unsafe { byond().ByondValue_GetRef(&self.0) };
-        if ref_ != 0 {
-            Ok(ref_ as u4c)
-        } else {
-            Err(Error::InvalidConversion)
+        if self.is_str() || self.is_null() || self.is_num() {
+            return Err(Error::NotReferencable);
         }
+        Ok(unsafe { byond().ByondValue_GetRef(&self.0) })
     }
 }
 
@@ -128,6 +125,9 @@ impl ByondValue {
 impl ByondValue {
     /// Reads a value by key through the ref. Fails if this isn't a list.
     pub fn read_list_index<I: TryInto<ByondValue>>(&self, index: I) -> Result<ByondValue, Error> {
+        if !self.is_list() {
+            return Err(Error::NotAList);
+        }
         let index: ByondValue = index.try_into().map_err(|_| Error::InvalidConversion)?;
         self.read_list_index_internal(&index)
     }
@@ -138,6 +138,9 @@ impl ByondValue {
         index: I,
         value: V,
     ) -> Result<(), Error> {
+        if !self.is_list() {
+            return Err(Error::NotAList);
+        }
         let index: ByondValue = index.try_into().map_err(|_| Error::InvalidConversion)?;
         let value: ByondValue = value.try_into().map_err(|_| Error::InvalidConversion)?;
         self.write_list_index_internal(&index, &value)
@@ -197,37 +200,18 @@ impl ByondValue {
     }
 
     /// Iterates through the assoc values of the list if this value is a list, if the value isn't a list then the iterator will be empty.
-    /// Non assoc lists will have the second field of the tuple be null always
+    /// Non assoc lists will have the second field of the tuple be None always, and the value in the first field
     /// (key, value) for proper assoc lists
-    pub fn iter(&self) -> impl Iterator<Item = (ByondValue, ByondValue)> + '_ {
-        ListIterator {
+    pub fn iter(
+        &self,
+    ) -> Result<impl Iterator<Item = (ByondValue, Option<ByondValue>)> + '_, Error> {
+        if !self.is_list() {
+            return Err(Error::NotAList);
+        }
+        Ok(ListIterator {
             value: self,
             ctr: 1,
-        }
-    }
-
-    /// Iterates through assoc keys of the list if this value is a list, the iterator will be empty if the value isn't a list
-    pub fn iter_keys(&self) -> impl Iterator<Item = ByondValue> + '_ {
-        ListKeyIterator {
-            value: self,
-            ctr: 1,
-        }
-    }
-}
-
-struct ListKeyIterator<'a> {
-    value: &'a ByondValue,
-    ctr: u32,
-}
-impl<'a> Iterator for ListKeyIterator<'a> {
-    type Item = ByondValue;
-    fn next(&mut self) -> Option<Self::Item> {
-        let key = self
-            .value
-            .read_list_index_internal(&ByondValue::from(self.ctr as f32))
-            .ok()?;
-        self.ctr += 1;
-        return Some(key);
+        })
     }
 }
 
@@ -236,16 +220,13 @@ struct ListIterator<'a> {
     ctr: u32,
 }
 impl<'a> Iterator for ListIterator<'a> {
-    type Item = (ByondValue, ByondValue);
+    type Item = (ByondValue, Option<ByondValue>);
     fn next(&mut self) -> Option<Self::Item> {
         let key = self
             .value
             .read_list_index_internal(&ByondValue::from(self.ctr as f32))
             .ok()?;
-        let value = self
-            .value
-            .read_list_index_internal(&key)
-            .unwrap_or_else(|_| ByondValue::default());
+        let value = self.value.read_list_index_internal(&key).ok();
         self.ctr += 1;
         return Some((key, value));
     }

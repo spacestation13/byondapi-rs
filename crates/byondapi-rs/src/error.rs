@@ -17,6 +17,10 @@ pub enum Error {
     UnknownByondError,
     /// Thrown by us when we know this call will panic internally because of the version
     NotAvailableForThisByondVersion,
+    /// Thrown by us when we know this type does not have a ref
+    NotReferencable,
+    /// Thrown by us when we know this type is not indexable because it's not a list
+    NotAList,
 }
 
 impl Error {
@@ -41,6 +45,8 @@ impl std::fmt::Display for Error {
                 f,
                 "This call is not available on current version of the api"
             ),
+            Self::NotReferencable => write!(f, "Cannot get a ref from this value"),
+            Self::NotAList => write!(f, "Cannot index into value, value is not a list"),
         }
     }
 }

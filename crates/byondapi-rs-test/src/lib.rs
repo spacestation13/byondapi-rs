@@ -292,7 +292,13 @@ pub unsafe extern "C" fn test_list_key_lookup(
 
     let map = list
         .iter()
-        .map(|(k, v)| (k.get_string().unwrap(), v.get_number().unwrap() as u32))
+        .unwrap()
+        .map(|(k, v)| {
+            (
+                k.get_string().unwrap(),
+                v.unwrap().get_number().unwrap() as u32,
+            )
+        })
         .collect::<Vec<_>>();
 
     assert_eq!(
