@@ -4,18 +4,19 @@ use byondapi::{
     list::ByondValueList,
     map::{byond_block, byond_length, ByondXYZ},
     parse_args,
+    typecheck_trait::ByondTypeCheck,
     value::{pointer::ByondValuePointer, ByondValue},
 };
 
 #[allow(dead_code)]
-fn write_log(x: &str) {
+fn write_log<T: AsRef<[u8]>>(x: T) {
     std::fs::write("./rust_log.txt", x).unwrap()
 }
 
 use std::panic;
 fn setup_panic_handler() {
     panic::set_hook(Box::new(|info| {
-        write_log(&format!("Panic {:#?}", info));
+        write_log(format!("Panic {:#?}", info));
     }))
 }
 
@@ -252,4 +253,74 @@ pub unsafe extern "C" fn test_length_with_str(
         Ok(x) => x,
         Err(e) => format!("{:#?}", e).try_into().unwrap(),
     }
+}
+#[no_mangle]
+pub unsafe extern "C" fn test_list_key_lookup(
+    argc: byondapi_sys::u4c,
+    argv: *mut ByondValue,
+) -> ByondValue {
+    setup_panic_handler();
+    let mut args = parse_args(argc, argv);
+
+    let list = args.get_mut(0).unwrap();
+
+    let num: f32 = match list.read_list_index("cat") {
+        Ok(x) => x.try_into().unwrap(),
+        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
+    };
+    assert_eq!(num, 7.0);
+
+    let num: f32 = match list.read_list_index("dog") {
+        Ok(x) => x.try_into().unwrap(),
+        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
+    };
+    assert_eq!(num, 5.0);
+
+    let num: f32 = match list.read_list_index("parrot") {
+        Ok(x) => x.try_into().unwrap(),
+        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
+    };
+    assert_eq!(num, 4.0);
+
+    if let Err(e) = list.write_list_index("parrot", 14.0) {
+        return format!("{:#?}", e).try_into().unwrap();
+    };
+
+    let key: String = list.read_list_index(3.0).unwrap().try_into().unwrap();
+
+    assert_eq!("parrot", key);
+
+    let map = list
+        .iter()
+        .unwrap()
+        .map(|(k, v)| {
+            (
+                k.get_string().unwrap(),
+                v.unwrap().get_number().unwrap() as u32,
+            )
+        })
+        .collect::<Vec<_>>();
+
+    assert_eq!(
+        map,
+        vec![
+            ("cat".to_owned(), 7),
+            ("dog".to_owned(), 5),
+            ("parrot".to_owned(), 14)
+        ]
+    );
+
+    ByondValue::new()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn test_ref(argc: byondapi_sys::u4c, argv: *mut ByondValue) -> ByondValue {
+    setup_panic_handler();
+    let args = parse_args(argc, argv);
+
+    let turf = args.get(0).unwrap();
+    let turf_type = turf.get_type();
+    let turf_id = turf.get_ref().unwrap();
+
+    ByondValue::try_from(format!("turf_id: {turf_id}, turf_type: {turf_type}")).unwrap()
 }

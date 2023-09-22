@@ -1,7 +1,11 @@
 //! [Newtype](https://doc.rust-lang.org/rust-by-example/generics/new_types.html) pattern over [`CByondValueList`]
-use std::{fmt::Debug, mem::MaybeUninit};
+use std::{
+    fmt::Debug,
+    mem::MaybeUninit,
+    ops::{Deref, DerefMut},
+};
 
-use crate::{static_global::BYOND, value::ByondValue, Error};
+use crate::{static_global::byond, value::ByondValue, Error};
 use byondapi_sys::CByondValueList;
 
 /// [Newtype](https://doc.rust-lang.org/rust-by-example/generics/new_types.html) pattern over [`CByondValueList`]
@@ -34,7 +38,7 @@ impl ByondValueList {
 impl ByondValueList {
     /// Add a copy of value to the end of the list
     pub fn push(&mut self, value: &ByondValue) -> Result<(), Error> {
-        unsafe { map_byond_error!(BYOND.ByondValueList_Add(&mut self.0, &value.0)) }
+        unsafe { map_byond_error!(byond().ByondValueList_Add(&mut self.0, &value.0)) }
     }
 
     /// Remove the last element from the list
@@ -45,7 +49,7 @@ impl ByondValueList {
     /// Add a copy of value at a specific index
     pub fn insert(&mut self, index: usize, element: &ByondValue) -> Result<(), Error> {
         unsafe {
-            map_byond_error!(BYOND.ByondValueList_InsertAt(&mut self.0, index as i32, &element.0))
+            map_byond_error!(byond().ByondValueList_InsertAt(&mut self.0, index as i32, &element.0))
         }
     }
 
@@ -53,7 +57,7 @@ impl ByondValueList {
     pub fn remove(&mut self, index: usize) -> Result<ByondValue, Error> {
         let element = self[index].clone();
 
-        let num_removed = unsafe { BYOND.ByondValueList_RemoveAt(&mut self.0, index as u32, 1) };
+        let num_removed = unsafe { byond().ByondValueList_RemoveAt(&mut self.0, index as u32, 1) };
         if num_removed != 1 {
             Err(Error::get_last_byond_error())
         } else {
@@ -62,20 +66,49 @@ impl ByondValueList {
     }
 }
 
-// Indexing
-impl std::ops::Index<usize> for ByondValueList {
-    type Output = ByondValue;
-
-    fn index(&self, index: usize) -> &Self::Output {
-        let slice: &[ByondValue] = self.into();
-        &slice[index]
+/// # Safety
+/// See the constraints in [`std::slice::from_raw_parts`]
+/// - `data` is valid for `len * mem::size_of::<ByondValue>()`
+///     - The entire memory range is contained within a `malloc()` block
+///     - zero length slices are just constructed normally
+/// - `data` points to `len` consecutive properly initialized values of [`ByondValue`]
+/// - The lifetime is based on the lifetime of the list
+/// - The total size is never going to be larger than `isize::MAX`
+impl Deref for ByondValueList {
+    type Target = [ByondValue];
+    fn deref(&self) -> &Self::Target {
+        unsafe {
+            let count = self.0.count;
+            if count == 0 {
+                &[]
+            } else {
+                std::slice::from_raw_parts(self.0.items as *const ByondValue, self.0.count as usize)
+            }
+        }
     }
 }
 
-impl std::ops::IndexMut<usize> for ByondValueList {
-    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        let slice: &mut [ByondValue] = self.into();
-        &mut slice[index]
+/// # Safety
+/// See the constraints in [`std::slice::from_raw_parts_mut`]
+/// - `data` is valid for `len * mem::size_of::<ByondValue>()`
+///   - The entire memory range is contained within a `malloc()` block
+///   - zero length slices are just constructed normally
+/// - `data` points to `len` consecutive properly initialized values of [`ByondValue`]
+/// - The lifetime is based on the lifetime of the list
+/// - The total size is never going to be larger than `isize::MAX`
+impl DerefMut for ByondValueList {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        unsafe {
+            let count = self.0.count;
+            if count == 0 {
+                &mut []
+            } else {
+                std::slice::from_raw_parts_mut(
+                    self.0.items as *mut ByondValue,
+                    self.0.count as usize,
+                )
+            }
+        }
     }
 }
 
@@ -97,7 +130,7 @@ impl Debug for ByondValueList {
 impl Drop for ByondValueList {
     fn drop(&mut self) {
         // Safety: We are being dropped, it is okay to free our inner CByondValue.
-        unsafe { BYOND.ByondValueList_Free(&mut self.0) }
+        unsafe { byond().ByondValueList_Free(&mut self.0) }
     }
 }
 
@@ -107,7 +140,7 @@ impl Default for ByondValueList {
 
         let new_inner = unsafe {
             // Safety: new_inner is going to an initialization function, it will only write to the pointer.
-            BYOND.ByondValueList_Init(new_inner.as_mut_ptr());
+            byond().ByondValueList_Init(new_inner.as_mut_ptr());
             // Safety: ByondValue_Init will have initialized the new_inner.
             new_inner.assume_init()
         };
@@ -122,7 +155,7 @@ impl TryFrom<&ByondValue> for ByondValueList {
     fn try_from(value: &ByondValue) -> Result<Self, Self::Error> {
         let mut new_list = ByondValueList::new();
 
-        unsafe { map_byond_error!(BYOND.Byond_ReadList(&value.0, &mut new_list.0))? }
+        unsafe { map_byond_error!(byond().Byond_ReadList(&value.0, &mut new_list.0))? }
 
         Ok(new_list)
     }
@@ -139,7 +172,7 @@ impl TryFrom<&ByondValueList> for ByondValue {
         let new_value = ByondValue::new_list().unwrap();
 
         unsafe {
-            map_byond_error!(BYOND.Byond_WriteList(&new_value.0, &value.0))?;
+            map_byond_error!(byond().Byond_WriteList(&new_value.0, &value.0))?;
         }
 
         Ok(new_value)
@@ -162,20 +195,6 @@ impl TryFrom<ByondValueList> for ByondValue {
     }
 }
 
-impl<'a> ByondValueList {
-    /// Get an iterator for this list
-    pub fn iter(&'a self) -> impl Iterator<Item = &ByondValue> + 'a {
-        let slice: &[ByondValue] = self.into();
-        slice.iter()
-    }
-
-    /// Get a mutable iterator for this list
-    pub fn iter_mut(&'a mut self) -> impl Iterator<Item = &mut ByondValue> + 'a {
-        let slice: &mut [ByondValue] = self.into();
-        slice.iter_mut()
-    }
-}
-
 impl TryFrom<&[ByondValue]> for ByondValueList {
     type Error = Error;
 
@@ -190,51 +209,15 @@ impl TryFrom<&[ByondValue]> for ByondValueList {
     }
 }
 
-/// # Safety
-/// See the constraints in [`std::slice::from_raw_parts#safety`]
-/// - `data` is valid for `len * mem::size_of::<ByondValue>()`
-///     - The entire memory range is contained within a `malloc()` block
-///     - zero length slices are just constructed normally
-/// - `data` points to `len` consecutive properly initialized values of [`ByondValue`]
-/// - The lifetime is based on the lifetime of the list
-/// - The total size is never going to be larger than `isize::MAX`
 impl<'a> From<&'a ByondValueList> for &'a [ByondValue] {
     fn from(value: &'a ByondValueList) -> Self {
-        unsafe {
-            let count = value.0.count;
-            if count == 0 {
-                &[]
-            } else {
-                std::slice::from_raw_parts(
-                    value.0.items as *const ByondValue,
-                    value.0.count as usize,
-                )
-            }
-        }
+        value
     }
 }
 
-/// # Safety
-/// See the constraints in [`std::slice::from_raw_parts_mut#safety`]
-/// - `data` is valid for `len * mem::size_of::<ByondValue>()`
-///   - The entire memory range is contained within a `malloc()` block
-///   - zero length slices are just constructed normally
-/// - `data` points to `len` consecutive properly initialized values of [`ByondValue`]
-/// - The lifetime is based on the lifetime of the list
-/// - The total size is never going to be larger than `isize::MAX`
 impl<'a> From<&'a mut ByondValueList> for &'a mut [ByondValue] {
     fn from(value: &'a mut ByondValueList) -> Self {
-        unsafe {
-            let count = value.0.count;
-            if count == 0 {
-                &mut []
-            } else {
-                std::slice::from_raw_parts_mut(
-                    value.0.items as *mut ByondValue,
-                    value.0.count as usize,
-                )
-            }
-        }
+        value
     }
 }
 
