@@ -260,7 +260,7 @@ pub unsafe extern "C" fn test_list_key_lookup(
     argv: *mut ByondValue,
 ) -> ByondValue {
     setup_panic_handler();
-    let mut args = parse_args(argc, argv);
+    let args = parse_args(argc, argv);
 
     let list = args.get_mut(0).unwrap();
 
@@ -293,12 +293,7 @@ pub unsafe extern "C" fn test_list_key_lookup(
     let map = list
         .iter()
         .unwrap()
-        .map(|(k, v)| {
-            (
-                k.get_string().unwrap(),
-                v.unwrap().get_number().unwrap() as u32,
-            )
-        })
+        .map(|(k, v)| (k.get_string().unwrap(), v.get_number().unwrap() as u32))
         .collect::<Vec<_>>();
 
     assert_eq!(
@@ -323,4 +318,32 @@ pub unsafe extern "C" fn test_ref(argc: byondapi_sys::u4c, argv: *mut ByondValue
     let turf_id = turf.get_ref().unwrap();
 
     ByondValue::try_from(format!("turf_id: {turf_id}, turf_type: {turf_type}")).unwrap()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn test_non_assoc_list(
+    argc: byondapi_sys::u4c,
+    argv: *mut ByondValue,
+) -> ByondValue {
+    setup_panic_handler();
+    let args = parse_args(argc, argv);
+    let list = args.get(0).unwrap();
+
+    let map = list
+        .iter()
+        .unwrap()
+        .map(|(k, v)| {
+            if !v.is_null() {
+                panic!("value is not null")
+            }
+            k.get_string().unwrap()
+        })
+        .collect::<Vec<_>>();
+
+    assert_eq!(
+        map,
+        vec!["cat".to_owned(), "dog".to_owned(), "parrot".to_owned()]
+    );
+
+    ByondValue::new()
 }
