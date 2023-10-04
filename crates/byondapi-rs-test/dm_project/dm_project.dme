@@ -34,7 +34,6 @@
 /test/proc/test_ref()
 	var/turf/T = locate(1,1,1)
 	var/ret = call_ext("byondapi_test.dll", "byond:test_ref")(T)
-	world.log << ret
 
 /test/proc/test_ptr()
 	var/x = "meow"
@@ -126,6 +125,11 @@
 
 	if(ret != 7)
 		throw EXCEPTION("str length failed [json_encode(ret)]")
+
+/test/proc/test_list_non_assoc()
+	var/list/L = list("cat", "dog", "parrot")
+
+	call_ext("byondapi_test.dll", "byond:test_non_assoc_list")(L)
 
 /test/proc/test_list_key_lookup()
 	var/list/L = list("cat" = 7, "dog" = 5, "parrot" = 4)
