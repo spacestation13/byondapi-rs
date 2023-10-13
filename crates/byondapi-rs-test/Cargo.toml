@@ -11,5 +11,5 @@ crate-type = ["cdylib"]
 [dependencies]
 byondapi = { path = "../byondapi-rs" }
 byondapi-sys = { path = "../byondapi-sys" }
-tempfile = "3.7.0"
+tempfile = "3.8.0"
 test-cdylib = "1.1.0"
