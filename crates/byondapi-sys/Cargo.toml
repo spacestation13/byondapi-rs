@@ -25,7 +25,8 @@ rustc_version = "0.4.0"
 walkdir = "2.4.0"
 
 [features]
-default = ["byond-515-1611"]
+default = ["byond-515-1617"]
+byond-515-1617 = []
 byond-515-1611 = []
 byond-515-1610 = []
 byond-515-1609 = []

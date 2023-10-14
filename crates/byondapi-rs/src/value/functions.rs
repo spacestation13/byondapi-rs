@@ -121,6 +121,47 @@ impl ByondValue {
     }
 }
 
+/// # Accessors by ids
+impl ByondValue {
+    /// Read a variable through the ref. Fails if this isn't a ref type, or the id is invalid.
+    pub fn read_var_id(&self, name: u4c) -> Result<ByondValue, Error> {
+        let mut new_value = ByondValue::new();
+        unsafe {
+            map_byond_error!(byond().Byond_ReadVarByStrId(&self.0, name, &mut new_value.0))?;
+        }
+
+        Ok(new_value)
+    }
+
+    /// Write to a variable through the ref. Fails if this isn't a ref type, or the id is invalid.
+    pub fn write_var_id(&mut self, name: u4c, other: &ByondValue) -> Result<(), Error> {
+        unsafe { map_byond_error!(byond().Byond_WriteVarByStrId(&self.0, name, &other.0)) }
+    }
+
+    /// Call a proc using self as src. Fails if this isn't a ref type, or the id is invalid.
+    ///
+    /// Implicitly set waitfor=0, will never block.
+    ///
+    /// # WARNING FOR BYOND 515.1609 and 515.1610
+    /// This is treated as verb name, so underscores are replaced with spaces.
+    /// For example `/obj/proc/get_name` would have to be called as `obj.call("get name")`.
+    pub fn call_id(&self, name: u4c, args: &[ByondValue]) -> Result<ByondValue, Error> {
+        let ptr = args.as_ptr();
+        let mut new_value = ByondValue::new();
+        unsafe {
+            map_byond_error!(byond().Byond_CallProcByStrId(
+                &self.0,
+                name,
+                ptr as *const byondapi_sys::CByondValue,
+                args.len() as u32,
+                &mut new_value.0
+            ))?;
+        }
+
+        Ok(new_value)
+    }
+}
+
 /// # List operations by key instead of indices (why are they even here lumlum?????)
 impl ByondValue {
     /// Reads a value by key through the ref. Fails if this isn't a list.

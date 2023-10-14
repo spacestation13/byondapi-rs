@@ -6,6 +6,8 @@ pub mod error;
 pub mod map;
 pub use error::Error;
 
+pub mod byond_string;
+pub mod global_call;
 pub mod list;
 pub mod prelude;
 pub mod typecheck_trait;
