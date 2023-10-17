@@ -241,7 +241,7 @@ impl ByondValue {
     }
 
     /// Iterates through the assoc values of the list if this value is a list, if the value isn't a list then it returns an error.
-    /// Non assoc lists will have the second field of the tuple be None always, and the value in the first field
+    /// Non assoc lists will have the second field of the tuple be null
     /// (key, value) for proper assoc lists
     pub fn iter(&self) -> Result<impl Iterator<Item = (ByondValue, ByondValue)> + '_, Error> {
         if !self.is_list() {
@@ -253,6 +253,41 @@ impl ByondValue {
             len: len as u32,
             ctr: 1,
         })
+    }
+    pub fn values(&self) -> Result<impl Iterator<Item = ByondValue> + '_, Error> {
+        if !self.is_list() {
+            return Err(Error::NotAList);
+        }
+        let len: f32 = byond_length(self)?.try_into()?;
+        Ok(ValueIterator {
+            value: self,
+            len: len as u32,
+            ctr: 1,
+        })
+    }
+}
+
+struct ValueIterator<'a> {
+    value: &'a ByondValue,
+    len: u32,
+    ctr: u32,
+}
+impl<'a> Iterator for ValueIterator<'a> {
+    type Item = ByondValue;
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.ctr <= self.len {
+            let value = self
+                .value
+                .read_list_index_internal(&ByondValue::from(self.ctr as f32))
+                .ok()?;
+            self.ctr += 1;
+            Some(value)
+        } else {
+            None
+        }
+    }
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (0, Some(self.len as usize))
     }
 }
 
