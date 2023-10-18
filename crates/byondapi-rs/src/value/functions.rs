@@ -1,4 +1,4 @@
-use std::ffi::CString;
+use std::ffi::{CStr, CString};
 
 use byondapi_sys::{u4c, ByondValueType, CByondValue};
 
@@ -13,19 +13,42 @@ impl ByondValue {
         std::mem::replace(&mut self.0, unsafe { std::mem::zeroed() })
     }
 
+    /// Try to get a [`bool`] or fail if this isn't a number type
+    pub fn get_bool(&self) -> Result<bool, Error> {
+        self.get_number().map(|num| match num as u32 {
+            (1..) => true,
+            0 => false,
+        })
+    }
+
     /// Try to get an [`f32`] or fail if this isn't a number type
     pub fn get_number(&self) -> Result<f32, Error> {
-        self.try_into()
+        if self.is_num() {
+            Ok(unsafe { byond().ByondValue_GetNum(&self.0) })
+        } else {
+            Err(Error::InvalidConversion)
+        }
     }
 
     /// Try to get a [`CString`] or fail if this isn't a string type
     pub fn get_cstring(&self) -> Result<CString, Error> {
-        self.try_into()
+        if self.is_str() {
+            let ptr = unsafe { byond().ByondValue_GetStr(&self.0) };
+            let cstr = unsafe { CStr::from_ptr(ptr) };
+            Ok(cstr.to_owned())
+        } else {
+            Err(Error::InvalidConversion)
+        }
     }
 
     /// Try to get a [`String`] or fail if this isn't a string type or isn't utf8
     pub fn get_string(&self) -> Result<String, Error> {
-        self.try_into()
+        self.get_cstring().map(|cstring| {
+            cstring
+                .to_str()
+                .map_err(|_| Error::NonUtf8String)
+                .map(str::to_owned)
+        })?
     }
 
     /// Get the underlying ref number to this value
@@ -224,7 +247,7 @@ impl ByondValue {
 impl ByondValue {
     /// Reads a number through the ref. Fails if this isn't a ref type or this isn't a number.
     pub fn read_number<T: Into<Vec<u8>>>(&self, name: T) -> Result<f32, Error> {
-        self.read_var(name)?.try_into()
+        self.read_var(name)?.get_number()
     }
 
     /// Reads a string through the ref. Fails if this isn't a ref type or this isn't a string.

@@ -1,10 +1,9 @@
-use std::ffi::{CStr, CString};
+use std::ffi::CString;
 
 use super::ByondValue;
-use crate::{static_global::byond, typecheck_trait::ByondTypeCheck, Error};
+use crate::Error;
 
 // From Impls
-
 impl From<bool> for ByondValue {
     fn from(value: bool) -> Self {
         if value {
@@ -38,11 +37,27 @@ impl TryFrom<String> for ByondValue {
 }
 
 // TryFrom ByondValue -> x impls
+impl TryFrom<ByondValue> for bool {
+    type Error = Error;
+
+    fn try_from(value: ByondValue) -> Result<Self, Self::Error> {
+        value.get_bool()
+    }
+}
+
+impl TryFrom<&ByondValue> for bool {
+    type Error = Error;
+
+    fn try_from(value: &ByondValue) -> Result<Self, Self::Error> {
+        value.get_bool()
+    }
+}
+
 impl TryFrom<ByondValue> for f32 {
     type Error = Error;
 
     fn try_from(value: ByondValue) -> Result<Self, Self::Error> {
-        (&value).try_into()
+        value.get_number()
     }
 }
 
@@ -50,11 +65,7 @@ impl TryFrom<&ByondValue> for f32 {
     type Error = Error;
 
     fn try_from(value: &ByondValue) -> Result<Self, Self::Error> {
-        if value.is_num() {
-            Ok(unsafe { byond().ByondValue_GetNum(&value.0) })
-        } else {
-            Err(Error::InvalidConversion)
-        }
+        value.get_number()
     }
 }
 
@@ -62,7 +73,7 @@ impl TryFrom<ByondValue> for CString {
     type Error = Error;
 
     fn try_from(value: ByondValue) -> Result<Self, Self::Error> {
-        value.try_into()
+        value.get_cstring()
     }
 }
 
@@ -70,13 +81,7 @@ impl TryFrom<&ByondValue> for CString {
     type Error = Error;
 
     fn try_from(value: &ByondValue) -> Result<Self, Self::Error> {
-        if value.is_str() {
-            let ptr = unsafe { byond().ByondValue_GetStr(&value.0) };
-            let cstr = unsafe { CStr::from_ptr(ptr) };
-            Ok(cstr.to_owned())
-        } else {
-            Err(Error::InvalidConversion)
-        }
+        value.get_cstring()
     }
 }
 
@@ -84,7 +89,7 @@ impl TryFrom<ByondValue> for String {
     type Error = Error;
 
     fn try_from(value: ByondValue) -> Result<Self, Self::Error> {
-        value.try_into()
+        value.get_string()
     }
 }
 
@@ -92,7 +97,6 @@ impl TryFrom<&ByondValue> for String {
     type Error = Error;
 
     fn try_from(value: &ByondValue) -> Result<Self, Self::Error> {
-        let cstring: CString = value.try_into()?;
-        cstring.into_string().map_err(|_| Error::NonUtf8String)
+        value.get_string()
     }
 }
