@@ -27,6 +27,8 @@ pub enum Error {
     NotANum,
     /// Thrown by us when we know this type is not a pointer, and we're expecting one
     NotAPtr,
+    /// Thrown by us when we know this type is not a ref, and we're expecting one
+    NotARef,
     /// Thrown by [`crate::byond_string::str_id_of_cstr`] when the string doesn't exist in
     /// byondland
     NonExistentString,
@@ -59,6 +61,7 @@ impl std::fmt::Display for Error {
             Self::NotAString => write!(f, "Value is not a string"),
             Self::NotANum => write!(f, "Value is not a number"),
             Self::NotAPtr => write!(f, "Value is not a pointer"),
+            Self::NotARef => write!(f, "Value is not a ref"),
             Self::NonExistentString => write!(f, "String id not found"),
         }
     }

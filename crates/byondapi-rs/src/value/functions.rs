@@ -44,6 +44,17 @@ impl ByondValue {
         }
     }
 
+    /// Try to get a [`CStr`] or fail if this isn't a string type
+    pub fn get_cstr<'a>(&'a self) -> Result<&'a CStr, Error> {
+        if self.is_str() {
+            let ptr = unsafe { byond().ByondValue_GetStr(&self.0) };
+            let cstr = unsafe { CStr::from_ptr(ptr) };
+            Ok(cstr)
+        } else {
+            Err(Error::NotAString)
+        }
+    }
+
     /// Try to get a [`String`] or fail if this isn't a string type or isn't utf8
     pub fn get_string(&self) -> Result<String, Error> {
         self.get_cstring().map(|cstring| {
@@ -56,6 +67,9 @@ impl ByondValue {
 
     /// Try to get a [`crate::prelude::ByondValueList`] or fail if this isn't a string type or isn't utf8
     pub fn get_list(&self) -> Result<ByondValueList, Error> {
+        if !self.is_list() {
+            return Err(Error::NotAList);
+        }
         let mut new_list = ByondValueList::new();
 
         unsafe { map_byond_error!(byond().Byond_ReadList(&self.0, &mut new_list.0))? }
@@ -73,11 +87,7 @@ impl ByondValue {
 
     /// Get the string id of this value, fail if this isn't a string
     pub fn get_strid(&self) -> Result<u4c, Error> {
-        if !self.is_str() {
-            return Err(Error::NotAString);
-        }
-        let string = self.get_cstring()?;
-        crate::byond_string::str_id_of_cstr(&string)
+        crate::byond_string::str_id_of_cstr(self.get_cstr()?)
     }
 }
 
@@ -105,6 +115,9 @@ impl ByondValue {
 impl ByondValue {
     /// Read a variable through the ref. Fails if this isn't a ref type.
     pub fn read_var<T: Into<Vec<u8>>>(&self, name: T) -> Result<ByondValue, Error> {
+        if self.is_num() || self.is_str() || self.is_ptr() || self.is_null() || self.is_list() {
+            return Err(Error::NotARef);
+        }
         let c_string = CString::new(name).unwrap();
         let c_str = c_string.as_c_str();
 
