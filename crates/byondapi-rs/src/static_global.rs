@@ -1,16 +1,6 @@
-inventory::collect!(InitFunc);
-
-///This function will be ran to set up things before the lib is loaded
-///The lib is only loaded when any byondapi functions are called from byond
-///To submit a function (func) to be ran by byondapi on it's libload, do:
-///```
-///byondapi::inventory::submit! {InitFunc(func)}
-///```
-pub struct InitFunc(pub fn() -> ());
-
 #[cfg(target_os = "windows")]
-pub fn init_lib() -> byondapi_sys::ByondApi {
-    for func in inventory::iter::<InitFunc> {
+fn init_lib() -> byondapi_sys::ByondApi {
+    for func in inventory::iter::<super::InitFunc> {
         func.0();
     }
     let library = {
@@ -34,7 +24,10 @@ pub fn init_lib() -> byondapi_sys::ByondApi {
 }
 
 #[cfg(target_os = "linux")]
-pub fn init_lib() -> byondapi_sys::ByondApi {
+fn init_lib() -> byondapi_sys::ByondApi {
+    for func in inventory::iter::<super::InitFunc> {
+        func.0();
+    }
     let library = libloading::os::unix::Library::this();
     match unsafe { byondapi_sys::ByondApi::init_from_library(library) } {
         Err(e) => {

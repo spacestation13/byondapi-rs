@@ -31,3 +31,13 @@ pub unsafe fn parse_args(
 pub mod sys {
     pub use byondapi_sys::*;
 }
+
+inventory::collect!(InitFunc);
+
+///This function will be ran to set up things before the lib is loaded
+///The lib is only loaded when any byondapi functions are called from byond
+///To submit a function (func) to be ran by byondapi on it's libload, do:
+///```
+///byondapi::inventory::submit! {InitFunc(func)}
+///```
+pub struct InitFunc(pub fn() -> ());
