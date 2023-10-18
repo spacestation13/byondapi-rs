@@ -3,7 +3,10 @@ use std::ffi::{CStr, CString};
 use byondapi_sys::{u4c, ByondValueType, CByondValue};
 
 use super::ByondValue;
-use crate::{map::byond_length, static_global::byond, typecheck_trait::ByondTypeCheck, Error};
+use crate::{
+    map::byond_length, prelude::ByondValueList, static_global::byond,
+    typecheck_trait::ByondTypeCheck, Error,
+};
 
 /// # Compatibility with the C++ API
 impl ByondValue {
@@ -49,6 +52,15 @@ impl ByondValue {
                 .map_err(|_| Error::NonUtf8String)
                 .map(str::to_owned)
         })?
+    }
+
+    /// Try to get a [`crate::prelude::ByondValueList`] or fail if this isn't a string type or isn't utf8
+    pub fn get_list(&self) -> Result<ByondValueList, Error> {
+        let mut new_list = ByondValueList::new();
+
+        unsafe { map_byond_error!(byond().Byond_ReadList(&self.0, &mut new_list.0))? }
+
+        Ok(new_list)
     }
 
     /// Get the underlying ref number to this value
@@ -252,7 +264,7 @@ impl ByondValue {
 
     /// Reads a string through the ref. Fails if this isn't a ref type or this isn't a string.
     pub fn read_string<T: Into<Vec<u8>>>(&self, name: T) -> Result<String, Error> {
-        self.read_var(name)?.try_into()
+        self.read_var(name)?.get_string()
     }
 
     /// Reads a list through the ref. Fails if this isn't a ref type or this isn't a list.
