@@ -12,7 +12,7 @@ pub fn call_global<T: Into<Vec<u8>>>(name: T, args: &[ByondValue]) -> Result<Byo
     let c_str = c_string.as_c_str();
 
     let str_id = unsafe { byond().Byond_GetStrId(c_str.as_ptr()) };
-    if str_id == 0 {
+    if str_id == crate::sys::u2c::MAX as u32 {
         return Err(Error::InvalidProc);
     }
     let ptr = args.as_ptr();

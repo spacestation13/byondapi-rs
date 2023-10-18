@@ -34,7 +34,7 @@ impl TryFrom<ByondValue> for ByondValuePointer {
         if value.is_ptr() {
             Ok(Self(value))
         } else {
-            Err(Error::InvalidConversion)
+            Err(Error::NotAPtr)
         }
     }
 }

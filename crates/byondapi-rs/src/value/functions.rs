@@ -29,7 +29,7 @@ impl ByondValue {
         if self.is_num() {
             Ok(unsafe { byond().ByondValue_GetNum(&self.0) })
         } else {
-            Err(Error::InvalidConversion)
+            Err(Error::NotANum)
         }
     }
 
@@ -40,7 +40,7 @@ impl ByondValue {
             let cstr = unsafe { CStr::from_ptr(ptr) };
             Ok(cstr.to_owned())
         } else {
-            Err(Error::InvalidConversion)
+            Err(Error::NotAString)
         }
     }
 
@@ -69,6 +69,15 @@ impl ByondValue {
             return Err(Error::NotReferencable);
         }
         Ok(unsafe { byond().ByondValue_GetRef(&self.0) })
+    }
+
+    /// Get the string id of this value, fail if this isn't a string
+    pub fn get_strid(&self) -> Result<u4c, Error> {
+        if !self.is_str() {
+            return Err(Error::NotAString);
+        }
+        let string = self.get_cstring()?;
+        crate::byond_string::str_id_of_cstr(&string)
     }
 }
 
@@ -136,7 +145,7 @@ impl ByondValue {
         let c_str = c_string.as_c_str();
 
         let str_id = unsafe { byond().Byond_GetStrId(c_str.as_ptr()) };
-        if str_id == 0 {
+        if str_id == crate::sys::u2c::MAX as u32 {
             return Err(Error::InvalidProc);
         }
 
