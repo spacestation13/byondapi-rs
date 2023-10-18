@@ -1,5 +1,18 @@
+inventory::collect!(InitFunc);
+
+///This function will be ran to set up things before the lib is loaded
+///The lib is only loaded when any byondapi functions are called from byond
+///To submit a function (func) to be ran by byondapi on it's libload, do:
+///```
+///byondapi::inventory::submit! {InitFunc(func)}
+///```
+pub struct InitFunc(pub fn() -> ());
+
 #[cfg(target_os = "windows")]
 pub fn init_lib() -> byondapi_sys::ByondApi {
+    for func in inventory::iter::<InitFunc> {
+        func.0();
+    }
     let library = {
         let result = libloading::os::windows::Library::open_already_loaded("byondcore.dll");
 

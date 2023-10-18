@@ -1,5 +1,8 @@
 mod static_global;
 
+///Plugin init system
+pub use inventory;
+
 #[macro_use]
 pub mod error;
 #[cfg(feature = "byond-515-1611")]
