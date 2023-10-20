@@ -102,8 +102,8 @@ pub unsafe extern "C" fn test_readwrite_var(
     let args = parse_args(argc, argv);
     let object = &args[0];
 
-    match object.read_var("name") {
-        Ok(res) => res,
+    match object.read_string("name") {
+        Ok(res) => res.try_into().unwrap(),
         Err(e) => format!("{:#?}", e).try_into().unwrap(),
     }
 }

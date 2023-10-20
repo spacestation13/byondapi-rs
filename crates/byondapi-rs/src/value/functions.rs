@@ -35,13 +35,7 @@ impl ByondValue {
 
     /// Try to get a [`CString`] or fail if this isn't a string type
     pub fn get_cstring(&self) -> Result<CString, Error> {
-        if self.is_str() {
-            let ptr = unsafe { byond().ByondValue_GetStr(&self.0) };
-            let cstr = unsafe { CStr::from_ptr(ptr) };
-            Ok(cstr.to_owned())
-        } else {
-            Err(Error::NotAString)
-        }
+        self.get_cstr().map(|cstr| cstr.to_owned())
     }
 
     /// Try to get a [`CStr`] or fail if this isn't a string type
@@ -116,7 +110,7 @@ impl ByondValue {
     /// Read a variable through the ref. Fails if this isn't a ref type.
     pub fn read_var<T: Into<Vec<u8>>>(&self, name: T) -> Result<ByondValue, Error> {
         if self.is_num() || self.is_str() || self.is_ptr() || self.is_null() || self.is_list() {
-            return Err(Error::NotARef);
+            return Err(Error::NotReferencable);
         }
         let c_string = CString::new(name).unwrap();
         let c_str = c_string.as_c_str();

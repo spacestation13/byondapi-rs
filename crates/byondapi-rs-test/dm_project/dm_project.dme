@@ -56,13 +56,15 @@
 	if(O.name != ret)
 		throw EXCEPTION("Call proc failed, expected rust to return 'test name' but got '[ret]'")
 
+/datum/data
+	var/name = "test name"
+
 /test/proc/test_readwrite_var()
-	var/obj/O = new()
-	O.name = "test name"
+	var/datum/data/stub = new()
 
-	var/ret = call_ext("byondapi_test.dll", "byond:test_readwrite_var")(O)
+	var/ret = call_ext("byondapi_test.dll", "byond:test_readwrite_var")(stub)
 
-	if(O.name != ret)
+	if(stub.name != ret)
 		throw EXCEPTION("Call proc failed, expected rust to return 'test name' but got '[ret]'")
 
 /test/proc/test_list_push()
