@@ -32,6 +32,20 @@ impl ByondValueList {
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
+
+    pub fn into_value(&self) -> Result<ByondValue, Error> {
+        // The API must be called in this order:
+        // ByondValue_Init(&value) // Initializes the value
+        // Byond_CreateList(&value) // Creates a list() inside DM
+        // Byond_WriteList(&value, &list) // Copies the CByondList into the dm list()
+        let new_value = ByondValue::new_list().unwrap();
+
+        unsafe {
+            map_byond_error!(byond().Byond_WriteList(&new_value.0, &self.0))?;
+        }
+
+        Ok(new_value)
+    }
 }
 
 /// # Accessors
@@ -149,15 +163,19 @@ impl Default for ByondValueList {
     }
 }
 
+impl TryFrom<ByondValue> for ByondValueList {
+    type Error = Error;
+
+    fn try_from(value: ByondValue) -> Result<Self, Self::Error> {
+        value.get_list()
+    }
+}
+
 impl TryFrom<&ByondValue> for ByondValueList {
     type Error = Error;
 
     fn try_from(value: &ByondValue) -> Result<Self, Self::Error> {
-        let mut new_list = ByondValueList::new();
-
-        unsafe { map_byond_error!(byond().Byond_ReadList(&value.0, &mut new_list.0))? }
-
-        Ok(new_list)
+        value.get_list()
     }
 }
 
@@ -165,25 +183,7 @@ impl TryFrom<&ByondValueList> for ByondValue {
     type Error = Error;
 
     fn try_from(value: &ByondValueList) -> Result<Self, Self::Error> {
-        // The API must be called in this order:
-        // ByondValue_Init(&value) // Initializes the value
-        // Byond_CreateList(&value) // Creates a list() inside DM
-        // Byond_WriteList(&value, &list) // Copies the CByondList into the dm list()
-        let new_value = ByondValue::new_list().unwrap();
-
-        unsafe {
-            map_byond_error!(byond().Byond_WriteList(&new_value.0, &value.0))?;
-        }
-
-        Ok(new_value)
-    }
-}
-
-impl TryFrom<ByondValue> for ByondValueList {
-    type Error = Error;
-
-    fn try_from(value: ByondValue) -> Result<Self, Self::Error> {
-        (&value).try_into()
+        value.into_value()
     }
 }
 
@@ -191,7 +191,7 @@ impl TryFrom<ByondValueList> for ByondValue {
     type Error = Error;
 
     fn try_from(value: ByondValueList) -> Result<Self, Self::Error> {
-        (&value).try_into()
+        value.into_value()
     }
 }
 
@@ -206,18 +206,6 @@ impl TryFrom<&[ByondValue]> for ByondValueList {
         }
 
         Ok(list)
-    }
-}
-
-impl<'a> From<&'a ByondValueList> for &'a [ByondValue] {
-    fn from(value: &'a ByondValueList) -> Self {
-        value
-    }
-}
-
-impl<'a> From<&'a mut ByondValueList> for &'a mut [ByondValue] {
-    fn from(value: &'a mut ByondValueList) -> Self {
-        value
     }
 }
 

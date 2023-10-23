@@ -1,9 +1,12 @@
-use std::ffi::CString;
+use std::ffi::{CStr, CString};
 
 use byondapi_sys::{u4c, ByondValueType, CByondValue};
 
 use super::ByondValue;
-use crate::{map::byond_length, static_global::byond, typecheck_trait::ByondTypeCheck, Error};
+use crate::{
+    map::byond_length, prelude::ByondValueList, static_global::byond,
+    typecheck_trait::ByondTypeCheck, Error,
+};
 
 /// # Compatibility with the C++ API
 impl ByondValue {
@@ -13,19 +16,59 @@ impl ByondValue {
         std::mem::replace(&mut self.0, unsafe { std::mem::zeroed() })
     }
 
+    /// Try to get a [`bool`] or fail if this isn't a number type
+    pub fn get_bool(&self) -> Result<bool, Error> {
+        self.get_number().map(|num| match num as u32 {
+            (1..) => true,
+            0 => false,
+        })
+    }
+
     /// Try to get an [`f32`] or fail if this isn't a number type
     pub fn get_number(&self) -> Result<f32, Error> {
-        self.try_into()
+        if self.is_num() {
+            Ok(unsafe { byond().ByondValue_GetNum(&self.0) })
+        } else {
+            Err(Error::NotANum)
+        }
     }
 
     /// Try to get a [`CString`] or fail if this isn't a string type
     pub fn get_cstring(&self) -> Result<CString, Error> {
-        self.try_into()
+        self.get_cstr().map(|cstr| cstr.to_owned())
+    }
+
+    /// Try to get a [`CStr`] or fail if this isn't a string type
+    pub fn get_cstr<'a>(&'a self) -> Result<&'a CStr, Error> {
+        if self.is_str() {
+            let ptr = unsafe { byond().ByondValue_GetStr(&self.0) };
+            let cstr = unsafe { CStr::from_ptr(ptr) };
+            Ok(cstr)
+        } else {
+            Err(Error::NotAString)
+        }
     }
 
     /// Try to get a [`String`] or fail if this isn't a string type or isn't utf8
     pub fn get_string(&self) -> Result<String, Error> {
-        self.try_into()
+        self.get_cstring().map(|cstring| {
+            cstring
+                .to_str()
+                .map_err(|_| Error::NonUtf8String)
+                .map(str::to_owned)
+        })?
+    }
+
+    /// Try to get a [`crate::prelude::ByondValueList`] or fail if this isn't a string type or isn't utf8
+    pub fn get_list(&self) -> Result<ByondValueList, Error> {
+        if !self.is_list() {
+            return Err(Error::NotAList);
+        }
+        let mut new_list = ByondValueList::new();
+
+        unsafe { map_byond_error!(byond().Byond_ReadList(&self.0, &mut new_list.0))? }
+
+        Ok(new_list)
     }
 
     /// Get the underlying ref number to this value
@@ -34,6 +77,11 @@ impl ByondValue {
             return Err(Error::NotReferencable);
         }
         Ok(unsafe { byond().ByondValue_GetRef(&self.0) })
+    }
+
+    /// Get the string id of this value, fail if this isn't a string
+    pub fn get_strid(&self) -> Result<u4c, Error> {
+        crate::byond_string::str_id_of_cstr(self.get_cstr()?)
     }
 }
 
@@ -61,6 +109,9 @@ impl ByondValue {
 impl ByondValue {
     /// Read a variable through the ref. Fails if this isn't a ref type.
     pub fn read_var<T: Into<Vec<u8>>>(&self, name: T) -> Result<ByondValue, Error> {
+        if self.is_num() || self.is_str() || self.is_ptr() || self.is_null() || self.is_list() {
+            return Err(Error::NotReferencable);
+        }
         let c_string = CString::new(name).unwrap();
         let c_str = c_string.as_c_str();
 
@@ -101,7 +152,7 @@ impl ByondValue {
         let c_str = c_string.as_c_str();
 
         let str_id = unsafe { byond().Byond_GetStrId(c_str.as_ptr()) };
-        if str_id == 0 {
+        if str_id == crate::sys::u2c::MAX as u32 {
             return Err(Error::InvalidProc);
         }
 
@@ -111,6 +162,47 @@ impl ByondValue {
             map_byond_error!(byond().Byond_CallProcByStrId(
                 &self.0,
                 str_id,
+                ptr as *const byondapi_sys::CByondValue,
+                args.len() as u32,
+                &mut new_value.0
+            ))?;
+        }
+
+        Ok(new_value)
+    }
+}
+
+/// # Accessors by ids
+impl ByondValue {
+    /// Read a variable through the ref. Fails if this isn't a ref type, or the id is invalid.
+    pub fn read_var_id(&self, name: u4c) -> Result<ByondValue, Error> {
+        let mut new_value = ByondValue::new();
+        unsafe {
+            map_byond_error!(byond().Byond_ReadVarByStrId(&self.0, name, &mut new_value.0))?;
+        }
+
+        Ok(new_value)
+    }
+
+    /// Write to a variable through the ref. Fails if this isn't a ref type, or the id is invalid.
+    pub fn write_var_id(&mut self, name: u4c, other: &ByondValue) -> Result<(), Error> {
+        unsafe { map_byond_error!(byond().Byond_WriteVarByStrId(&self.0, name, &other.0)) }
+    }
+
+    /// Call a proc using self as src. Fails if this isn't a ref type, or the id is invalid.
+    ///
+    /// Implicitly set waitfor=0, will never block.
+    ///
+    /// # WARNING FOR BYOND 515.1609 and 515.1610
+    /// This is treated as verb name, so underscores are replaced with spaces.
+    /// For example `/obj/proc/get_name` would have to be called as `obj.call("get name")`.
+    pub fn call_id(&self, name: u4c, args: &[ByondValue]) -> Result<ByondValue, Error> {
+        let ptr = args.as_ptr();
+        let mut new_value = ByondValue::new();
+        unsafe {
+            map_byond_error!(byond().Byond_CallProcByStrId(
+                &self.0,
+                name,
                 ptr as *const byondapi_sys::CByondValue,
                 args.len() as u32,
                 &mut new_value.0
@@ -183,12 +275,12 @@ impl ByondValue {
 impl ByondValue {
     /// Reads a number through the ref. Fails if this isn't a ref type or this isn't a number.
     pub fn read_number<T: Into<Vec<u8>>>(&self, name: T) -> Result<f32, Error> {
-        self.read_var(name)?.try_into()
+        self.read_var(name)?.get_number()
     }
 
     /// Reads a string through the ref. Fails if this isn't a ref type or this isn't a string.
     pub fn read_string<T: Into<Vec<u8>>>(&self, name: T) -> Result<String, Error> {
-        self.read_var(name)?.try_into()
+        self.read_var(name)?.get_string()
     }
 
     /// Reads a list through the ref. Fails if this isn't a ref type or this isn't a list.
@@ -200,7 +292,7 @@ impl ByondValue {
     }
 
     /// Iterates through the assoc values of the list if this value is a list, if the value isn't a list then it returns an error.
-    /// Non assoc lists will have the second field of the tuple be None always, and the value in the first field
+    /// Non assoc lists will have the second field of the tuple be null
     /// (key, value) for proper assoc lists
     pub fn iter(&self) -> Result<impl Iterator<Item = (ByondValue, ByondValue)> + '_, Error> {
         if !self.is_list() {
@@ -212,6 +304,41 @@ impl ByondValue {
             len: len as u32,
             ctr: 1,
         })
+    }
+    pub fn values(&self) -> Result<impl Iterator<Item = ByondValue> + '_, Error> {
+        if !self.is_list() {
+            return Err(Error::NotAList);
+        }
+        let len: f32 = byond_length(self)?.try_into()?;
+        Ok(ValueIterator {
+            value: self,
+            len: len as u32,
+            ctr: 1,
+        })
+    }
+}
+
+struct ValueIterator<'a> {
+    value: &'a ByondValue,
+    len: u32,
+    ctr: u32,
+}
+impl<'a> Iterator for ValueIterator<'a> {
+    type Item = ByondValue;
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.ctr <= self.len {
+            let value = self
+                .value
+                .read_list_index_internal(&ByondValue::from(self.ctr as f32))
+                .ok()?;
+            self.ctr += 1;
+            Some(value)
+        } else {
+            None
+        }
+    }
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (0, Some(self.len as usize))
     }
 }
 

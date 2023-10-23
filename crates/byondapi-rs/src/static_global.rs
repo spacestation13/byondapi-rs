@@ -1,5 +1,8 @@
 #[cfg(target_os = "windows")]
-pub fn init_lib() -> byondapi_sys::ByondApi {
+fn init_lib() -> byondapi_sys::ByondApi {
+    for func in inventory::iter::<super::InitFunc> {
+        func.0();
+    }
     let library = {
         let result = libloading::os::windows::Library::open_already_loaded("byondcore.dll");
 
@@ -21,7 +24,10 @@ pub fn init_lib() -> byondapi_sys::ByondApi {
 }
 
 #[cfg(target_os = "linux")]
-pub fn init_lib() -> byondapi_sys::ByondApi {
+fn init_lib() -> byondapi_sys::ByondApi {
+    for func in inventory::iter::<super::InitFunc> {
+        func.0();
+    }
     let library = libloading::os::unix::Library::this();
     match unsafe { byondapi_sys::ByondApi::init_from_library(library) } {
         Err(e) => {

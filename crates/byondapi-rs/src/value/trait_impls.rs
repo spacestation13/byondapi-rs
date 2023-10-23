@@ -1,20 +1,17 @@
 use super::ByondValue;
 use crate::static_global::byond;
-use std::{fmt::Debug, mem::MaybeUninit};
+use std::fmt::Debug;
 
 // Memory handling
 impl Clone for ByondValue {
     fn clone(&self) -> Self {
-        let mut new_inner = MaybeUninit::uninit();
+        let mut cloned_value = ByondValue::null();
 
-        let new_inner = unsafe {
-            // Safety: new_inner is going to an initialization function, it will only write to the pointer.
-            byond().ByondValue_CopyFrom(new_inner.as_mut_ptr(), &self.0);
-            // Safety: ByondValue_Init will have initialized the new_inner.
-            new_inner.assume_init()
+        unsafe {
+            byond().ByondValue_CopyFrom(&mut cloned_value.0, &self.0);
         };
 
-        Self(new_inner)
+        cloned_value
     }
 }
 

@@ -17,10 +17,19 @@ pub enum Error {
     UnknownByondError,
     /// Thrown by us when we know this call will panic internally because of the version
     NotAvailableForThisByondVersion,
-    /// Thrown by us when we know this type does not have a ref
+    /// Thrown by us when we know this type does not have a refnumber
     NotReferencable,
-    /// Thrown by us when we know this type is not indexable because it's not a list
+    /// Thrown by us when we know this type is not a list, and we're expecting one
     NotAList,
+    /// Thrown by us when we know this type is not a string, and we're expecting one
+    NotAString,
+    /// Thrown by us when we know this type is not a number, and we're expecting one
+    NotANum,
+    /// Thrown by us when we know this type is not a pointer, and we're expecting one
+    NotAPtr,
+    /// Thrown by [`crate::byond_string::str_id_of_cstr`] when the string doesn't exist in
+    /// byondland
+    NonExistentString,
 }
 
 impl Error {
@@ -46,7 +55,11 @@ impl std::fmt::Display for Error {
                 "This call is not available on current version of the api"
             ),
             Self::NotReferencable => write!(f, "Cannot get a ref from this value"),
-            Self::NotAList => write!(f, "Cannot index into value, value is not a list"),
+            Self::NotAList => write!(f, "Value is not a list"),
+            Self::NotAString => write!(f, "Value is not a string"),
+            Self::NotANum => write!(f, "Value is not a number"),
+            Self::NotAPtr => write!(f, "Value is not a pointer"),
+            Self::NonExistentString => write!(f, "String id not found"),
         }
     }
 }

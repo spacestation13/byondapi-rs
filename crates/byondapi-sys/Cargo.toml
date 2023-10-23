@@ -17,15 +17,16 @@ default-target = "i686-unknown-linux-gnu"
 targets = []                              # Do not build the doc with any other target than the default.
 
 [dependencies]
-libloading = "0.8.0"
+libloading = "0.8.1"
 
 [build-dependencies]
-bindgen = "0.66.1"
+bindgen = "0.68.1"
 rustc_version = "0.4.0"
-walkdir = "2.3.3"
+walkdir = "2.4.0"
 
 [features]
-default = ["byond-515-1611"]
+default = ["byond-515-1617"]
+byond-515-1617 = []
 byond-515-1611 = []
 byond-515-1610 = []
 byond-515-1609 = []
