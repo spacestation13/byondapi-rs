@@ -20,13 +20,12 @@ targets = []                              # Do not build the doc with any other 
 libloading = "0.8.1"
 
 [build-dependencies]
-bindgen = "0.69.1"
+bindgen = "0.68.1"
 rustc_version = "0.4.0"
 walkdir = "2.4.0"
 
 [features]
-default = []
-byond-515-1620 = []
+default = ["byond-515-1617"]
 byond-515-1617 = []
 byond-515-1611 = []
 byond-515-1610 = []

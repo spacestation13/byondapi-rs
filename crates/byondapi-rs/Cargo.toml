@@ -17,12 +17,10 @@ byondapi-sys = { path = "../byondapi-sys", version = "0.10.1" }
 lazy_static = "1.4.0"
 libloading = "0.8.1"
 walkdir = "2.4.0"
-inventory = "0.3.13"
+inventory = "0.3.12"
 
 [features]
-default = ["byond-515-1620"]
-byond-515-1620 = ["byondapi-sys/byond-515-1620"]
-byond-515-1617 = ["byondapi-sys/byond-515-1617"]
-byond-515-1611 = ["byondapi-sys/byond-515-1611"]
-byond-515-1610 = ["byondapi-sys/byond-515-1610"]
-byond-515-1609 = ["byondapi-sys/byond-515-1609"]
+default = ["byond-515-1611"]
+byond-515-1611 = []
+byond-515-1610 = []
+byond-515-1609 = []

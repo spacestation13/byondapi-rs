@@ -1,19 +1,12 @@
 #![allow(clippy::missing_safety_doc)]
 
 use byondapi::{
+    list::ByondValueList,
     map::{byond_block, byond_length, ByondXYZ},
     parse_args,
     typecheck_trait::ByondTypeCheck,
     value::{pointer::ByondValuePointer, ByondValue},
 };
-
-#[cfg(any(
-    feature = "byond-515-1609",
-    feature = "byond-515-1610",
-    feature = "byond-515-1611",
-    feature = "byond-515-1617"
-))]
-use byondapi::list::ByondValueList;
 
 #[allow(dead_code)]
 fn write_log<T: AsRef<[u8]>>(x: T) {
@@ -41,15 +34,9 @@ pub unsafe extern "C" fn test_args(argc: byondapi_sys::u4c, argv: *mut ByondValu
     setup_panic_handler();
     let args = parse_args(argc, argv);
     assert_eq!(args.len(), 1);
-    args[0]
+    args[0].clone()
 }
 
-#[cfg(any(
-    feature = "byond-515-1609",
-    feature = "byond-515-1610",
-    feature = "byond-515-1611",
-    feature = "byond-515-1617"
-))]
 #[no_mangle]
 pub unsafe extern "C" fn send_test(_argc: byondapi_sys::u4c, _argv: *mut ByondValue) -> ByondValue {
     setup_panic_handler();
@@ -67,7 +54,7 @@ pub unsafe extern "C" fn send_test(_argc: byondapi_sys::u4c, _argv: *mut ByondVa
 pub unsafe extern "C" fn test_ptr(argc: byondapi_sys::u4c, argv: *mut ByondValue) -> ByondValue {
     setup_panic_handler();
     let args = parse_args(argc, argv);
-    let pointer = match ByondValuePointer::new(args[0]) {
+    let pointer = match ByondValuePointer::new(args[0].clone()) {
         Ok(ptr) => ptr,
         Err(e) => return format!("{:#?}", e).try_into().unwrap(),
     };
@@ -121,12 +108,6 @@ pub unsafe extern "C" fn test_readwrite_var(
     }
 }
 
-#[cfg(any(
-    feature = "byond-515-1609",
-    feature = "byond-515-1610",
-    feature = "byond-515-1611",
-    feature = "byond-515-1617"
-))]
 #[no_mangle]
 pub unsafe extern "C" fn test_list_push(
     argc: byondapi_sys::u4c,
@@ -148,12 +129,6 @@ pub unsafe extern "C" fn test_list_push(
     list.try_into().unwrap()
 }
 
-#[cfg(any(
-    feature = "byond-515-1609",
-    feature = "byond-515-1610",
-    feature = "byond-515-1611",
-    feature = "byond-515-1617"
-))]
 #[no_mangle]
 pub unsafe extern "C" fn test_list_double(
     argc: byondapi_sys::u4c,
@@ -177,12 +152,6 @@ pub unsafe extern "C" fn test_list_double(
     list.try_into().unwrap()
 }
 
-#[cfg(any(
-    feature = "byond-515-1609",
-    feature = "byond-515-1610",
-    feature = "byond-515-1611",
-    feature = "byond-515-1617"
-))]
 #[no_mangle]
 pub unsafe extern "C" fn test_list_index(
     argc: byondapi_sys::u4c,
@@ -199,12 +168,6 @@ pub unsafe extern "C" fn test_list_index(
     list[3].clone()
 }
 
-#[cfg(any(
-    feature = "byond-515-1609",
-    feature = "byond-515-1610",
-    feature = "byond-515-1611",
-    feature = "byond-515-1617"
-))]
 #[no_mangle]
 pub unsafe extern "C" fn test_list_pop(
     argc: byondapi_sys::u4c,
@@ -232,12 +195,6 @@ pub unsafe extern "C" fn test_list_pop(
     element
 }
 
-#[cfg(any(
-    feature = "byond-515-1609",
-    feature = "byond-515-1610",
-    feature = "byond-515-1611",
-    feature = "byond-515-1617"
-))]
 #[no_mangle]
 pub unsafe extern "C" fn test_length_with_list(
     argc: byondapi_sys::u4c,

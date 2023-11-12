@@ -47,24 +47,16 @@ fn generate_all() {
         let target = out_dir.join("byondapi.h");
         std::fs::copy(path, target).expect("Failed to copy to out_dir");
         let wrapper = copy_wrapper(&out_dir);
-        #[allow(unused_mut)]
+
         let mut builder = bindgen::Builder::default()
             .header(wrapper.to_string_lossy())
             .dynamic_library_name("ByondApi")
             .dynamic_link_require_all(true)
             // Also make headers included by main header dependencies of the build
-            .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()));
+            .parse_callbacks(Box::new(bindgen::CargoCallbacks));
 
-        #[cfg(any(
-            feature = "byond-515-1609",
-            feature = "byond-515-1610",
-            feature = "byond-515-1611",
-            feature = "byond-515-1617"
-        ))]
-        {
-            // Disable copy on refcounted types
-            builder = builder.no_copy("CByondValue").no_copy("CByondValueList");
-        }
+        // Disable copy on refcounted types
+        builder = builder.no_copy("CByondValue").no_copy("CByondValueList");
 
         builder
             .generate()
