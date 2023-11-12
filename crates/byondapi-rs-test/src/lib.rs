@@ -1,7 +1,6 @@
 #![allow(clippy::missing_safety_doc)]
 
 use byondapi::{
-    list::ByondValueList,
     map::{byond_block, byond_length, ByondXYZ},
     parse_args,
     typecheck_trait::ByondTypeCheck,
@@ -34,20 +33,7 @@ pub unsafe extern "C" fn test_args(argc: byondapi_sys::u4c, argv: *mut ByondValu
     setup_panic_handler();
     let args = parse_args(argc, argv);
     assert_eq!(args.len(), 1);
-    args[0].clone()
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn send_test(_argc: byondapi_sys::u4c, _argv: *mut ByondValue) -> ByondValue {
-    setup_panic_handler();
-    // let args = parse_args(argc, argv);
-    let new_value = ByondValue::new_str("Meow").unwrap();
-
-    std::thread::spawn(move || {
-        std::mem::drop(new_value);
-    });
-
-    ByondValue::null()
+    args[0]
 }
 
 #[no_mangle]
@@ -107,7 +93,7 @@ pub unsafe extern "C" fn test_readwrite_var(
         Err(e) => format!("{:#?}", e).try_into().unwrap(),
     }
 }
-
+/*
 #[no_mangle]
 pub unsafe extern "C" fn test_list_push(
     argc: byondapi_sys::u4c,
@@ -218,7 +204,7 @@ pub unsafe extern "C" fn test_length_with_list(
         Err(e) => format!("{:#?}", e).try_into().unwrap(),
     }
 }
-
+*/
 #[no_mangle]
 pub unsafe extern "C" fn test_block(argc: byondapi_sys::u4c, argv: *mut ByondValue) -> ByondValue {
     setup_panic_handler();

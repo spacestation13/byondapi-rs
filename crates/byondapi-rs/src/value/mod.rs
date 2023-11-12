@@ -6,6 +6,7 @@ use crate::{static_global::byond, typecheck_trait::ByondTypeCheck};
 
 /// [Newtype](https://doc.rust-lang.org/rust-by-example/generics/new_types.html) pattern over [`CByondValue`]
 #[repr(transparent)]
+#[derive(Clone, Copy)]
 pub struct ByondValue(pub CByondValue);
 
 /// It is safe to send ByondValue with ownership, but it is not safe to have references between threads.

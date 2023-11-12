@@ -20,7 +20,5 @@ walkdir = "2.4.0"
 inventory = "0.3.12"
 
 [features]
-default = ["byond-515-1611"]
-byond-515-1611 = []
-byond-515-1610 = []
-byond-515-1609 = []
+default = ["byond-515-1620"]
+byond-515-1620 = []

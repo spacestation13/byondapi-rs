@@ -35,8 +35,6 @@ pub use byondapi_sys::u4cOrPointer;
 pub use byondapi_sys::ByondValueData as InternalByondValueData;
 pub use byondapi_sys::ByondValueType as InternalByondValueType;
 pub use byondapi_sys::CByondValue as InternalByondValue;
-pub use byondapi_sys::CByondValueList as InternalByondValueList;
 
 // As well as our own types.
-pub use crate::list::ByondValueList;
 pub use crate::value::ByondValue;
