@@ -6,6 +6,7 @@ use crate::{static_global::byond, typecheck_trait::ByondTypeCheck};
 
 /// [Newtype](https://doc.rust-lang.org/rust-by-example/generics/new_types.html) pattern over [`CByondValue`]
 #[repr(transparent)]
+#[cfg_attr(any(feature = "byond-515-1620"), derive(Clone, Copy))]
 pub struct ByondValue(pub CByondValue);
 
 /// It is safe to send ByondValue with ownership, but it is not safe to have references between threads.
@@ -52,5 +53,11 @@ impl ByondTypeCheck for ByondValue {
 
     fn is_ptr(&self) -> bool {
         is_pointer_shim(self)
+    }
+
+    #[cfg(any(feature = "byond-515-1620"))]
+    fn is_true(&self) -> bool {
+        // Safety: This operation only fails if our CByondValue is invalid, which cannot happen.
+        unsafe { byond().ByondValue_IsTrue(&self.0) }
     }
 }

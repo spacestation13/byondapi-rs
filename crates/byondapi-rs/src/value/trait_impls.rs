@@ -2,6 +2,12 @@ use super::ByondValue;
 use crate::static_global::byond;
 use std::fmt::Debug;
 
+#[cfg(any(
+    feature = "byond-515-1609",
+    feature = "byond-515-1610",
+    feature = "byond-515-1611",
+    feature = "byond-515-1617"
+))]
 // Memory handling
 impl Clone for ByondValue {
     fn clone(&self) -> Self {
@@ -15,6 +21,12 @@ impl Clone for ByondValue {
     }
 }
 
+#[cfg(any(
+    feature = "byond-515-1609",
+    feature = "byond-515-1610",
+    feature = "byond-515-1611",
+    feature = "byond-515-1617"
+))]
 impl Drop for ByondValue {
     fn drop(&mut self) {
         // Safety: We are being dropped, it is okay to free our inner CByondValue.

@@ -1,12 +1,22 @@
-use std::ffi::{CStr, CString};
-
 use byondapi_sys::{u4c, ByondValueType, CByondValue};
+#[cfg(any(
+    feature = "byond-515-1609",
+    feature = "byond-515-1610",
+    feature = "byond-515-1611",
+    feature = "byond-515-1617"
+))]
+use std::ffi::CStr;
+use std::ffi::CString;
 
 use super::ByondValue;
-use crate::{
-    map::byond_length, prelude::ByondValueList, static_global::byond,
-    typecheck_trait::ByondTypeCheck, Error,
-};
+#[cfg(any(
+    feature = "byond-515-1609",
+    feature = "byond-515-1610",
+    feature = "byond-515-1611",
+    feature = "byond-515-1617"
+))]
+use crate::prelude::ByondValueList;
+use crate::{map::byond_length, static_global::byond, typecheck_trait::ByondTypeCheck, Error};
 
 /// # Compatibility with the C++ API
 impl ByondValue {
@@ -35,9 +45,66 @@ impl ByondValue {
 
     /// Try to get a [`CString`] or fail if this isn't a string type
     pub fn get_cstring(&self) -> Result<CString, Error> {
-        self.get_cstr().map(|cstr| cstr.to_owned())
+        #[cfg(any(
+            feature = "byond-515-1609",
+            feature = "byond-515-1610",
+            feature = "byond-515-1611",
+            feature = "byond-515-1617"
+        ))]
+        {
+            self.get_cstr().map(|cstr| cstr.to_owned())
+        }
+        #[cfg(any(feature = "byond-515-1620"))]
+        {
+            use std::cell::RefCell;
+
+            if !self.is_str() {
+                return Err(Error::NotAString);
+            }
+
+            thread_local! {
+                static BUFFER: RefCell<Vec<u8>> = RefCell::new(Vec::with_capacity(1));
+            }
+
+            let bytes = BUFFER.with_borrow_mut(|buff| -> Result<Vec<u8>, Error> {
+                let mut len = buff.capacity() as u32;
+                // Safety: buffer capacity is passed to byond, which makes sure it writes in-bound
+                let initial_res =
+                    unsafe { byond().Byond_ToString(&self.0, buff.as_mut_ptr().cast(), &mut len) };
+                match (initial_res, len) {
+                    (false, 1..) => {
+                        buff.reserve_exact(len as usize - buff.capacity());
+                        // Safety: buffer capacity is passed to byond, which makes sure it writes in-bound
+                        unsafe {
+                            map_byond_error!(byond().Byond_ToString(
+                                &self.0,
+                                buff.as_mut_ptr().cast(),
+                                &mut len
+                            ))?
+                        };
+                        // Safety: buffer should be written to at this point
+                        unsafe { buff.set_len(len as usize) };
+                        Ok(std::mem::take(buff))
+                    }
+                    (true, _) => {
+                        // Safety: buffer should be written to at this point
+                        unsafe { buff.set_len(len as usize) };
+                        Ok(std::mem::take(buff))
+                    }
+                    (false, 0) => Err(Error::get_last_byond_error()),
+                }
+            })?;
+
+            CString::new(bytes).map_err(|_| Error::NonUtf8String)
+        }
     }
 
+    #[cfg(any(
+        feature = "byond-515-1609",
+        feature = "byond-515-1610",
+        feature = "byond-515-1611",
+        feature = "byond-515-1617"
+    ))]
     /// Try to get a [`CStr`] or fail if this isn't a string type
     pub fn get_cstr<'a>(&'a self) -> Result<&'a CStr, Error> {
         if self.is_str() {
@@ -58,7 +125,12 @@ impl ByondValue {
                 .map(str::to_owned)
         })?
     }
-
+    #[cfg(any(
+        feature = "byond-515-1609",
+        feature = "byond-515-1610",
+        feature = "byond-515-1611",
+        feature = "byond-515-1617"
+    ))]
     /// Try to get a [`crate::prelude::ByondValueList`] or fail if this isn't a string type or isn't utf8
     pub fn get_list(&self) -> Result<ByondValueList, Error> {
         if !self.is_list() {
@@ -81,7 +153,11 @@ impl ByondValue {
 
     /// Get the string id of this value, fail if this isn't a string
     pub fn get_strid(&self) -> Result<u4c, Error> {
-        crate::byond_string::str_id_of_cstr(self.get_cstr()?)
+        if !self.is_str() {
+            Err(Error::NotAString)
+        } else {
+            Ok(unsafe { self.0.data.ref_ })
+        }
     }
 }
 
@@ -96,7 +172,11 @@ impl ByondValue {
     pub fn set_str<T: Into<Vec<u8>>>(&mut self, f: T) -> Result<(), Error> {
         let c_string = CString::new(f).unwrap();
         let c_str = c_string.as_c_str();
-        unsafe { map_byond_error!(byond().ByondValue_SetStr(&mut self.0, c_str.as_ptr())) }
+        unsafe { byond().ByondValue_SetStr(&mut self.0, c_str.as_ptr()) }
+        if self.is_null() {
+            return Err(Error::UnableToCreateString);
+        }
+        Ok(())
     }
 
     /// Replaces whatever is currently in this value with a ref
@@ -156,13 +236,12 @@ impl ByondValue {
             return Err(Error::InvalidProc);
         }
 
-        let ptr = args.as_ptr();
         let mut new_value = ByondValue::new();
         unsafe {
             map_byond_error!(byond().Byond_CallProcByStrId(
                 &self.0,
                 str_id,
-                ptr as *const byondapi_sys::CByondValue,
+                args.as_ptr().cast(),
                 args.len() as u32,
                 &mut new_value.0
             ))?;
@@ -197,13 +276,12 @@ impl ByondValue {
     /// This is treated as verb name, so underscores are replaced with spaces.
     /// For example `/obj/proc/get_name` would have to be called as `obj.call("get name")`.
     pub fn call_id(&self, name: u4c, args: &[ByondValue]) -> Result<ByondValue, Error> {
-        let ptr = args.as_ptr();
         let mut new_value = ByondValue::new();
         unsafe {
             map_byond_error!(byond().Byond_CallProcByStrId(
                 &self.0,
                 name,
-                ptr as *const byondapi_sys::CByondValue,
+                args.as_ptr().cast(),
                 args.len() as u32,
                 &mut new_value.0
             ))?;
@@ -260,17 +338,6 @@ impl ByondValue {
     }
 }
 
-/// # Builtins
-impl ByondValue {
-    pub fn builtin_length(&self) -> Result<ByondValue, Error> {
-        let mut result = ByondValue::new();
-        unsafe {
-            map_byond_error!(byond().Byond_Length(&self.0, &mut result.0))?;
-        }
-        Ok(result)
-    }
-}
-
 /// # Helpers
 impl ByondValue {
     /// Reads a number through the ref. Fails if this isn't a ref type or this isn't a number.
@@ -282,7 +349,12 @@ impl ByondValue {
     pub fn read_string<T: Into<Vec<u8>>>(&self, name: T) -> Result<String, Error> {
         self.read_var(name)?.get_string()
     }
-
+    #[cfg(any(
+        feature = "byond-515-1609",
+        feature = "byond-515-1610",
+        feature = "byond-515-1611",
+        feature = "byond-515-1617"
+    ))]
     /// Reads a list through the ref. Fails if this isn't a ref type or this isn't a list.
     pub fn read_list<T: Into<Vec<u8>>>(
         &self,

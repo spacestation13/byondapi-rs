@@ -5,13 +5,25 @@ pub use inventory;
 
 #[macro_use]
 pub mod error;
-#[cfg(feature = "byond-515-1611")]
+#[cfg(any(
+    feature = "byond-515-1611",
+    feature = "byond-515-1617",
+    feature = "byond-515-1620"
+))]
 pub mod map;
 pub use error::Error;
 
 pub mod byond_string;
 pub mod global_call;
+#[cfg(any(
+    feature = "byond-515-1609",
+    feature = "byond-515-1610",
+    feature = "byond-515-1611",
+    feature = "byond-515-1617"
+))]
 pub mod list;
+#[cfg(any(feature = "byond-515-1620"))]
+pub mod list_vec;
 pub mod prelude;
 pub mod typecheck_trait;
 pub mod value;

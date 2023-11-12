@@ -1,11 +1,13 @@
 use byondapi_sys::CByondXYZ;
 
-use crate::{
-    prelude::{ByondValue, ByondValueList},
-    static_global::byond,
-    Error,
-};
-
+#[cfg(any(
+    feature = "byond-515-1609",
+    feature = "byond-515-1610",
+    feature = "byond-515-1611",
+    feature = "byond-515-1617"
+))]
+use crate::prelude::ByondValueList;
+use crate::{prelude::ByondValue, static_global::byond, Error};
 /// This struct is a little weird because we're actually responsible for initializing and freeing it ourselves, unlike
 /// all the rest.
 #[derive(Debug, Clone, Copy)]
@@ -34,6 +36,12 @@ impl Default for ByondXYZ {
 
 /// Corresponds to [`dm::block`](https://www.byond.com/docs/ref/#/proc/block)
 /// Gets a list of turfs in a square zone between the two provided corners.
+#[cfg(any(
+    feature = "byond-515-1609",
+    feature = "byond-515-1610",
+    feature = "byond-515-1611",
+    feature = "byond-515-1617"
+))]
 pub fn byond_block(corner1: ByondXYZ, corner2: ByondXYZ) -> Result<ByondValueList, Error> {
     let mut output_list = ByondValueList::new();
 
@@ -41,6 +49,45 @@ pub fn byond_block(corner1: ByondXYZ, corner2: ByondXYZ) -> Result<ByondValueLis
     unsafe { map_byond_error!(byond().Byond_Block(&corner1.0, &corner2.0, &mut output_list.0))? };
 
     Ok(output_list)
+}
+#[cfg(any(feature = "byond-515-1620"))]
+pub fn byond_block(corner1: ByondXYZ, corner2: ByondXYZ) -> Result<Vec<ByondValue>, Error> {
+    use std::cell::RefCell;
+
+    thread_local! {
+        static BUFFER: RefCell<Vec<ByondValue>> = RefCell::new(Vec::with_capacity(1));
+    }
+
+    BUFFER.with_borrow_mut(|buff| -> Result<Vec<ByondValue>, Error> {
+        let mut len = buff.capacity() as u32;
+        // Safety: buffer capacity is passed to byond, which makes sure it writes in-bound
+        let initial_res = unsafe {
+            byond().Byond_Block(&corner1.0, &corner2.0, buff.as_mut_ptr().cast(), &mut len)
+        };
+        match (initial_res, len) {
+            (false, 1..) => {
+                buff.reserve_exact(len as usize - buff.capacity());
+                // Safety: buffer capacity is passed to byond, which makes sure it writes in-bound
+                unsafe {
+                    map_byond_error!(byond().Byond_Block(
+                        &corner1.0,
+                        &corner2.0,
+                        buff.as_mut_ptr().cast(),
+                        &mut len
+                    ))?
+                };
+                // Safety: buffer should be written to at this point
+                unsafe { buff.set_len(len as usize) };
+                Ok(std::mem::take(buff))
+            }
+            (true, _) => {
+                // Safety: buffer should be written to at this point
+                unsafe { buff.set_len(len as usize) };
+                Ok(std::mem::take(buff))
+            }
+            (false, 0) => Err(Error::get_last_byond_error()),
+        }
+    })
 }
 
 /// Corresponds to [`dm::length`](https://www.byond.com/docs/ref/#/proc/length)

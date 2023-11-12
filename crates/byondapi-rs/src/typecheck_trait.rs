@@ -16,4 +16,7 @@ pub trait ByondTypeCheck {
     fn is_list(&self) -> bool;
     /// Check if this is a pointer.
     fn is_ptr(&self) -> bool;
+    #[cfg(any(feature = "byond-515-1620"))]
+    /// Check if this is true-ish from byond's view.
+    fn is_true(&self) -> bool;
 }
