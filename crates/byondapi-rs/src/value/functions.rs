@@ -247,51 +247,7 @@ impl ByondValue {
 }
 
 /// # List operations by key instead of indices (why are they even here lumlum?????)
-impl ByondValue {
-    /// Reads a value by key through the ref. Fails if this isn't a list.
-    pub fn read_list_index<I: TryInto<ByondValue>>(&self, index: I) -> Result<ByondValue, Error> {
-        if !self.is_list() {
-            return Err(Error::NotAList);
-        }
-        let index: ByondValue = index.try_into().map_err(|_| Error::InvalidConversion)?;
-        self.read_list_index_internal(&index)
-    }
-
-    /// Writes a value by key through the ref. Fails if this isn't a list.
-    pub fn write_list_index<I: TryInto<ByondValue>, V: TryInto<ByondValue>>(
-        &mut self,
-        index: I,
-        value: V,
-    ) -> Result<(), Error> {
-        if !self.is_list() {
-            return Err(Error::NotAList);
-        }
-        let index: ByondValue = index.try_into().map_err(|_| Error::InvalidConversion)?;
-        let value: ByondValue = value.try_into().map_err(|_| Error::InvalidConversion)?;
-        self.write_list_index_internal(&index, &value)
-    }
-
-    /// Reads a value by key through the ref. Fails if the index doesn't exist
-    pub fn read_list_index_internal(&self, index: &ByondValue) -> Result<ByondValue, Error> {
-        let mut result = ByondValue::new();
-        unsafe {
-            map_byond_error!(byond().Byond_ReadListIndex(&self.0, &index.0, &mut result.0))?;
-        }
-        Ok(result)
-    }
-
-    /// Writes a value by key through the ref. Dunno why it can fail
-    pub fn write_list_index_internal(
-        &mut self,
-        index: &ByondValue,
-        value: &ByondValue,
-    ) -> Result<(), Error> {
-        unsafe {
-            map_byond_error!(byond().Byond_WriteListIndex(&self.0, &index.0, &value.0))?;
-        }
-        Ok(())
-    }
-}
+impl ByondValue {}
 
 /// # Builtins
 impl ByondValue {
