@@ -54,4 +54,9 @@ impl ByondTypeCheck for ByondValue {
     fn is_ptr(&self) -> bool {
         is_pointer_shim(self)
     }
+
+    fn is_true(&self) -> bool {
+        // Safety: This operation only fails if our CByondValue is invalid, which cannot happen.
+        unsafe { byond().ByondValue_IsTrue(&self.0) }
+    }
 }
