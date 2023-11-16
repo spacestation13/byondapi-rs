@@ -93,7 +93,6 @@ pub unsafe extern "C" fn test_readwrite_var(
         Err(e) => format!("{:#?}", e).try_into().unwrap(),
     }
 }
-/*
 #[no_mangle]
 pub unsafe extern "C" fn test_list_push(
     argc: byondapi_sys::u4c,
@@ -102,12 +101,9 @@ pub unsafe extern "C" fn test_list_push(
     setup_panic_handler();
     let args = parse_args(argc, argv);
 
-    let mut list: ByondValueList = match (&args[0]).try_into() {
-        Ok(list) => list,
-        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
-    };
+    let mut list = args[0];
 
-    match list.push(&ByondValue::new_num(8.0)) {
+    match list.push_list(ByondValue::new_num(8.0)) {
         Ok(_) => {}
         Err(e) => return format!("{:#?}", e).try_into().unwrap(),
     };
@@ -123,19 +119,15 @@ pub unsafe extern "C" fn test_list_double(
     setup_panic_handler();
     let args = parse_args(argc, argv);
 
-    let list: ByondValueList = match (&args[0]).try_into() {
-        Ok(list) => list,
-        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
-    };
+    let list = args[0];
 
     let collection: Vec<ByondValue> = list
         .iter()
-        .map(|f| (f.get_number().unwrap() * 2.).try_into().unwrap())
+        .unwrap()
+        .map(|(v, _)| (v.get_number().unwrap() * 2.).try_into().unwrap())
         .collect();
 
-    let list: ByondValueList = collection.as_slice().try_into().unwrap();
-
-    list.try_into().unwrap()
+    collection.as_slice().try_into().unwrap()
 }
 
 #[no_mangle]
@@ -146,12 +138,9 @@ pub unsafe extern "C" fn test_list_index(
     setup_panic_handler();
     let args = parse_args(argc, argv);
 
-    let list: ByondValueList = match (&args[0]).try_into() {
-        Ok(list) => list,
-        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
-    };
+    let list = args[0];
 
-    list[3].clone()
+    list.read_list_index(3.0).unwrap()
 }
 
 #[no_mangle]
@@ -162,23 +151,20 @@ pub unsafe extern "C" fn test_list_pop(
     setup_panic_handler();
     let args = parse_args(argc, argv);
 
-    let mut list: ByondValueList = match (&args[0]).try_into() {
-        Ok(list) => list,
-        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
-    };
+    let mut list = args[0];
 
-    let element = match list.pop() {
+    let element = match list.pop_list() {
         Ok(x) => x,
         Err(e) => return format!("{:#?}", e).try_into().unwrap(),
     };
 
-    if list.0.count != 4 {
+    if list.builtin_length().unwrap().get_number().unwrap() as u32 != 4 {
         return "pop did not actually remove item from list"
             .try_into()
             .unwrap();
     }
 
-    element
+    element.unwrap()
 }
 
 #[no_mangle]
@@ -189,22 +175,13 @@ pub unsafe extern "C" fn test_length_with_list(
     setup_panic_handler();
     let args = parse_args(argc, argv);
 
-    let list: ByondValueList = match (&args[0]).try_into() {
-        Ok(list) => list,
-        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
-    };
+    let list = args[0];
 
-    let value: ByondValue = match list.try_into() {
-        Ok(x) => x,
-        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
-    };
-
-    match byond_length(&value) {
+    match list.builtin_length() {
         Ok(x) => x,
         Err(e) => format!("{:#?}", e).try_into().unwrap(),
     }
 }
-*/
 #[no_mangle]
 pub unsafe extern "C" fn test_block(argc: byondapi_sys::u4c, argv: *mut ByondValue) -> ByondValue {
     setup_panic_handler();

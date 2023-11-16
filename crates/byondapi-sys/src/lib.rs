@@ -117,9 +117,9 @@ impl ByondApi {
     pub unsafe fn ByondValue_IsList(&self, v: *const CByondValue) -> bool {
         self.internal.ByondValue_IsList(v)
     }
-    pub unsafe fn ByondValue_IsTrue(&self, v: *const CByondValue) -> bool {
-        self.internal.ByondValue_IsTrue(v)
-    }
+    //pub unsafe fn ByondValue_IsTrue(&self, v: *const CByondValue) -> bool {
+    //    self.internal.ByondValue_IsTrue(v)
+    //}
     pub unsafe fn ByondValue_GetNum(&self, v: *const CByondValue) -> f32 {
         self.internal.ByondValue_GetNum(v)
     }

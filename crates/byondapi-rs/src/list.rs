@@ -1,5 +1,5 @@
 use crate::{static_global::byond, typecheck_trait::ByondTypeCheck, value::ByondValue, Error};
-
+/// List stuff goes here, Keep in mind that all indexing method starts at zero instead of one like byondland
 impl ByondValue {
     /// Gets an array of all the list elements, this includes both keys and values for assoc lists, in an arbitrary order
     pub fn get_list(&self) -> Result<Vec<ByondValue>, Error> {
@@ -42,6 +42,7 @@ impl ByondValue {
             }
         })
     }
+
     /// Writes an array to the list
     pub fn write_list(&self, list: &[ByondValue]) -> Result<(), Error> {
         unsafe {
@@ -102,9 +103,20 @@ impl ByondValue {
         if !self.is_list() {
             return Err(Error::NotAList);
         }
-        let len = self.builtin_length()?.get_number()?;
-
-        self.write_list_index_internal(&(len + 1.0).into(), &value)?;
+        let mut list_copy = self.get_list()?;
+        list_copy.push(value);
+        self.write_list(&list_copy)?;
         Ok(())
+    }
+
+    /// Pops a value from a list
+    pub fn pop_list(&mut self) -> Result<Option<ByondValue>, Error> {
+        if !self.is_list() {
+            return Err(Error::NotAList);
+        }
+        let mut list_copy = self.get_list()?;
+        let value = list_copy.pop();
+        self.write_list(&list_copy)?;
+        Ok(value)
     }
 }

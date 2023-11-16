@@ -35,7 +35,8 @@ impl ByondValue {
         if !self.is_str() {
             return Err(Error::NotAString);
         }
-        let len = self.builtin_length()?.get_number()? as u32;
+        // add one for le null terminator
+        let len = self.builtin_length()?.get_number()? as u32 + 1;
         let mut buff: Vec<u8> = Vec::with_capacity(len as usize);
         let mut capacity = buff.capacity() as u32;
         // Safety: buffer capacity is passed to byond, which makes sure it writes in-bound
@@ -46,8 +47,8 @@ impl ByondValue {
                 &mut capacity
             ))?
         }
-        // Safety: buffer should be written to at this point
-        unsafe { buff.set_len(len as usize) };
+        // Safety: buffer should be written to at this point, ignoring null terminator
+        unsafe { buff.set_len(len as usize - 1) };
 
         CString::new(buff).map_err(|_| Error::NonUtf8String)
 

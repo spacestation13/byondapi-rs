@@ -100,3 +100,12 @@ impl TryFrom<&ByondValue> for String {
         value.get_string()
     }
 }
+
+impl TryFrom<&[ByondValue]> for ByondValue {
+    type Error = Error;
+    fn try_from(value: &[ByondValue]) -> Result<Self, Self::Error> {
+        let res = ByondValue::new_list()?;
+        res.write_list(value)?;
+        Ok(res)
+    }
+}
