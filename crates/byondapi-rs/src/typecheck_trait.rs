@@ -16,6 +16,6 @@ pub trait ByondTypeCheck {
     fn is_list(&self) -> bool;
     /// Check if this is a pointer.
     fn is_ptr(&self) -> bool;
-    /// Check if this is true-ish.
-    fn is_true(&self) -> bool;
+    //// Check if this is true-ish.
+    //fn is_true(&self) -> bool;
 }

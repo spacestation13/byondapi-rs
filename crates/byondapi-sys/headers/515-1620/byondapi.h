@@ -200,7 +200,7 @@ DUNGPUB bool ByondValue_IsList(CByondValue const *v);
  * @param Pointer to CByondValue
  * @return Truthiness of value
  */
-bool ByondValue_IsTrue(CByondValue const *v);
+//bool ByondValue_IsTrue(CByondValue const *v);
 
 /**
  * @param Pointer to CByondValue
