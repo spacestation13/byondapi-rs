@@ -1,0 +1,85 @@
+name: Check and Test
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  check:
+    name: Run checks
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target_name: i686-unknown-linux-gnu
+          - os: windows-latest
+            target_name: i686-pc-windows-msvc
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Toolchains
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target_name }}
+
+      - name: Install g++ multilib (Ubuntu)
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install build-essential g++-multilib libc6-i386 libstdc++6:i386
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Check byondapi
+        uses: actions-rs/cargo@v1
+        with:
+          toolchain: stable
+          command: check
+          args: --target ${{ matrix.target_name }}
+
+  check_fmt:
+    name: Check format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check fmt
+        uses: actions-rs/cargo@v1
+        with:
+          toolchain: stable
+          command: fmt
+          args: --all -- --check
+  # TODO: write linux tests
+  run_test:
+    name: Run test
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Toolchains
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: i686-pc-windows-msvc
+
+      - name: Restore BYOND cache
+        uses: actions/cache@v3
+        with:
+          path: ~/BYOND
+          key: linux-byond
+
+      - name: Set up byond
+        run: bash ./test_byond.sh
+
+      - name: Run tests
+        uses: actions-rs/cargo@v1
+        with:
+          toolchain: stable
+          command: test
+          args: test_byondapi_with_dreamdaemon --target i686-pc-windows-msvc
