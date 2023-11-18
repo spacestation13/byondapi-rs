@@ -79,7 +79,6 @@ jobs:
           sudo dpkg --add-architecture i386
           sudo apt-get update
           sudo apt-get install build-essential g++-multilib libc6-i386 libstdc++6:i386
-        if: matrix.os == 'ubuntu-latest'
 
       - name: Set up byond
         run: bash ./test_byond.sh
