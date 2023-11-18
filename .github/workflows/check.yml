@@ -57,7 +57,7 @@ jobs:
 
   run_test:
     name: Run test
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -66,19 +66,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-          target: i686-unknown-linux-gnu
-
-      - name: Restore BYOND cache
-        uses: actions/cache@v3
-        with:
-          path: ~/BYOND
-          key: linux-byond
-
-      - name: Install g++ multilib (Ubuntu)
-        run: |
-          sudo dpkg --add-architecture i386
-          sudo apt-get update
-          sudo apt-get install build-essential g++-multilib libc6-i386 libstdc++6:i386
+          target: i686-pc-windows-msvc
 
       - name: Set up byond
         run: bash ./test_byond.sh
@@ -88,4 +76,4 @@ jobs:
         with:
           toolchain: stable
           command: test
-          args: test_byondapi_with_dreamdaemon --target i686-unknown-linux-gnu
+          args: test_byondapi_with_dreamdaemon --target i686-pc-windows-msvc
