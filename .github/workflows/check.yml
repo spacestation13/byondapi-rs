@@ -1,0 +1,94 @@
+name: Check and Test
+on: 
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+jobs:
+  check:    
+    name: Run checks
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target_name: i686-unknown-linux-gnu
+          - os: windows-latest
+            target_name: i686-pc-windows-msvc
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install g++ multilib (Ubuntu)
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install build-essential g++-multilib libc6-i386 libstdc++6:i386
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Check byondapi
+        uses: actions-rs/cargo@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target_name }}
+          command: check 
+  check_fmt:
+    name: Check format
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target_name: i686-unknown-linux-gnu
+          - os: windows-latest
+            target_name: i686-pc-windows-msvc
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install g++ multilib (Ubuntu)
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install build-essential g++-multilib libc6-i386 libstdc++6:i386
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Check fmt
+        uses: actions-rs/cargo@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target_name }}
+          command: fmt
+          args: --all -- --check 
+  run_test:
+    name: Run test
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Restore BYOND cache
+        uses: actions/cache@v3
+        with:
+          path: ~/BYOND
+          key: linux-byond
+
+      - name: Install g++ multilib (Ubuntu)
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install build-essential g++-multilib libc6-i386 libstdc++6:i386
+        if: matrix.os == 'ubuntu-latest'
+      
+      - name: Set up byond
+        run: bash install_byond.sh
+
+      - name: Run tests
+        uses: actions-rs/cargo@v1
+        with:
+          toolchain: stable
+          target: i686-unknown-linux-gnu
+          command: test
+          args: test_byondapi_with_dreamdaemon
