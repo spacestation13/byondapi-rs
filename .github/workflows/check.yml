@@ -21,6 +21,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Toolchains
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target_name }}
+
       - name: Install g++ multilib (Ubuntu)
         run: |
           sudo dpkg --add-architecture i386
@@ -49,6 +55,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Toolchains
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target_name }}
+
       - name: Install g++ multilib (Ubuntu)
         run: |
           sudo dpkg --add-architecture i386
@@ -71,6 +83,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Toolchains
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target_name }}
+
       - name: Restore BYOND cache
         uses: actions/cache@v3
         with:
@@ -85,7 +103,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
 
       - name: Set up byond
-        run: bash install_byond.sh
+        run: bash ./install_byond.sh
 
       - name: Run tests
         uses: actions-rs/cargo@v1
