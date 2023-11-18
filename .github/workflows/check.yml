@@ -1,13 +1,13 @@
 name: Check and Test
-on: 
+on:
   push:
     branches:
-    - master
+      - master
   pull_request:
     branches:
-    - master
+      - master
 jobs:
-  check:    
+  check:
     name: Run checks
     runs-on: ${{ matrix.os }}
     strategy:
@@ -33,7 +33,8 @@ jobs:
         with:
           toolchain: stable
           target: ${{ matrix.target_name }}
-          command: check 
+          command: check
+
   check_fmt:
     name: Check format
     runs-on: ${{ matrix.os }}
@@ -61,7 +62,8 @@ jobs:
           toolchain: stable
           target: ${{ matrix.target_name }}
           command: fmt
-          args: --all -- --check 
+          args: --all -- --check
+
   run_test:
     name: Run test
     runs-on: windows-latest
@@ -81,7 +83,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install build-essential g++-multilib libc6-i386 libstdc++6:i386
         if: matrix.os == 'ubuntu-latest'
-      
+
       - name: Set up byond
         run: bash install_byond.sh
 
