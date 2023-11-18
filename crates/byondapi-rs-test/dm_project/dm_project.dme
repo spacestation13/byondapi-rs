@@ -134,7 +134,7 @@
 
 	call_ext("byondapi_test.dll", "byond:test_list_key_lookup")(L)
 
-	if(L["parrot"] != 14)
+	if(L["parrot"] != 20)
 		throw EXCEPTION("list modification by key failed")
 // BEGIN_INTERNALS
 // END_INTERNALS

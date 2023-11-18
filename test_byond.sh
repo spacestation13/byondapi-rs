@@ -21,3 +21,4 @@ else
 fi
 mkdir -p "$GITHUB_WORKSPACE/crates/byondapi-rs-test/dm_project/byond"
 cp -r "$HOME/BYOND/byond/bin" "$GITHUB_WORKSPACE/crates/byondapi-rs-test/dm_project/byond"
+echo "Written byond bin to $GITHUB_WORKSPACE/crates/byondapi-rs-test/dm_project/byond"
