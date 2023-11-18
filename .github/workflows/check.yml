@@ -43,14 +43,7 @@ jobs:
 
   check_fmt:
     name: Check format
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            target_name: i686-unknown-linux-gnu
-          - os: windows-latest
-            target_name: i686-pc-windows-msvc
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -89,7 +82,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
 
       - name: Set up byond
-        run: bash ${{ env.GITHUB_WORKSPACE }}/install_byond.sh
+        run: bash ./test_byond.sh
 
       - name: Run tests
         uses: actions-rs/cargo@v1
