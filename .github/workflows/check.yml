@@ -54,7 +54,7 @@ jobs:
           toolchain: stable
           command: fmt
           args: --all -- --check
-
+  # TODO: write linux tests
   run_test:
     name: Run test
     runs-on: windows-latest
@@ -67,6 +67,12 @@ jobs:
         with:
           toolchain: stable
           target: i686-pc-windows-msvc
+
+      - name: Restore BYOND cache
+        uses: actions/cache@v3
+        with:
+          path: ~/BYOND
+          key: linux-byond
 
       - name: Set up byond
         run: bash ./test_byond.sh
