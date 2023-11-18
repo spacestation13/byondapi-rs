@@ -27,10 +27,6 @@
 	if (ret.name != O.name)
 		throw EXCEPTION("Object did not make it through FFI")
 
-/test/proc/send_test()
-	call_ext("byondapi_test.dll", "byond:send_test")()
-
-
 /test/proc/test_ref()
 	var/turf/T = locate(1,1,1)
 	var/ret = call_ext("byondapi_test.dll", "byond:test_ref")(T)
@@ -87,7 +83,7 @@
 
 	var/ret = call_ext("byondapi_test.dll", "byond:test_list_index")(L)
 
-	if(ret != 4)
+	if(ret != 3)
 		throw EXCEPTION("List index access failed [json_encode(ret)]")
 
 /test/proc/test_list_pop()
