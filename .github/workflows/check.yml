@@ -73,11 +73,11 @@ jobs:
         with:
           toolchain: stable
           command: fmt
-          args: --target ${{ matrix.target_name }} --all -- --check
+          args: --target=${{ matrix.target_name }} --all -- --check
 
   run_test:
     name: Run test
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
