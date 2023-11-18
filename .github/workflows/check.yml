@@ -38,8 +38,8 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           toolchain: stable
-          target: ${{ matrix.target_name }}
           command: check
+          args: --target ${{ matrix.target_name }}
 
   check_fmt:
     name: Check format
@@ -72,9 +72,8 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           toolchain: stable
-          target: ${{ matrix.target_name }}
           command: fmt
-          args: --all -- --check
+          args: --target ${{ matrix.target_name }} --all -- --check
 
   run_test:
     name: Run test
@@ -109,6 +108,5 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           toolchain: stable
-          target: i686-unknown-linux-gnu
           command: test
-          args: test_byondapi_with_dreamdaemon
+          args: test_byondapi_with_dreamdaemon --target ${{ matrix.target_name }}
