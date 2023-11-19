@@ -55,7 +55,7 @@ jobs:
           command: fmt
           args: --all -- --check
   # TODO: write linux tests
-  run_test:
+  run_test_windows:
     name: Run test
     runs-on: windows-latest
     steps:
@@ -72,10 +72,10 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/BYOND
-          key: linux-byond
+          key: windows-byond
 
       - name: Set up byond
-        run: bash ./test_byond.sh
+        run: bash ./tools/setup_byond_windows.sh
 
       - name: Run tests
         uses: actions-rs/cargo@v1
@@ -83,3 +83,38 @@ jobs:
           toolchain: stable
           command: test
           args: test_byondapi_with_dreamdaemon --target i686-pc-windows-msvc
+
+  run_test_linux:
+    name: Run test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Toolchains
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: i686-unknown-linux-gnu
+
+      - name: Install g++ multilib
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install build-essential g++-multilib libc6-i386 libstdc++6:i386
+
+      - name: Restore BYOND cache
+        uses: actions/cache@v3
+        with:
+          path: ~/BYOND
+          key: linux-byond
+
+      - name: Set up byond
+        run: bash ./tools/setup_byond_linux.sh
+
+      - name: Run tests
+        uses: actions-rs/cargo@v1
+        with:
+          toolchain: stable
+          command: test
+          args: test_byondapi_with_dreamdaemon --target i686-unknown-linux-gnu
