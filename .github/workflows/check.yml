@@ -91,7 +91,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          targets: i686-pc-windows-msvc
+          targets: i686-unknown-linux-gnu
 
       - name: Install g++ multilib
         run: |
