@@ -3,14 +3,15 @@ use std::{
     process::Command,
 };
 
-use tempfile::TempDir;
-
 #[test]
 fn test_byondapi_with_dreamdaemon() {
     let dll = build_dylib();
     compile();
 
-    let tempdir = tempfile::tempdir().expect("Failed to create temporary directory");
+    let tempdir = PathBuf::from(std::env::var("OUT_DIR").unwrap().to_owned()).join("byond_test");
+    _ = std::fs::remove_dir_all(&tempdir);
+    std::fs::create_dir_all(&tempdir).unwrap();
+
     copy_to_tmp(&dll, &tempdir);
     run_dreamdaemon(&tempdir);
     check_output_rust(&tempdir);
@@ -83,25 +84,24 @@ fn compile() {
     )
 }
 
-fn copy_to_tmp(dll: &Path, tempdir: &TempDir) {
-    let target = tempdir.path();
-
+fn copy_to_tmp(dll: &Path, tempdir: &Path) {
     std::fs::copy(
         Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("dm_project")
             .join("dm_project.dmb"),
-        target.join("dm_project.dmb"),
+        tempdir.join("dm_project.dmb"),
     )
     .expect("Failed to copy dm_project.dmb");
 
-    std::fs::copy(dll, target.join("byondapi_test.dll")).expect("Failed to copy byondapi_test.dll");
+    std::fs::copy(dll, tempdir.join("byondapi_test.dll"))
+        .expect("Failed to copy byondapi_test.dll");
 }
 
-fn run_dreamdaemon(tempdir: &TempDir) {
+fn run_dreamdaemon(tempdir: &Path) {
     let dream_daemon = find_dd().expect("To run this integration test you must place a copy of BYOND binaries in dm_project/byond/bin");
 
     let _dd_output = Command::new(dream_daemon)
-        .current_dir(tempdir.path())
+        .current_dir(tempdir)
         .arg("dm_project.dmb")
         .arg("-trusted")
         .output()
@@ -110,8 +110,8 @@ fn run_dreamdaemon(tempdir: &TempDir) {
     // println!("{:#?}", _dd_output);
 }
 
-fn check_output_dd(tempdir: &TempDir) {
-    let log = tempdir.path().join("dd_log.txt");
+fn check_output_dd(tempdir: &Path) {
+    let log = tempdir.join("dd_log.txt");
 
     assert!(log.exists(), "The test did not produce any output");
 
@@ -125,8 +125,8 @@ fn check_output_dd(tempdir: &TempDir) {
     );
 }
 
-fn check_output_rust(tempdir: &TempDir) {
-    let log = tempdir.path().join("rust_log.txt");
+fn check_output_rust(tempdir: &Path) {
+    let log = tempdir.join("rust_log.txt");
 
     if log.exists() {
         let log = std::fs::read_to_string(log).expect("Failed to read log");
