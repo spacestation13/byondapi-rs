@@ -69,7 +69,7 @@ fn build_dylib() -> PathBuf {
 
     cmd.arg("build").arg("--message-format=json").arg("--lib");
     #[cfg(windows)]
-    cmd.arg("--target=i686-windows-pc-msvc");
+    cmd.arg("--target=i686-pc-windows-msvc");
     #[cfg(unix)]
     cmd.arg("--target=i686-unknown-linux-gnu");
     cmd.stderr(std::process::Stdio::inherit());
@@ -93,7 +93,8 @@ fn parse_output(res: Output) -> PathBuf {
 }
 
 fn compile() {
-    let dm_compiler = find_dm().expect("To run this integration test you must place a copy of BYOND binaries in dm_project/byond/bin");
+    let dm_compiler = find_dm()
+        .expect("To run this integration test you must install it the usual way or set BYOND_LOCATION to it's /bin folder to override it");
 
     let output = Command::new(dm_compiler)
         .current_dir(project_dir())
