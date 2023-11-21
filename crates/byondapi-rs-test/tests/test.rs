@@ -65,9 +65,9 @@ fn build_dylib() -> PathBuf {
 
     cmd.arg("build").arg("--message-format=json").arg("--lib");
     #[cfg(windows)]
-    cmd.arg("--target i686-windows-pc-msvc");
+    cmd.arg("--target=i686-windows-pc-msvc");
     #[cfg(unix)]
-    cmd.arg("--target i686-unknown-linux-gnu");
+    cmd.arg("--target=i686-unknown-linux-gnu");
     cmd.stderr(std::process::Stdio::inherit());
     parse_output(cmd.output().unwrap())
 }
