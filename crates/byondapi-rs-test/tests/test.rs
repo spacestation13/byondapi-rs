@@ -131,12 +131,15 @@ fn run_dreamdaemon(tempdir: &TempDir) -> String {
         .expect("DreamDaemon crashed");
     let stdout = std::str::from_utf8(&dd_output.stdout).unwrap();
     let stderr = std::str::from_utf8(&dd_output.stderr).unwrap();
+    if !stdout.is_empty() {
+        eprintln!("Stdout:-------------------------------------------------------------------");
+        eprintln!("{stdout}");
+    }
 
-    println!("Stdout:-------------------------------------------------------------------");
-    println!("{stdout}");
-    println!("Stderr:-------------------------------------------------------------------");
-    println!("{stderr}");
-    println!("--------------------------------------------------------------------------");
+    if !stderr.is_empty() {
+        eprintln!("Stderr:-------------------------------------------------------------------");
+        eprintln!("{stderr}");
+    }
     stderr.to_owned()
 }
 
@@ -147,6 +150,7 @@ fn check_output_dd(tempdir: &TempDir) {
 
     let log = std::fs::read_to_string(log).expect("Failed to read log");
 
+    eprintln!("DDlogs:-------------------------------------------------------------------");
     eprintln!("{}", log);
 
     assert!(
@@ -160,6 +164,7 @@ fn check_output_rust(tempdir: &TempDir) {
 
     if log.exists() {
         let log = std::fs::read_to_string(log).expect("Failed to read log");
+        eprintln!("Rustlogs:-----------------------------------------------------------------");
         eprintln!("{}", log);
         panic!("Rust error log was produced!");
     }
