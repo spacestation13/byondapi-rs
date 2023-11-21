@@ -321,7 +321,10 @@ pub unsafe extern "C" fn test_list_read(
     let list = args.get(0).unwrap();
 
     let map = list.get_list().unwrap();
+    map.into_iter().for_each(|item| println!("{item:#?}"));
+    /*
     let (num, string): (Vec<_>, Vec<_>) = map.into_iter().partition(|value| value.is_num());
+
     let num = num
         .into_iter()
         .map(|value| value.get_number().unwrap() as usize)
@@ -337,6 +340,7 @@ pub unsafe extern "C" fn test_list_read(
         string,
         vec!["cat".to_owned(), "dog".to_owned(), "parrot".to_owned()]
     );
+    */
 
     ByondValue::new()
 }
