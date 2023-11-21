@@ -49,7 +49,7 @@ pub fn byond_block(corner1: ByondXYZ, corner2: ByondXYZ) -> Result<Vec<ByondValu
             (false, 1..) => {
                 let before_cap = buff.capacity();
                 println!("before capacity is {before_cap}");
-                buff.reserve_exact(len as usize - buff.capacity());
+                buff.reserve_exact(len as usize);
                 let capacitor = buff.capacity();
                 println!("buffer capacity is {capacitor}");
 
