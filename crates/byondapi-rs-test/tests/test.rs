@@ -130,6 +130,9 @@ fn run_dreamdaemon(tempdir: &TempDir) {
     println!("Stderr:-------------------------------------------------------------------");
     println!("{stderr}");
     println!("--------------------------------------------------------------------------");
+    if stderr.lines().count() > 3 {
+        panic!("Stderr contains more than 3 lines, an error message might be printed!")
+    }
 }
 
 fn check_output_dd(tempdir: &TempDir) {
