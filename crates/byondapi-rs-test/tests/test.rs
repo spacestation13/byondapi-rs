@@ -122,8 +122,14 @@ fn run_dreamdaemon(tempdir: &TempDir) {
         .arg("-trusted")
         .output()
         .expect("DreamDaemon crashed");
+    let stdout = std::str::from_utf8(&dd_output.stdout).unwrap();
+    let stderr = std::str::from_utf8(&dd_output.stderr).unwrap();
 
-    println!("{:#?}", dd_output);
+    println!("-----------------------");
+    println!("Stdout:\n{stdout}");
+    println!("-----------------------");
+    println!("Stderr:\n{stderr}");
+    println!("-----------------------");
 }
 
 fn check_output_dd(tempdir: &TempDir) {
