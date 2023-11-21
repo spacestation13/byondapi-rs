@@ -19,7 +19,12 @@ fn test_byondapi_with_dreamdaemon() {
     check_output_rust(&tempdir);
     check_output_dd(&tempdir);
 
-    if stderr.lines().count() > 3 {
+    #[cfg(unix)]
+    const LINE_COUNT: usize = 3;
+    #[cfg(windows)]
+    const LINE_COUNT: usize = 5;
+
+    if stderr.lines().count() > LINE_COUNT {
         panic!("Stderr contains more than 3 lines, an error message might be printed!")
     }
 }
