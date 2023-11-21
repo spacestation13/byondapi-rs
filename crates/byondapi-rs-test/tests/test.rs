@@ -116,14 +116,14 @@ fn copy_to_tmp(dll: &Path, tempdir: &TempDir) {
 fn run_dreamdaemon(tempdir: &TempDir) {
     let dream_daemon = find_dd();
 
-    let _dd_output = Command::new(dream_daemon)
+    let dd_output = Command::new(dream_daemon)
         .current_dir(tempdir.path())
         .arg("dm_project.dmb")
         .arg("-trusted")
         .output()
         .expect("DreamDaemon crashed");
 
-    // println!("{:#?}", _dd_output);
+    println!("{:#?}", dd_output);
 }
 
 fn check_output_dd(tempdir: &TempDir) {
