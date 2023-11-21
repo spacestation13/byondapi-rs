@@ -112,9 +112,11 @@ impl ByondValue {
         if !self.is_list() {
             return Err(Error::NotAList);
         }
-        if self.builtin_length()?.get_number()? as usize == 0 {
+        let len = self.builtin_length()?.get_number()? as usize;
+        if len == 0 {
             return Ok(None);
         }
-        Ok(Some(self.call("Remove", &[])?))
+        let value = self.read_list_index(len as f32)?;
+        Ok(Some(self.call("Remove", &[value])?))
     }
 }
