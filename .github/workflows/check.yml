@@ -74,13 +74,11 @@ jobs:
           path: ~/BYOND
           key: windows-byond
 
-      - name: Set up byond
+      - name: Run tests
         run: |
           bash ./tools/setup_byond_windows.sh
-          powershell $Env:BYOND_LOCATION = "$HOME\BYOND\byond\bin"
-
-      - name: Run tests
-        run: cargo test --package byondapi-test --target i686-pc-windows-msvc --test test -- test_byondapi_with_dreamdaemon --exact --nocapture
+          $Env:BYOND_LOCATION = "$HOME\BYOND\byond\bin"
+          cargo test --package byondapi-test --target i686-pc-windows-msvc --test test -- test_byondapi_with_dreamdaemon --exact --nocapture
 
   run_test_linux:
     name: Run test (Ubuntu)
@@ -107,10 +105,8 @@ jobs:
           path: ~/BYOND
           key: linux-byond
 
-      - name: Set up byond
+      - name: Run tests
         run: |
           bash ./tools/setup_byond_linux.sh
           source $HOME/BYOND/byond/bin/byondsetup
-
-      - name: Run tests
-        run: cargo test --package byondapi-test --target i686-unknown-linux-gnu --test test -- test_byondapi_with_dreamdaemon --exact --nocapture
+          cargo test --package byondapi-test --target i686-unknown-linux-gnu --test test -- test_byondapi_with_dreamdaemon --exact --nocapture
