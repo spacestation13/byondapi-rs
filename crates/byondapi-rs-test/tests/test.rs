@@ -32,31 +32,19 @@ fn bin_path() -> PathBuf {
     }
 }
 
-fn find_dm() -> Result<PathBuf, ()> {
-    let path = if cfg!(windows) {
+fn find_dm() -> PathBuf {
+    if cfg!(windows) {
         bin_path().join("dm.exe")
     } else {
         "DreamMaker".into()
-    };
-
-    if path.exists() {
-        Ok(path)
-    } else {
-        Err(())
     }
 }
 
-fn find_dd() -> Result<PathBuf, ()> {
-    let path = if cfg!(windows) {
+fn find_dd() -> PathBuf {
+    if cfg!(windows) {
         bin_path().join("dd.exe")
     } else {
         "DreamDaemon".into()
-    };
-
-    if path.exists() {
-        Ok(path)
-    } else {
-        Err(())
     }
 }
 
@@ -93,8 +81,7 @@ fn parse_output(res: Output) -> PathBuf {
 }
 
 fn compile() {
-    let dm_compiler = find_dm()
-        .expect("To run this integration test you must install it the usual way or set BYOND_LOCATION to it's /bin folder to override it");
+    let dm_compiler = find_dm();
 
     let output = Command::new(dm_compiler)
         .current_dir(project_dir())
@@ -127,7 +114,7 @@ fn copy_to_tmp(dll: &Path, tempdir: &TempDir) {
 }
 
 fn run_dreamdaemon(tempdir: &TempDir) {
-    let dream_daemon = find_dd().expect("To run this integration test you must place a copy of BYOND binaries in dm_project/byond/bin");
+    let dream_daemon = find_dd();
 
     let _dd_output = Command::new(dream_daemon)
         .current_dir(tempdir.path())
