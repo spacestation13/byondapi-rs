@@ -42,8 +42,14 @@
 		throw EXCEPTION("Object did not make it through FFI")
 
 /test/proc/test_ref()
+	world.maxz = 1
+	world.maxx = 1
+	world.maxy = 1
 	var/turf/T = locate(1,1,1)
 	var/ret = call_ext("byondapi_test.dll", "byond:test_ref")(T)
+	world.maxz = 0
+	world.maxx = 0
+	world.maxy = 0
 
 /test/proc/test_ptr()
 	var/x = "meow"
