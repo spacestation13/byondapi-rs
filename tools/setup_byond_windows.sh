@@ -19,4 +19,3 @@ else
   echo "$BYOND_MAJOR.$BYOND_MINOR" > "$HOME/BYOND/version.txt"
   cd ~/
 fi
-export BYOND_LOCATION="$HOME/BYOND/byond/bin"

@@ -75,7 +75,9 @@ jobs:
           key: windows-byond
 
       - name: Set up byond
-        run: bash ./tools/setup_byond_windows.sh
+        run: |
+          bash ./tools/setup_byond_windows.sh
+          powershell $Env:BYOND_LOCATION = "$HOME\BYOND\byond\bin"
 
       - name: Run tests
         run: cargo test --package byondapi-test --target i686-pc-windows-msvc --test test -- test_byondapi_with_dreamdaemon --exact --nocapture
