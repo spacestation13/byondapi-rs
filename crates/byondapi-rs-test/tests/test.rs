@@ -11,10 +11,17 @@ fn test_byondapi_with_dreamdaemon() {
     compile();
 
     let tempdir = tempfile::tempdir().expect("Failed to create temporary directory");
+
     copy_to_tmp(&dll, &tempdir);
-    run_dreamdaemon(&tempdir);
+
+    let stderr = run_dreamdaemon(&tempdir);
+
     check_output_rust(&tempdir);
     check_output_dd(&tempdir);
+
+    if stderr.lines().count() > 3 {
+        panic!("Stderr contains more than 3 lines, an error message might be printed!")
+    }
 }
 
 fn bin_path() -> PathBuf {
@@ -113,7 +120,7 @@ fn copy_to_tmp(dll: &Path, tempdir: &TempDir) {
     std::fs::copy(dll, target.join("byondapi_test.dll")).expect("Failed to copy byondapi_test.dll");
 }
 
-fn run_dreamdaemon(tempdir: &TempDir) {
+fn run_dreamdaemon(tempdir: &TempDir) -> String {
     let dream_daemon = find_dd();
 
     let dd_output = Command::new(dream_daemon)
@@ -130,9 +137,7 @@ fn run_dreamdaemon(tempdir: &TempDir) {
     println!("Stderr:-------------------------------------------------------------------");
     println!("{stderr}");
     println!("--------------------------------------------------------------------------");
-    if stderr.lines().count() > 3 {
-        panic!("Stderr contains more than 3 lines, an error message might be printed!")
-    }
+    stderr.to_owned()
 }
 
 fn check_output_dd(tempdir: &TempDir) {
