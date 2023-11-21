@@ -82,7 +82,7 @@ jobs:
 
   run_test_linux:
     name: Run test (Ubuntu)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
