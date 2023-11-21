@@ -20,7 +20,7 @@ impl ByondValue {
                 unsafe { byond().Byond_ReadList(&self.0, buff.as_mut_ptr().cast(), &mut len) };
             match (initial_res, len) {
                 (false, 1..) => {
-                    buff.reserve_exact(len as usize - buff.capacity());
+                    buff.reserve_exact(len as usize);
                     // Safety: buffer capacity is passed to byond, which makes sure it writes in-bound
                     unsafe {
                         map_byond_error!(byond().Byond_ReadList(
