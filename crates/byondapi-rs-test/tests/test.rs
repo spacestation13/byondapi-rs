@@ -125,11 +125,11 @@ fn run_dreamdaemon(tempdir: &TempDir) {
     let stdout = std::str::from_utf8(&dd_output.stdout).unwrap();
     let stderr = std::str::from_utf8(&dd_output.stderr).unwrap();
 
-    println!("Stdout:-----------------------------------------------------------------");
+    println!("Stdout:-------------------------------------------------------------------");
     println!("{stdout}");
-    println!("Stderr:-----------------------------------------------------------------");
+    println!("Stderr:-------------------------------------------------------------------");
     println!("{stderr}");
-    println!("------------------------------------------------------------------------");
+    println!("--------------------------------------------------------------------------");
 }
 
 fn check_output_dd(tempdir: &TempDir) {
