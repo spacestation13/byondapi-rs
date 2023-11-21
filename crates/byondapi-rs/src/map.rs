@@ -32,20 +32,25 @@ impl Default for ByondXYZ {
 /// Gets a list of turfs in a square zone between the two provided corners.
 pub fn byond_block(corner1: ByondXYZ, corner2: ByondXYZ) -> Result<Vec<ByondValue>, Error> {
     use std::cell::RefCell;
-    /*
+
     thread_local! {
         static BUFFER: RefCell<Vec<ByondValue>> = RefCell::new(Vec::with_capacity(1));
     }
 
     BUFFER.with_borrow_mut(|buff| -> Result<Vec<ByondValue>, Error> {
         let mut len = buff.capacity() as u32;
+        println!("init len is {len}");
         // Safety: buffer capacity is passed to byond, which makes sure it writes in-bound
         let initial_res = unsafe {
             byond().Byond_Block(&corner1.0, &corner2.0, buff.as_mut_ptr().cast(), &mut len)
         };
+        println!("len after first block is {len}");
         match (initial_res, len) {
             (false, 1..) => {
                 buff.reserve_exact(len as usize - buff.capacity());
+                let capacitor = buff.capacity();
+                println!("buffer capacity is {capacitor}");
+
                 // Safety: buffer capacity is passed to byond, which makes sure it writes in-bound
                 unsafe {
                     map_byond_error!(byond().Byond_Block(
@@ -55,6 +60,8 @@ pub fn byond_block(corner1: ByondXYZ, corner2: ByondXYZ) -> Result<Vec<ByondValu
                         &mut len
                     ))?
                 };
+
+                println!("len after second block is {len}");
                 // Safety: buffer should be written to at this point
                 unsafe { buff.set_len(len as usize) };
                 Ok(std::mem::take(buff))
@@ -67,11 +74,6 @@ pub fn byond_block(corner1: ByondXYZ, corner2: ByondXYZ) -> Result<Vec<ByondValu
             (false, 0) => Err(Error::get_last_byond_error()),
         }
     })
-    */
-    let mut buffer = [ByondValue::new(); 4];
-    let mut len = buffer.len() as u32;
-    unsafe { byond().Byond_Block(&corner1.0, &corner2.0, buffer.as_mut_ptr().cast(), &mut len) };
-    Ok(buffer.to_vec())
 }
 
 /// Corresponds to [`dm::length`](https://www.byond.com/docs/ref/#/proc/length)
