@@ -323,7 +323,13 @@ pub unsafe extern "C" fn test_list_read(
     let map = list.get_list().unwrap();
     let map = map
         .into_iter()
-        .map(|value| value.get_number().unwrap() as usize)
+        .map(|value| {
+            if !value.is_num() {
+                let string = value.get_string().unwrap();
+                eprintln!("Value is not a num, is actually {string}");
+            }
+            value.get_number().unwrap() as usize
+        })
         .collect::<Vec<_>>();
 
     assert_eq!(map, vec![0, 1, 5]);
