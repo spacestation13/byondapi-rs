@@ -62,15 +62,16 @@ fn project_dir() -> PathBuf {
 
 fn build_dylib() -> PathBuf {
     let mut cmd = Command::new(option_env!("CARGO").unwrap_or("cargo"));
-    parse_output(
-        cmd.arg("build")
-            .arg("--message-format=json")
-            .arg("--lib")
-            .stderr(std::process::Stdio::inherit())
-            .output()
-            .unwrap(),
-    )
+
+    cmd.arg("build").arg("--message-format=json").arg("--lib");
+    #[cfg(windows)]
+    cmd.arg("--target i686-windows-pc-msvc");
+    #[cfg(unix)]
+    cmd.arg("--target i686-unknown-linux-gnu");
+    cmd.stderr(std::process::Stdio::inherit());
+    parse_output(cmd.output().unwrap())
 }
+
 fn parse_output(res: Output) -> PathBuf {
     let mut artifact = None;
     for message in cargo_metadata::Message::parse_stream(res.stdout.as_slice()) {
