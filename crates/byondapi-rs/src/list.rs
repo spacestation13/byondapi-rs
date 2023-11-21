@@ -103,9 +103,7 @@ impl ByondValue {
         if !self.is_list() {
             return Err(Error::NotAList);
         }
-        let mut list_copy = self.get_list()?;
-        list_copy.push(value);
-        self.write_list(&list_copy)?;
+        self.call("Add", &[value])?;
         Ok(())
     }
 
@@ -114,9 +112,9 @@ impl ByondValue {
         if !self.is_list() {
             return Err(Error::NotAList);
         }
-        let mut list_copy = self.get_list()?;
-        let value = list_copy.pop();
-        self.write_list(&list_copy)?;
-        Ok(value)
+        if self.builtin_length()?.get_number()? as usize == 0 {
+            return Ok(None);
+        }
+        Ok(Some(self.call("Remove", &[])?))
     }
 }

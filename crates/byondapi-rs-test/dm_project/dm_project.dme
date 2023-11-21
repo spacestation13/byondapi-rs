@@ -136,6 +136,11 @@
 
 	if(L["parrot"] != 14)
 		throw EXCEPTION("list modification by key failed")
+
+/test/proc/test_list_read()
+	var/list/L = list("cat" = 0, "dog" = 1, "parrot" = 5)
+	call_ext("byondapi_test.dll", "byond:test_list_read")(L)
+
 // BEGIN_INTERNALS
 // END_INTERNALS
 // BEGIN_FILE_DIR
