@@ -1,6 +1,6 @@
 use std::{
     path::{Path, PathBuf},
-    process::Command,
+    process::{Command, Output},
 };
 
 use tempfile::TempDir;
@@ -61,7 +61,30 @@ fn project_dir() -> PathBuf {
 }
 
 fn build_dylib() -> PathBuf {
-    test_cdylib::build_current_project()
+    let mut cmd = Command::new(option_env!("CARGO").unwrap_or("cargo"));
+    parse_output(
+        cmd.arg("build")
+            .arg("--message-format=json")
+            .arg("lib")
+            .stderr(std::process::Stdio::inherit())
+            .output()
+            .unwrap(),
+    )
+}
+fn parse_output(res: Output) -> PathBuf {
+    let mut artifact = None;
+    for message in cargo_metadata::Message::parse_stream(res.stdout.as_slice()) {
+        match message.unwrap() {
+            cargo_metadata::Message::CompilerMessage(m) => eprintln!("{}", m),
+            cargo_metadata::Message::CompilerArtifact(a) => artifact = Some(a),
+            _ => (),
+        }
+    }
+
+    if !res.status.success() {
+        panic!("Failed to build")
+    }
+    artifact.unwrap().filenames[0].clone().into()
 }
 
 fn compile() {
