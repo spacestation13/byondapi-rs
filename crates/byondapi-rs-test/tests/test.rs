@@ -65,7 +65,7 @@ fn build_dylib() -> PathBuf {
     parse_output(
         cmd.arg("build")
             .arg("--message-format=json")
-            .arg("lib")
+            .arg("--lib")
             .stderr(std::process::Stdio::inherit())
             .output()
             .unwrap(),
