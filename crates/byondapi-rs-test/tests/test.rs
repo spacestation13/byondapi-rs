@@ -18,19 +18,25 @@ fn test_byondapi_with_dreamdaemon() {
 }
 
 fn bin_path() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("dm_project")
-        .join("byond")
-        .join("bin")
+    match std::env::var("BYOND_LOCATION") {
+        Ok(value) => {
+            println!("Using byond from dir {value}");
+            value.into()
+        }
+        Err(_) => {
+            println!("Byond not found, using default location");
+            println!("To set a location for byond, set the BYOND_LOCATION environment variable to a path");
+            println!("Keep in mind that this path has to point to the /bin folder of byond");
+            "C:\\Program Files (x86)\\BYOND\\bin".into()
+        }
+    }
 }
 
 fn find_dm() -> Result<PathBuf, ()> {
-    let base_path = bin_path();
-
     let path = if cfg!(windows) {
-        base_path.join("dm.exe")
+        bin_path().join("dm.exe")
     } else {
-        base_path.join("DreamMaker")
+        "DreamMaker".into()
     };
 
     if path.exists() {
@@ -41,12 +47,10 @@ fn find_dm() -> Result<PathBuf, ()> {
 }
 
 fn find_dd() -> Result<PathBuf, ()> {
-    let base_path = bin_path();
-
     let path = if cfg!(windows) {
-        base_path.join("dd.exe")
+        bin_path().join("dd.exe")
     } else {
-        base_path.join("DreamDaemon")
+        "DreamDaemon".into()
     };
 
     if path.exists() {

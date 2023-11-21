@@ -19,6 +19,4 @@ else
   echo "$BYOND_MAJOR.$BYOND_MINOR" > "$HOME/BYOND/version.txt"
   cd ~/
 fi
-mkdir -p "$GITHUB_WORKSPACE/crates/byondapi-rs-test/dm_project/byond"
-cp -r "$HOME/BYOND/byond/bin" "$GITHUB_WORKSPACE/crates/byondapi-rs-test/dm_project/byond"
-echo "Written byond bin to $GITHUB_WORKSPACE/crates/byondapi-rs-test/dm_project/byond"
+export BYOND_LOCATION="$HOME/BYOND/byond/bin"
