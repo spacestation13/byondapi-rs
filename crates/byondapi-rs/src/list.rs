@@ -117,6 +117,7 @@ impl ByondValue {
             return Ok(None);
         }
         let value = self.read_list_index(len as f32)?;
-        Ok(Some(self.call("Remove", &[value])?))
+        self.call("Remove", &[value])?;
+        Ok(Some(value))
     }
 }
