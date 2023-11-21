@@ -321,9 +321,7 @@ pub unsafe extern "C" fn test_list_read(
     let list = args.get(0).unwrap();
 
     let map = list.get_list().unwrap();
-    let (num, string): (Vec<_>, Vec<_>) =
-        map.into_iter()
-            .partition(|value| if value.is_num() { true } else { false });
+    let (num, string): (Vec<_>, Vec<_>) = map.into_iter().partition(|value| value.is_num());
     let num = num
         .into_iter()
         .map(|value| value.get_number().unwrap() as usize)
