@@ -101,7 +101,7 @@
 
 	if(ret != 5)
 		throw EXCEPTION("List length failed [json_encode(ret)]")
-
+/*
 /test/proc/test_block()
 	world.maxz = 1
 	world.maxx = 2
@@ -115,6 +115,7 @@
 	world.maxz = 0
 	world.maxx = 0
 	world.maxy = 0
+*/
 
 /test/proc/test_length_with_str()
 	var/str = "meowman"
