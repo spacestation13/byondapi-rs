@@ -106,7 +106,9 @@ jobs:
           key: linux-byond
 
       - name: Set up byond
-        run: bash ./tools/setup_byond_linux.sh
+        run: |
+          bash ./tools/setup_byond_linux.sh
+          source $HOME/BYOND/byond/bin/byondsetup
 
       - name: Run tests
         run: cargo test --package byondapi-test --target i686-unknown-linux-gnu --test test -- test_byondapi_with_dreamdaemon --exact --nocapture
