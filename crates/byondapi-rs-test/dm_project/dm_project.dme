@@ -9,8 +9,11 @@
 	world.log = file("dd_log.txt")
 
 	for(var/func in typesof(/test/proc))
-		world.log << "[func] [copytext("------------------------------------------------------------------------", length("[func]"))]"
-		call(new /test, func)()
+		try
+			world.log << "[func] [copytext("------------------------------------------------------------------------", length("[func]"))]"
+			call(new /test, func)()
+		catch(var/exception/e)
+			world.log << "ERROR: [e]"
 
 	del(src)
 
