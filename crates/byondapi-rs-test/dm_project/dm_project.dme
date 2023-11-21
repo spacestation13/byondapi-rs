@@ -14,20 +14,6 @@
 
 	del(src)
 
-/test/proc/test_block()
-	world.maxz = 1
-	world.maxx = 2
-	world.maxy = 2
-
-	var/ret = call_ext("byondapi_test.dll", "byond:test_block")()
-
-	if(ret != 4)
-		throw EXCEPTION("Block failed [json_encode(ret)]")
-
-	world.maxz = 0
-	world.maxx = 0
-	world.maxy = 0
-
 /test/proc/test_connection()
 	var/ret = call_ext("byondapi_test.dll", "byond:test_connection")()
 	if (ret != 69)
@@ -45,8 +31,10 @@
 	world.maxz = 1
 	world.maxx = 1
 	world.maxy = 1
+
 	var/turf/T = locate(1,1,1)
 	var/ret = call_ext("byondapi_test.dll", "byond:test_ref")(T)
+
 	world.maxz = 0
 	world.maxx = 0
 	world.maxy = 0
@@ -74,6 +62,20 @@
 
 /datum/data
 	var/name = "test name"
+
+/test/proc/test_block()
+	world.maxz = 1
+	world.maxx = 2
+	world.maxy = 2
+
+	var/ret = call_ext("byondapi_test.dll", "byond:test_block")()
+
+	if(ret != 4)
+		throw EXCEPTION("Block failed [json_encode(ret)]")
+
+	world.maxz = 0
+	world.maxx = 0
+	world.maxy = 0
 
 /test/proc/test_readwrite_var()
 	var/datum/data/stub = new()
