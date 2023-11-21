@@ -47,8 +47,8 @@ pub fn byond_block(corner1: ByondXYZ, corner2: ByondXYZ) -> Result<Vec<ByondValu
         println!("len after first block is {len}");
         match (initial_res, len) {
             (false, 1..) => {
-                let calc_cap = len as usize - buff.capacity();
-                println!("calc capacity is {calc_cap}");
+                let before_cap = buff.capacity();
+                println!("before capacity is {before_cap}");
                 buff.reserve_exact(len as usize - buff.capacity());
                 let capacitor = buff.capacity();
                 println!("buffer capacity is {capacitor}");
