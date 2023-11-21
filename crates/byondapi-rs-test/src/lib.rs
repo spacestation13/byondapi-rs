@@ -321,18 +321,24 @@ pub unsafe extern "C" fn test_list_read(
     let list = args.get(0).unwrap();
 
     let map = list.get_list().unwrap();
-    let map = map
+    let (num, string): (Vec<_>, Vec<_>) =
+        map.into_iter()
+            .partition(|value| if value.is_num() { true } else { false });
+    let num = num
         .into_iter()
-        .map(|value| {
-            if !value.is_num() {
-                let string = value.get_string().unwrap();
-                eprintln!("Value is not a num, is actually {string}");
-            }
-            value.get_number().unwrap() as usize
-        })
+        .map(|value| value.get_number().unwrap() as usize)
+        .collect::<Vec<_>>();
+    let string = string
+        .into_iter()
+        .map(|value| value.get_string().unwrap())
         .collect::<Vec<_>>();
 
-    assert_eq!(map, vec![0, 1, 5]);
+    assert_eq!(num, vec![0, 1, 5]);
+
+    assert_eq!(
+        string,
+        vec!["cat".to_owned(), "dog".to_owned(), "parrot".to_owned()]
+    );
 
     ByondValue::new()
 }
