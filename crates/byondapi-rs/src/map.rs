@@ -45,7 +45,7 @@ pub fn byond_block(corner1: ByondXYZ, corner2: ByondXYZ) -> Result<Vec<ByondValu
         };
         match (initial_res, len) {
             (false, 1..) => {
-                buff.reserve_exact(len as usize - buff.capacity());
+                buff.reserve_exact(len as usize);
                 // Safety: buffer capacity is passed to byond, which makes sure it writes in-bound
                 unsafe {
                     map_byond_error!(byond().Byond_Block(
@@ -55,6 +55,8 @@ pub fn byond_block(corner1: ByondXYZ, corner2: ByondXYZ) -> Result<Vec<ByondValu
                         &mut len
                     ))?
                 };
+
+                println!("len after second block is {len}");
                 // Safety: buffer should be written to at this point
                 unsafe { buff.set_len(len as usize) };
                 Ok(std::mem::take(buff))

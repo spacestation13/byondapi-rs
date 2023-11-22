@@ -310,3 +310,26 @@ pub unsafe extern "C" fn test_non_assoc_list(
 
     ByondValue::new()
 }
+
+#[no_mangle]
+pub unsafe extern "C" fn test_list_read(
+    argc: byondapi_sys::u4c,
+    argv: *mut ByondValue,
+) -> ByondValue {
+    setup_panic_handler();
+    let args = parse_args(argc, argv);
+    let list = args.get(0).unwrap();
+
+    let map = list.get_list().unwrap();
+    let values = map
+        .into_iter()
+        .map(|item| item.get_string().unwrap())
+        .collect::<Vec<_>>();
+
+    assert_eq!(
+        values,
+        vec!["cat".to_owned(), "dog".to_owned(), "parrot".to_owned()]
+    );
+
+    ByondValue::new()
+}

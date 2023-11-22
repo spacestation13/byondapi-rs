@@ -22,10 +22,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Toolchains
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          target: ${{ matrix.target_name }}
+          targets: ${{ matrix.target_name }}
 
       - name: Install g++ multilib (Ubuntu)
         run: |
@@ -54,19 +54,50 @@ jobs:
           toolchain: stable
           command: fmt
           args: --all -- --check
-  # TODO: write linux tests
-  run_test:
-    name: Run test
+
+  run_test_windows:
+    name: Run test (Windows)
     runs-on: windows-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Toolchains
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          target: i686-pc-windows-msvc
+          targets: i686-pc-windows-msvc
+
+      - name: Restore BYOND cache
+        uses: actions/cache@v3
+        with:
+          path: ~/BYOND
+          key: windows-byond
+
+      - name: Run tests
+        run: |
+          bash ./tools/setup_byond_windows.sh
+          $Env:BYOND_LOCATION = "$HOME\BYOND\byond\bin"
+          cargo test --package byondapi-test --target i686-pc-windows-msvc --test test -- test_byondapi_with_dreamdaemon --exact --nocapture
+
+  run_test_linux:
+    name: Run test (Ubuntu)
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Toolchains
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: i686-unknown-linux-gnu
+
+      - name: Install g++ multilib
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install build-essential g++-multilib libc6-i386 libstdc++6:i386
 
       - name: Restore BYOND cache
         uses: actions/cache@v3
@@ -74,12 +105,8 @@ jobs:
           path: ~/BYOND
           key: linux-byond
 
-      - name: Set up byond
-        run: bash ./test_byond.sh
-
       - name: Run tests
-        uses: actions-rs/cargo@v1
-        with:
-          toolchain: stable
-          command: test
-          args: test_byondapi_with_dreamdaemon --target i686-pc-windows-msvc
+        run: |
+          bash ./tools/setup_byond_linux.sh
+          source $HOME/BYOND/byond/bin/byondsetup
+          cargo test --package byondapi-test --target i686-unknown-linux-gnu --test test -- test_byondapi_with_dreamdaemon --exact --nocapture

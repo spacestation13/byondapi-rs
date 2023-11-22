@@ -20,7 +20,7 @@ impl ByondValue {
                 unsafe { byond().Byond_ReadList(&self.0, buff.as_mut_ptr().cast(), &mut len) };
             match (initial_res, len) {
                 (false, 1..) => {
-                    buff.reserve_exact(len as usize - buff.capacity());
+                    buff.reserve_exact(len as usize);
                     // Safety: buffer capacity is passed to byond, which makes sure it writes in-bound
                     unsafe {
                         map_byond_error!(byond().Byond_ReadList(
@@ -103,9 +103,7 @@ impl ByondValue {
         if !self.is_list() {
             return Err(Error::NotAList);
         }
-        let mut list_copy = self.get_list()?;
-        list_copy.push(value);
-        self.write_list(&list_copy)?;
+        self.call("Add", &[value])?;
         Ok(())
     }
 
@@ -114,9 +112,12 @@ impl ByondValue {
         if !self.is_list() {
             return Err(Error::NotAList);
         }
-        let mut list_copy = self.get_list()?;
-        let value = list_copy.pop();
-        self.write_list(&list_copy)?;
-        Ok(value)
+        let len = self.builtin_length()?.get_number()? as usize;
+        if len == 0 {
+            return Ok(None);
+        }
+        let value = self.read_list_index(len as f32)?;
+        self.call("Remove", &[value])?;
+        Ok(Some(value))
     }
 }

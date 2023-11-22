@@ -1,8 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-export BYOND_MAJOR=515
-export BYOND_MINOR=1620
+BYOND_MAJOR=515
+BYOND_MINOR=1620
 
 if [ -d "$HOME/BYOND/byond/bin" ] && grep -Fxq "${BYOND_MAJOR}.${BYOND_MINOR}" $HOME/BYOND/version.txt;
 then
@@ -19,6 +19,3 @@ else
   echo "$BYOND_MAJOR.$BYOND_MINOR" > "$HOME/BYOND/version.txt"
   cd ~/
 fi
-mkdir -p "$GITHUB_WORKSPACE/crates/byondapi-rs-test/dm_project/byond"
-cp -r "$HOME/BYOND/byond/bin" "$GITHUB_WORKSPACE/crates/byondapi-rs-test/dm_project/byond"
-echo "Written byond bin to $GITHUB_WORKSPACE/crates/byondapi-rs-test/dm_project/byond"

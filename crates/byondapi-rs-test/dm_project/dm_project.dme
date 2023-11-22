@@ -28,8 +28,16 @@
 		throw EXCEPTION("Object did not make it through FFI")
 
 /test/proc/test_ref()
+	world.maxz = 1
+	world.maxx = 1
+	world.maxy = 1
+
 	var/turf/T = locate(1,1,1)
 	var/ret = call_ext("byondapi_test.dll", "byond:test_ref")(T)
+
+	world.maxz = 0
+	world.maxx = 0
+	world.maxy = 0
 
 /test/proc/test_ptr()
 	var/x = "meow"
@@ -54,6 +62,20 @@
 
 /datum/data
 	var/name = "test name"
+
+/test/proc/test_block()
+	world.maxz = 1
+	world.maxx = 2
+	world.maxy = 2
+
+	var/ret = call_ext("byondapi_test.dll", "byond:test_block")()
+
+	if(ret != 4)
+		throw EXCEPTION("Block failed [json_encode(ret)]")
+
+	world.maxz = 0
+	world.maxx = 0
+	world.maxy = 0
 
 /test/proc/test_readwrite_var()
 	var/datum/data/stub = new()
@@ -102,20 +124,6 @@
 	if(ret != 5)
 		throw EXCEPTION("List length failed [json_encode(ret)]")
 
-/test/proc/test_block()
-	world.maxz = 1
-	world.maxx = 2
-	world.maxy = 2
-
-	var/ret = call_ext("byondapi_test.dll", "byond:test_block")()
-
-	if(ret != 4)
-		throw EXCEPTION("Block failed [json_encode(ret)]")
-
-	world.maxz = 0
-	world.maxx = 0
-	world.maxy = 0
-
 /test/proc/test_length_with_str()
 	var/str = "meowman"
 
@@ -136,6 +144,11 @@
 
 	if(L["parrot"] != 14)
 		throw EXCEPTION("list modification by key failed")
+
+/test/proc/test_list_read()
+	var/list/L = list("cat" = 0, "dog" = 1, "parrot" = 5)
+	call_ext("byondapi_test.dll", "byond:test_list_read")(L)
+
 // BEGIN_INTERNALS
 // END_INTERNALS
 // BEGIN_FILE_DIR
