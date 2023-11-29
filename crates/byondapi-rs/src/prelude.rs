@@ -37,4 +37,5 @@ pub use byondapi_sys::ByondValueType as InternalByondValueType;
 pub use byondapi_sys::CByondValue as InternalByondValue;
 
 // As well as our own types.
+pub use crate::byond_string;
 pub use crate::value::ByondValue;
