@@ -32,59 +32,44 @@ impl ByondValue {
 
     /// Try to get a [`CString`] or fail if this isn't a string type
     pub fn get_cstring(&self) -> Result<CString, Error> {
+        use std::cell::RefCell;
         if !self.is_str() {
             return Err(Error::NotAString);
         }
-        // add one for le null terminator
-        let len = self.builtin_length()?.get_number()? as u32 + 1;
-        let mut buff: Vec<u8> = Vec::with_capacity(len as usize);
-        let mut capacity = buff.capacity() as u32;
-        // Safety: buffer capacity is passed to byond, which makes sure it writes in-bound
-        unsafe {
-            map_byond_error!(byond().Byond_ToString(
-                &self.0,
-                buff.as_mut_ptr().cast(),
-                &mut capacity
-            ))?
+
+        thread_local! {
+            static BUFFER: RefCell<Vec<u8>> = RefCell::new(Vec::with_capacity(1));
         }
-        // Safety: buffer should be written to at this point, ignoring null terminator
-        unsafe { buff.set_len(len as usize - 1) };
 
-        CString::new(buff).map_err(|_| Error::NonUtf8String)
-
-        // use std::cell::RefCell;
-        // thread_local! {
-        //     static BUFFER: RefCell<Vec<u8>> = RefCell::new(Vec::with_capacity(1));
-        // }
-
-        // let bytes = BUFFER.with_borrow_mut(|buff| -> Result<Vec<u8>, Error> {
-        //     let mut len = buff.capacity() as u32;
-        //     // Safety: buffer capacity is passed to byond, which makes sure it writes in-bound
-        //     let initial_res =
-        //         unsafe { byond().Byond_ToString(&self.0, buff.as_mut_ptr().cast(), &mut len) };
-        //     match (initial_res, len) {
-        //         (false, 1..) => {
-        //             buff.reserve_exact(len as usize - buff.capacity());
-        //             // Safety: buffer capacity is passed to byond, which makes sure it writes in-bound
-        //             unsafe {
-        //                 map_byond_error!(byond().Byond_ToString(
-        //                     &self.0,
-        //                     buff.as_mut_ptr().cast(),
-        //                     &mut len
-        //                 ))?
-        //             };
-        //             // Safety: buffer should be written to at this point
-        //             unsafe { buff.set_len(len as usize) };
-        //             Ok(std::mem::take(buff))
-        //         }
-        //         (true, _) => {
-        //             // Safety: buffer should be written to at this point
-        //             unsafe { buff.set_len(len as usize) };
-        //             Ok(std::mem::take(buff))
-        //         }
-        //         (false, 0) => Err(Error::get_last_byond_error()),
-        //     }
-        // })?;
+        let bytes = BUFFER.with_borrow_mut(|buff| -> Result<Vec<u8>, Error> {
+            let mut len = buff.capacity() as u32;
+            // Safety: buffer capacity is passed to byond, which makes sure it writes in-bound
+            let initial_res =
+                unsafe { byond().Byond_ToString(&self.0, buff.as_mut_ptr().cast(), &mut len) };
+            match (initial_res, len) {
+                (false, 1..) => {
+                    buff.reserve_exact(len as usize);
+                    // Safety: buffer capacity is passed to byond, which makes sure it writes in-bound
+                    unsafe {
+                        map_byond_error!(byond().Byond_ToString(
+                            &self.0,
+                            buff.as_mut_ptr().cast(),
+                            &mut len
+                        ))?
+                    };
+                    // Safety: buffer should be written to at this point
+                    unsafe { buff.set_len(len as usize) };
+                    Ok(std::mem::take(buff))
+                }
+                (true, _) => {
+                    // Safety: buffer should be written to at this point
+                    unsafe { buff.set_len(len as usize) };
+                    Ok(std::mem::take(buff))
+                }
+                (false, 0) => Err(Error::get_last_byond_error()),
+            }
+        })?;
+        CString::from_vec_with_nul(bytes).map_err(|_| Error::NonUtf8String)
     }
 
     /// Try to get a [`String`] or fail if this isn't a string type or isn't utf8
@@ -210,6 +195,9 @@ impl ByondValue {
 impl ByondValue {
     /// Read a variable through the ref. Fails if this isn't a ref type, or the id is invalid.
     pub fn read_var_id(&self, name: u4c) -> Result<ByondValue, Error> {
+        if self.is_num() || self.is_str() || self.is_ptr() || self.is_null() || self.is_list() {
+            return Err(Error::NotReferencable);
+        }
         let mut new_value = ByondValue::new();
         unsafe {
             map_byond_error!(byond().Byond_ReadVarByStrId(&self.0, name, &mut new_value.0))?;
@@ -263,19 +251,34 @@ impl ByondValue {
 
 /// # Helpers
 impl ByondValue {
-    /// Reads a number through the ref. Fails if this isn't a ref type or this isn't a number.
+    /// Reads a number from a var. Fails if this isn't a ref type or this isn't a number.
     pub fn read_number<T: Into<Vec<u8>>>(&self, name: T) -> Result<f32, Error> {
         self.read_var(name)?.get_number()
     }
 
-    /// Reads a string through the ref. Fails if this isn't a ref type or this isn't a string.
+    /// Reads a string from a var. Fails if this isn't a ref type or this isn't a string.
     pub fn read_string<T: Into<Vec<u8>>>(&self, name: T) -> Result<String, Error> {
         self.read_var(name)?.get_string()
     }
 
-    /// Reads a list through the ref. Fails if this isn't a ref type or this isn't a list.
+    /// Reads a list from a var. Fails if this isn't a ref type or this isn't a list.
     pub fn read_list<T: Into<Vec<u8>>>(&self, name: T) -> Result<Vec<ByondValue>, Error> {
         self.read_var(name)?.get_list()
+    }
+
+    /// Reads a number from a var id. Fails if this isn't a ref type or this isn't a number.
+    pub fn read_number_id(&self, id: u32) -> Result<f32, Error> {
+        self.read_var_id(id)?.get_number()
+    }
+
+    /// Reads a string from a var id. Fails if this isn't a ref type or this isn't a string.
+    pub fn read_string_id(&self, id: u32) -> Result<String, Error> {
+        self.read_var_id(id)?.get_string()
+    }
+
+    /// Reads a list from a var id. Fails if this isn't a ref type or this isn't a list.
+    pub fn read_list_id(&self, id: u32) -> Result<Vec<ByondValue>, Error> {
+        self.read_var_id(id)?.get_list()
     }
 
     /// Iterates through the assoc values of the list if this value is a list, if the value isn't a list then it returns an error.
@@ -292,6 +295,8 @@ impl ByondValue {
             ctr: 1,
         })
     }
+
+    /// Iterates through key values of the list if the list is an assoc list, if not, just iterates through values
     pub fn values(&self) -> Result<impl Iterator<Item = ByondValue> + '_, Error> {
         if !self.is_list() {
             return Err(Error::NotAList);

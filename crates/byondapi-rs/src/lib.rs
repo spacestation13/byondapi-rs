@@ -40,3 +40,20 @@ inventory::collect!(InitFunc);
 ///byondapi::inventory::submit! {InitFunc(func)}
 ///```
 pub struct InitFunc(pub fn() -> ());
+
+///This macro caches string ids and returns it instead of doing a stringid lookup everytime
+///The macro will panic if the string doesn't already exist on byond init lib
+///Example usage:
+///```
+///byondapi::call_global_id(byond_string!("get_name"),&[]).unwrap()
+///```
+#[macro_export]
+macro_rules! byond_string {
+    ($s:literal) => {{
+        thread_local! {
+            static STRING_ID: ::std::cell::OnceCell<u32> = ::std::cell::OnceCell::new();
+        };
+        STRING_ID
+            .with(|cell| *cell.get_or_init(|| ::byondapi::byond_string::str_id_of($s).unwrap()))
+    }};
+}

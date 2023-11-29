@@ -1,6 +1,7 @@
 #![allow(clippy::missing_safety_doc)]
 
 use byondapi::{
+    byond_string,
     map::{byond_block, byond_length, ByondXYZ},
     parse_args,
     typecheck_trait::ByondTypeCheck,
@@ -70,8 +71,7 @@ pub unsafe extern "C" fn test_proc_call(
     setup_panic_handler();
     let args = parse_args(argc, argv);
 
-    // FIXME: Byond will change this in the future
-    let result = args[0].call("get name", &[]);
+    let result = args[0].call("get_name", &[]);
 
     match result {
         Ok(res) => res,
@@ -87,6 +87,12 @@ pub unsafe extern "C" fn test_readwrite_var(
     setup_panic_handler();
     let args = parse_args(argc, argv);
     let object = &args[0];
+
+    object
+        .read_var_id(byond_string!("name"))
+        .unwrap()
+        .get_string()
+        .unwrap();
 
     match object.read_string("name") {
         Ok(res) => res.try_into().unwrap(),
