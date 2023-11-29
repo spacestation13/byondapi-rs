@@ -43,6 +43,10 @@ pub struct InitFunc(pub fn() -> ());
 
 ///This macro caches string ids and returns it instead of doing a stringid lookup everytime
 ///The macro will panic if the string doesn't already exist on byond init lib
+///Example usage:
+///```
+///byondapi::call_global_id(byond_string!("get_name"),&[]).unwrap()
+///```
 #[macro_export]
 macro_rules! byond_string {
     ($s:literal) => {{
