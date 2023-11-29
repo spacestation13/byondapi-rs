@@ -69,7 +69,7 @@ impl ByondValue {
                 (false, 0) => Err(Error::get_last_byond_error()),
             }
         })?;
-        CString::new(bytes).map_err(|_| Error::NonUtf8String)
+        CString::from_vec_with_nul(bytes).map_err(|_| Error::NonUtf8String)
     }
 
     /// Try to get a [`String`] or fail if this isn't a string type or isn't utf8
