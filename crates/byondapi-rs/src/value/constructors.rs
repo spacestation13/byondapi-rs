@@ -47,6 +47,16 @@ impl ByondValue {
         })
     }
 
+    pub fn new_global_ref() -> Self {
+        Self(CByondValue {
+            type_: 0x0E,
+            junk1: 0,
+            junk2: 0,
+            junk3: 0,
+            data: byondapi_sys::ByondValueData { ref_: 1 },
+        })
+    }
+
     pub fn new_str<S: Into<Vec<u8>>>(s: S) -> Result<Self, Error> {
         let c_str = CString::new(s.into()).unwrap();
         let str_id = unsafe { byond().Byond_AddGetStrId(c_str.as_ptr()) };
