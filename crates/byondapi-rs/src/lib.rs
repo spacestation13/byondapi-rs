@@ -50,10 +50,7 @@ pub struct InitFunc(pub fn() -> ());
 #[macro_export]
 macro_rules! byond_string {
     ($s:literal) => {{
-        thread_local! {
-            static STRING_ID: ::std::cell::OnceCell<u32> = ::std::cell::OnceCell::new();
-        };
-        STRING_ID
-            .with(|cell| *cell.get_or_init(|| ::byondapi::byond_string::str_id_of($s).unwrap()))
+        static STRING_ID: ::std::sync::OnceLock<u32> = ::std::sync::OnceLock::new();
+        *STRING_ID.get_or_init(|| ::byondapi::byond_string::str_id_of($s).unwrap())
     }};
 }
