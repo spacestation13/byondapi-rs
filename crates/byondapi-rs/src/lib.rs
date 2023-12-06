@@ -10,7 +10,6 @@ pub use error::Error;
 
 pub mod byond_string;
 pub mod global_call;
-pub mod list;
 pub mod prelude;
 pub mod typecheck_trait;
 pub mod value;
@@ -52,5 +51,13 @@ macro_rules! byond_string {
     ($s:literal) => {{
         static STRING_ID: ::std::sync::OnceLock<u32> = ::std::sync::OnceLock::new();
         *STRING_ID.get_or_init(|| ::byondapi::byond_string::str_id_of($s).unwrap())
+    }};
+}
+
+#[macro_export]
+macro_rules! byond_string_internal {
+    ($s:literal) => {{
+        static STRING_ID: ::std::sync::OnceLock<u32> = ::std::sync::OnceLock::new();
+        *STRING_ID.get_or_init(|| crate::byond_string::str_id_of($s).unwrap())
     }};
 }

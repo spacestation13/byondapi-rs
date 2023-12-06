@@ -15,6 +15,7 @@ unsafe impl Send for ByondValue {}
 pub mod constructors;
 pub mod conversion;
 pub mod functions;
+pub mod list;
 pub mod pointer;
 pub mod trait_impls;
 

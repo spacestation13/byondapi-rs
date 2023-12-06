@@ -235,8 +235,22 @@ impl ByondValue {
     }
 }
 
-/// # List operations by key instead of indices (why are they even here lumlum?????)
-impl ByondValue {}
+/// # Refcount operations
+impl ByondValue {
+    pub fn increment_ref(&mut self) {
+        unsafe { byond().ByondValue_IncRef(&self.0) }
+    }
+
+    pub fn decrement_ref(&mut self) {
+        unsafe { byond().ByondValue_DecRef(&self.0) }
+    }
+
+    pub fn get_refcount(&self) -> Result<u32, Error> {
+        let mut result = 0u32;
+        unsafe { map_byond_error!(byond().Byond_Refcount(&self.0, &mut result))? };
+        Ok(result)
+    }
+}
 
 /// # Builtins
 impl ByondValue {
