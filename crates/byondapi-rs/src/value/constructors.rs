@@ -1,8 +1,8 @@
 use std::ffi::CString;
 
-use byondapi_sys::{u4c, ByondValueType, CByondValue};
+use byondapi_sys::{u4c, CByondValue};
 
-use super::ByondValue;
+use super::{types::ValueType, ByondValue};
 use crate::{static_global::byond, Error};
 
 impl Default for ByondValue {
@@ -19,7 +19,7 @@ impl ByondValue {
 
     pub fn null() -> Self {
         Self(CByondValue {
-            type_: 0,
+            type_: ValueType::Null as u8,
             junk1: 0,
             junk2: 0,
             junk3: 0,
@@ -27,9 +27,9 @@ impl ByondValue {
         })
     }
 
-    pub fn new_ref(typ: ByondValueType, ptr: u4c) -> Self {
+    pub fn new_ref(typ: ValueType, ptr: u4c) -> Self {
         Self(CByondValue {
-            type_: typ,
+            type_: typ as u8,
             junk1: 0,
             junk2: 0,
             junk3: 0,
@@ -39,7 +39,7 @@ impl ByondValue {
 
     pub fn new_num(f: f32) -> Self {
         Self(CByondValue {
-            type_: 0x2A,
+            type_: ValueType::Number as u8,
             junk1: 0,
             junk2: 0,
             junk3: 0,
@@ -49,7 +49,7 @@ impl ByondValue {
 
     pub fn new_global_ref() -> Self {
         Self(CByondValue {
-            type_: 0x0E,
+            type_: ValueType::World as u8,
             junk1: 0,
             junk2: 0,
             junk3: 0,
@@ -64,7 +64,7 @@ impl ByondValue {
             return Err(Error::UnableToCreateString);
         }
         Ok(Self(CByondValue {
-            type_: 0x06,
+            type_: ValueType::String as u8,
             junk1: 0,
             junk2: 0,
             junk3: 0,
@@ -78,13 +78,5 @@ impl ByondValue {
         unsafe { map_byond_error!(byond().Byond_CreateList(&mut new_self.0))? }
 
         Ok(new_self)
-    }
-}
-
-impl<'a> ByondValue {
-    /// # Safety
-    /// The [`CByondValue`] must be initialized.
-    pub unsafe fn from_ref(s: &'a CByondValue) -> &'a Self {
-        unsafe { std::mem::transmute(s) }
     }
 }

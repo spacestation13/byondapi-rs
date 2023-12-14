@@ -3,7 +3,7 @@ use std::ffi::CString;
 use byondapi_sys::{u4c, ByondValueType, CByondValue};
 
 use super::ByondValue;
-use crate::{map::byond_length, static_global::byond, typecheck_trait::ByondTypeCheck, Error};
+use crate::{map::byond_length, static_global::byond, Error};
 
 /// # Compatibility with the C++ API
 impl ByondValue {

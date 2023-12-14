@@ -1,7 +1,4 @@
-use crate::{
-    byond_string_internal, static_global::byond, typecheck_trait::ByondTypeCheck,
-    value::ByondValue, Error,
-};
+use crate::{byond_string_internal, static_global::byond, value::ByondValue, Error};
 /// List stuff goes here, Keep in mind that all indexing method starts at zero instead of one like byondland
 impl ByondValue {
     /// Gets an array of all the list elements, this means keys for assoc lists and values for regular lists

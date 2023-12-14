@@ -1,12 +1,6 @@
 #![allow(clippy::missing_safety_doc)]
 
-use byondapi::{
-    byond_string,
-    map::{byond_block, byond_length, ByondXYZ},
-    parse_args,
-    typecheck_trait::ByondTypeCheck,
-    value::{pointer::ByondValuePointer, ByondValue},
-};
+use byondapi::{byond_string, map::*, parse_args, prelude::*};
 
 #[allow(dead_code)]
 fn write_log<T: AsRef<[u8]>>(x: T) {
@@ -21,16 +15,13 @@ fn setup_panic_handler() {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn test_connection(
-    _argc: byondapi_sys::u4c,
-    _argv: *mut ByondValue,
-) -> ByondValue {
+pub unsafe extern "C" fn test_connection(_argc: u4c, _argv: *mut ByondValue) -> ByondValue {
     setup_panic_handler();
     ByondValue::new_num(69.0)
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn test_args(argc: byondapi_sys::u4c, argv: *mut ByondValue) -> ByondValue {
+pub unsafe extern "C" fn test_args(argc: u4c, argv: *mut ByondValue) -> ByondValue {
     setup_panic_handler();
     let args = parse_args(argc, argv);
     assert_eq!(args.len(), 1);
@@ -38,7 +29,7 @@ pub unsafe extern "C" fn test_args(argc: byondapi_sys::u4c, argv: *mut ByondValu
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn test_ptr(argc: byondapi_sys::u4c, argv: *mut ByondValue) -> ByondValue {
+pub unsafe extern "C" fn test_ptr(argc: u4c, argv: *mut ByondValue) -> ByondValue {
     setup_panic_handler();
     let args = parse_args(argc, argv);
     let pointer = match ByondValuePointer::new(args[0].clone()) {
@@ -64,10 +55,7 @@ pub unsafe extern "C" fn test_ptr(argc: byondapi_sys::u4c, argv: *mut ByondValue
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn test_proc_call(
-    argc: byondapi_sys::u4c,
-    argv: *mut ByondValue,
-) -> ByondValue {
+pub unsafe extern "C" fn test_proc_call(argc: u4c, argv: *mut ByondValue) -> ByondValue {
     setup_panic_handler();
     let args = parse_args(argc, argv);
 
@@ -80,10 +68,7 @@ pub unsafe extern "C" fn test_proc_call(
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn test_readwrite_var(
-    argc: byondapi_sys::u4c,
-    argv: *mut ByondValue,
-) -> ByondValue {
+pub unsafe extern "C" fn test_readwrite_var(argc: u4c, argv: *mut ByondValue) -> ByondValue {
     setup_panic_handler();
     let args = parse_args(argc, argv);
     let object = &args[0];
@@ -100,10 +85,7 @@ pub unsafe extern "C" fn test_readwrite_var(
     }
 }
 #[no_mangle]
-pub unsafe extern "C" fn test_list_push(
-    argc: byondapi_sys::u4c,
-    argv: *mut ByondValue,
-) -> ByondValue {
+pub unsafe extern "C" fn test_list_push(argc: u4c, argv: *mut ByondValue) -> ByondValue {
     setup_panic_handler();
     let args = parse_args(argc, argv);
 
@@ -118,10 +100,7 @@ pub unsafe extern "C" fn test_list_push(
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn test_list_double(
-    argc: byondapi_sys::u4c,
-    argv: *mut ByondValue,
-) -> ByondValue {
+pub unsafe extern "C" fn test_list_double(argc: u4c, argv: *mut ByondValue) -> ByondValue {
     setup_panic_handler();
     let args = parse_args(argc, argv);
 
@@ -137,10 +116,7 @@ pub unsafe extern "C" fn test_list_double(
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn test_list_index(
-    argc: byondapi_sys::u4c,
-    argv: *mut ByondValue,
-) -> ByondValue {
+pub unsafe extern "C" fn test_list_index(argc: u4c, argv: *mut ByondValue) -> ByondValue {
     setup_panic_handler();
     let args = parse_args(argc, argv);
 
@@ -150,10 +126,7 @@ pub unsafe extern "C" fn test_list_index(
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn test_list_pop(
-    argc: byondapi_sys::u4c,
-    argv: *mut ByondValue,
-) -> ByondValue {
+pub unsafe extern "C" fn test_list_pop(argc: u4c, argv: *mut ByondValue) -> ByondValue {
     setup_panic_handler();
     let args = parse_args(argc, argv);
 
@@ -174,10 +147,7 @@ pub unsafe extern "C" fn test_list_pop(
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn test_length_with_list(
-    argc: byondapi_sys::u4c,
-    argv: *mut ByondValue,
-) -> ByondValue {
+pub unsafe extern "C" fn test_length_with_list(argc: u4c, argv: *mut ByondValue) -> ByondValue {
     setup_panic_handler();
     let args = parse_args(argc, argv);
 
@@ -189,7 +159,7 @@ pub unsafe extern "C" fn test_length_with_list(
     }
 }
 #[no_mangle]
-pub unsafe extern "C" fn test_block(argc: byondapi_sys::u4c, argv: *mut ByondValue) -> ByondValue {
+pub unsafe extern "C" fn test_block(argc: u4c, argv: *mut ByondValue) -> ByondValue {
     setup_panic_handler();
     let _args = parse_args(argc, argv);
 
@@ -211,10 +181,7 @@ pub unsafe extern "C" fn test_block(argc: byondapi_sys::u4c, argv: *mut ByondVal
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn test_length_with_str(
-    argc: byondapi_sys::u4c,
-    argv: *mut ByondValue,
-) -> ByondValue {
+pub unsafe extern "C" fn test_length_with_str(argc: u4c, argv: *mut ByondValue) -> ByondValue {
     setup_panic_handler();
     let args = parse_args(argc, argv);
 
@@ -224,10 +191,7 @@ pub unsafe extern "C" fn test_length_with_str(
     }
 }
 #[no_mangle]
-pub unsafe extern "C" fn test_list_key_lookup(
-    argc: byondapi_sys::u4c,
-    argv: *mut ByondValue,
-) -> ByondValue {
+pub unsafe extern "C" fn test_list_key_lookup(argc: u4c, argv: *mut ByondValue) -> ByondValue {
     setup_panic_handler();
     let args = parse_args(argc, argv);
 
@@ -278,7 +242,7 @@ pub unsafe extern "C" fn test_list_key_lookup(
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn test_ref(argc: byondapi_sys::u4c, argv: *mut ByondValue) -> ByondValue {
+pub unsafe extern "C" fn test_ref(argc: u4c, argv: *mut ByondValue) -> ByondValue {
     setup_panic_handler();
     let args = parse_args(argc, argv);
 
@@ -290,10 +254,7 @@ pub unsafe extern "C" fn test_ref(argc: byondapi_sys::u4c, argv: *mut ByondValue
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn test_non_assoc_list(
-    argc: byondapi_sys::u4c,
-    argv: *mut ByondValue,
-) -> ByondValue {
+pub unsafe extern "C" fn test_non_assoc_list(argc: u4c, argv: *mut ByondValue) -> ByondValue {
     setup_panic_handler();
     let args = parse_args(argc, argv);
     let list = args.get(0).unwrap();
@@ -318,10 +279,7 @@ pub unsafe extern "C" fn test_non_assoc_list(
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn test_list_read(
-    argc: byondapi_sys::u4c,
-    argv: *mut ByondValue,
-) -> ByondValue {
+pub unsafe extern "C" fn test_list_read(argc: u4c, argv: *mut ByondValue) -> ByondValue {
     setup_panic_handler();
     let args = parse_args(argc, argv);
     let list = args.get(0).unwrap();

@@ -2,7 +2,7 @@
 
 use byondapi_sys::{ByondValueType, CByondValue};
 
-use crate::{static_global::byond, typecheck_trait::ByondTypeCheck};
+use crate::static_global::byond;
 
 /// [Newtype](https://doc.rust-lang.org/rust-by-example/generics/new_types.html) pattern over [`CByondValue`]
 #[repr(transparent)]
@@ -18,45 +18,46 @@ pub mod functions;
 pub mod list;
 pub mod pointer;
 pub mod trait_impls;
+pub mod types;
 
-/// FIXME: Use a Byond_IsPtr here instead of checking the type by hand
+/// TODO: Use a Byond_IsPtr here instead of checking the type by hand
 fn is_pointer_shim(value: &ByondValue) -> bool {
     let type_ = value.get_type();
     type_ == 0x3C
 }
 
 // Typechecking
-impl ByondTypeCheck for ByondValue {
-    fn get_type(&self) -> ByondValueType {
+impl ByondValue {
+    pub fn get_type(&self) -> ByondValueType {
         // Safety: This operation only fails if our CByondValue is invalid, which cannot happen.
         unsafe { byond().ByondValue_Type(&self.0) }
     }
 
-    fn is_null(&self) -> bool {
+    pub fn is_null(&self) -> bool {
         // Safety: This operation only fails if our CByondValue is invalid, which cannot happen.
         unsafe { byond().ByondValue_IsNull(&self.0) }
     }
 
-    fn is_num(&self) -> bool {
+    pub fn is_num(&self) -> bool {
         // Safety: This operation only fails if our CByondValue is invalid, which cannot happen.
         unsafe { byond().ByondValue_IsNum(&self.0) }
     }
 
-    fn is_str(&self) -> bool {
+    pub fn is_str(&self) -> bool {
         // Safety: This operation only fails if our CByondValue is invalid, which cannot happen.
         unsafe { byond().ByondValue_IsStr(&self.0) }
     }
 
-    fn is_list(&self) -> bool {
+    pub fn is_list(&self) -> bool {
         // Safety: This operation only fails if our CByondValue is invalid, which cannot happen.
         unsafe { byond().ByondValue_IsList(&self.0) }
     }
 
-    fn is_ptr(&self) -> bool {
+    pub fn is_ptr(&self) -> bool {
         is_pointer_shim(self)
     }
 
-    fn is_true(&self) -> bool {
+    pub fn is_true(&self) -> bool {
         // Safety: This operation only fails if our CByondValue is invalid, which cannot happen.
         unsafe { byond().ByondValue_IsTrue(&self.0) }
     }

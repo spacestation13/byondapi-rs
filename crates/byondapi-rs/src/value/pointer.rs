@@ -1,5 +1,5 @@
 use super::ByondValue;
-use crate::{static_global::byond, typecheck_trait::ByondTypeCheck, Error};
+use crate::{static_global::byond, Error};
 
 #[repr(transparent)]
 pub struct ByondValuePointer(pub ByondValue);

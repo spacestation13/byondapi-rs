@@ -10,7 +10,7 @@ fn init_lib() -> byondapi_sys::ByondApi {
             Ok(lib) => lib,
             Err(e) => {
                 let message = format!(
-                    "byondcore.dll is not loaded into the process as expected: {:#?}",
+                    "byondcore is not loaded into the process as expected: {:#?}",
                     e
                 );
                 crate::error::crash_logging::log_to_file(&message);
@@ -32,7 +32,7 @@ fn init_lib() -> byondapi_sys::ByondApi {
     match unsafe { byondapi_sys::ByondApi::init_from_library(library) } {
         Err(e) => {
             let message = format!(
-                "byondcore.dll is not loaded into the process as expected: {:#?}",
+                "byondcore is not loaded into the process as expected: {:#?}",
                 e
             );
             crate::error::crash_logging::log_to_file(&message);
@@ -42,6 +42,8 @@ fn init_lib() -> byondapi_sys::ByondApi {
     }
 }
 
+///Initialises the byond lib, and calls relevant init functions defined by inventory.
+///Or returns a reference to the lib if already initialised.
 #[inline(always)]
 pub fn byond() -> &'static byondapi_sys::ByondApi {
     BYOND.get_or_init(init_lib)

@@ -11,7 +11,6 @@ pub use error::Error;
 pub mod byond_string;
 pub mod global_call;
 pub mod prelude;
-pub mod typecheck_trait;
 pub mod value;
 
 use crate::value::ByondValue;
