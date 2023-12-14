@@ -15,6 +15,7 @@ unsafe impl Send for ByondValue {}
 pub mod constructors;
 pub mod conversion;
 pub mod functions;
+pub mod list;
 pub mod pointer;
 pub mod trait_impls;
 
@@ -55,8 +56,8 @@ impl ByondTypeCheck for ByondValue {
         is_pointer_shim(self)
     }
 
-    // fn is_true(&self) -> bool {
-    //     // Safety: This operation only fails if our CByondValue is invalid, which cannot happen.
-    //     unsafe { byond().ByondValue_IsTrue(&self.0) }
-    // }
+    fn is_true(&self) -> bool {
+        // Safety: This operation only fails if our CByondValue is invalid, which cannot happen.
+        unsafe { byond().ByondValue_IsTrue(&self.0) }
+    }
 }

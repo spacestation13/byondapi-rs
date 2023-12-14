@@ -1,7 +1,10 @@
-use crate::{static_global::byond, typecheck_trait::ByondTypeCheck, value::ByondValue, Error};
+use crate::{
+    byond_string_internal, static_global::byond, typecheck_trait::ByondTypeCheck,
+    value::ByondValue, Error,
+};
 /// List stuff goes here, Keep in mind that all indexing method starts at zero instead of one like byondland
 impl ByondValue {
-    /// Gets an array of all the list elements, this includes both keys and values for assoc lists, in an arbitrary order
+    /// Gets an array of all the list elements, this means keys for assoc lists and values for regular lists
     pub fn get_list(&self) -> Result<Vec<ByondValue>, Error> {
         use std::cell::RefCell;
         if !self.is_list() {
@@ -103,7 +106,7 @@ impl ByondValue {
         if !self.is_list() {
             return Err(Error::NotAList);
         }
-        self.call("Add", &[value])?;
+        self.call_id(byond_string_internal!("Add"), &[value])?;
         Ok(())
     }
 
@@ -117,7 +120,7 @@ impl ByondValue {
             return Ok(None);
         }
         let value = self.read_list_index(len as f32)?;
-        self.call("Remove", &[value])?;
+        self.call_id(byond_string_internal!("Remove"), &[value])?;
         Ok(Some(value))
     }
 }

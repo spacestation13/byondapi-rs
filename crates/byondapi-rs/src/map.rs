@@ -56,7 +56,6 @@ pub fn byond_block(corner1: ByondXYZ, corner2: ByondXYZ) -> Result<Vec<ByondValu
                     ))?
                 };
 
-                println!("len after second block is {len}");
                 // Safety: buffer should be written to at this point
                 unsafe { buff.set_len(len as usize) };
                 Ok(std::mem::take(buff))

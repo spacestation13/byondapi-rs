@@ -10,7 +10,6 @@ pub use error::Error;
 
 pub mod byond_string;
 pub mod global_call;
-pub mod list;
 pub mod prelude;
 pub mod typecheck_trait;
 pub mod value;
@@ -50,10 +49,15 @@ pub struct InitFunc(pub fn() -> ());
 #[macro_export]
 macro_rules! byond_string {
     ($s:literal) => {{
-        thread_local! {
-            static STRING_ID: ::std::cell::OnceCell<u32> = ::std::cell::OnceCell::new();
-        };
-        STRING_ID
-            .with(|cell| *cell.get_or_init(|| ::byondapi::byond_string::str_id_of($s).unwrap()))
+        static STRING_ID: ::std::sync::OnceLock<u32> = ::std::sync::OnceLock::new();
+        *STRING_ID.get_or_init(|| ::byondapi::byond_string::str_id_of($s).unwrap())
+    }};
+}
+
+#[macro_export]
+macro_rules! byond_string_internal {
+    ($s:literal) => {{
+        static STRING_ID: ::std::sync::OnceLock<u32> = ::std::sync::OnceLock::new();
+        *STRING_ID.get_or_init(|| crate::byond_string::str_id_of($s).unwrap())
     }};
 }
