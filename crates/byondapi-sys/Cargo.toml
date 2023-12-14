@@ -17,12 +17,13 @@ default-target = "i686-unknown-linux-gnu"
 targets = []                              # Do not build the doc with any other target than the default.
 
 [dependencies]
-libloading = "0.8.1"
+libloading = "0.8"
 
 [build-dependencies]
-bindgen = "0.69.1"
-rustc_version = "0.4.0"
-walkdir = "2.4.0"
+bindgen = "0.69"
+rustc_version = "0.4"
+walkdir = "2"
+doxygen-rs = "0.4"
 
 [features]
 default = ["byond-515-1621"]

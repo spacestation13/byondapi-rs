@@ -1,3 +1,4 @@
+use bindgen::callbacks::ParseCallbacks;
 use std::path::{Path, PathBuf};
 
 fn main() {
@@ -43,22 +44,34 @@ fn copy_wrapper(lib_dir: &Path) -> PathBuf {
 fn generate_all() {
     let out_dir = PathBuf::from(std::env::var("OUT_DIR").expect("OUT_DIR not defined"));
 
-    get_headers().iter().for_each(|(path, version)| {
-        let target = out_dir.join("byondapi.h");
-        std::fs::copy(path, target).expect("Failed to copy to out_dir");
-        let wrapper = copy_wrapper(&out_dir);
+    get_headers()
+        .into_iter()
+        .for_each(|(path, (major, minor))| {
+            let target = out_dir.join("byondapi.h");
+            std::fs::copy(path, target).expect("Failed to copy to out_dir");
+            let wrapper = copy_wrapper(&out_dir);
 
-        let builder = bindgen::Builder::default()
-            .header(wrapper.to_string_lossy())
-            .dynamic_library_name("ByondApi")
-            .dynamic_link_require_all(true)
-            // Also make headers included by main header dependencies of the build
-            .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()));
+            let builder = bindgen::Builder::default()
+                .header(wrapper.to_string_lossy())
+                .dynamic_library_name("ByondApi")
+                .dynamic_link_require_all(true)
+                // Also make headers included by main header dependencies of the build
+                .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
+                .parse_callbacks(Box::new(DoxygenCallbacks));
 
-        builder
-            .generate()
-            .expect("Unable to generate bindings")
-            .write_to_file(out_dir.join(format!("bindings_{}_{}.rs", version.0, version.1)))
-            .expect("Couldn't write bindings!");
-    });
+            builder
+                .generate()
+                .expect("Unable to generate bindings")
+                .write_to_file(out_dir.join(format!("bindings_{major}_{minor}.rs")))
+                .expect("Couldn't write bindings!");
+        });
+}
+
+#[derive(Debug)]
+struct DoxygenCallbacks;
+
+impl ParseCallbacks for DoxygenCallbacks {
+    fn process_comment(&self, comment: &str) -> Option<String> {
+        Some(doxygen_rs::transform(comment))
+    }
 }
