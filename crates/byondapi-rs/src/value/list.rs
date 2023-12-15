@@ -121,7 +121,7 @@ impl ByondValue {
     }
 
     /// Reads a value by key through the ref. Fails if the index doesn't exist
-    fn read_list_index_internal(&self, index: &ByondValue) -> Result<ByondValue, Error> {
+    pub fn read_list_index_internal(&self, index: &ByondValue) -> Result<ByondValue, Error> {
         let mut result = ByondValue::new();
         unsafe {
             map_byond_error!(byond().Byond_ReadListIndex(&self.0, &index.0, &mut result.0))?;
@@ -130,7 +130,7 @@ impl ByondValue {
     }
 
     /// Writes a value by key through the ref. Dunno why it can fail
-    fn write_list_index_internal(
+    pub fn write_list_index_internal(
         &mut self,
         index: &ByondValue,
         value: &ByondValue,
