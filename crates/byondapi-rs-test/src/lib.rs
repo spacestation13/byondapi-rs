@@ -284,7 +284,7 @@ pub unsafe extern "C" fn test_list_read(argc: u4c, argv: *mut ByondValue) -> Byo
     let args = parse_args(argc, argv);
     let list = args.get(0).unwrap();
 
-    let map = list.get_list().unwrap();
+    let map = list.get_list_keys().unwrap();
     let values = map
         .into_iter()
         .map(|item| item.get_string().unwrap())
