@@ -1,8 +1,8 @@
 use crate::{byond_string_internal, static_global::byond, value::ByondValue, Error};
 /// List stuff goes here, Keep in mind that all indexing method starts at zero instead of one like byondland
 impl ByondValue {
-    /// Gets an array of all the list elements, this means keys for assoc lists and values for regular lists
-    pub fn get_list(&self) -> Result<Vec<ByondValue>, Error> {
+    /// Gets an array of all the list keys, this means keys for assoc lists and values for regular lists
+    pub fn get_list_keys(&self) -> Result<Vec<ByondValue>, Error> {
         use std::cell::RefCell;
         if !self.is_list() {
             return Err(Error::NotAList);
@@ -24,6 +24,49 @@ impl ByondValue {
                     // Safety: buffer capacity is passed to byond, which makes sure it writes in-bound
                     unsafe {
                         map_byond_error!(byond().Byond_ReadList(
+                            &self.0,
+                            buff.as_mut_ptr().cast(),
+                            &mut len
+                        ))?
+                    };
+                    // Safety: buffer should be written to at this point
+                    unsafe { buff.set_len(len as usize) };
+                    Ok(std::mem::take(buff))
+                }
+                (true, _) => {
+                    // Safety: buffer should be written to at this point
+                    unsafe { buff.set_len(len as usize) };
+                    Ok(std::mem::take(buff))
+                }
+                (false, 0) => Err(Error::get_last_byond_error()),
+            }
+        })
+    }
+
+    /// Gets an array of all the list elements, this means both keys and values for assoc lists and values for regular lists
+    /// Reads items as key,value pairs from an associative list, storing them sequentially as key1, value1, key2, value2, etc.
+    pub fn get_list(&self) -> Result<Vec<ByondValue>, Error> {
+        use std::cell::RefCell;
+        if !self.is_list() {
+            return Err(Error::NotAList);
+        }
+
+        thread_local! {
+            static BUFFER: RefCell<Vec<ByondValue>> = RefCell::new(Vec::with_capacity(1));
+        }
+
+        BUFFER.with_borrow_mut(|buff| -> Result<Vec<ByondValue>, Error> {
+            let mut len = buff.capacity() as u32;
+
+            // Safety: buffer capacity is passed to byond, which makes sure it writes in-bound
+            let initial_res =
+                unsafe { byond().Byond_ReadListAssoc(&self.0, buff.as_mut_ptr().cast(), &mut len) };
+            match (initial_res, len) {
+                (false, 1..) => {
+                    buff.reserve_exact(len as usize);
+                    // Safety: buffer capacity is passed to byond, which makes sure it writes in-bound
+                    unsafe {
+                        map_byond_error!(byond().Byond_ReadListAssoc(
                             &self.0,
                             buff.as_mut_ptr().cast(),
                             &mut len
@@ -78,7 +121,7 @@ impl ByondValue {
     }
 
     /// Reads a value by key through the ref. Fails if the index doesn't exist
-    pub fn read_list_index_internal(&self, index: &ByondValue) -> Result<ByondValue, Error> {
+    fn read_list_index_internal(&self, index: &ByondValue) -> Result<ByondValue, Error> {
         let mut result = ByondValue::new();
         unsafe {
             map_byond_error!(byond().Byond_ReadListIndex(&self.0, &index.0, &mut result.0))?;
@@ -87,7 +130,7 @@ impl ByondValue {
     }
 
     /// Writes a value by key through the ref. Dunno why it can fail
-    pub fn write_list_index_internal(
+    fn write_list_index_internal(
         &mut self,
         index: &ByondValue,
         value: &ByondValue,
