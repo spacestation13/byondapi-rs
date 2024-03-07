@@ -2,16 +2,20 @@ mod static_global;
 
 ///Macros
 pub use byondapi_macros;
-
 pub use byondapi_macros::bind;
 pub use byondapi_macros::bind_raw_args;
 pub use byondapi_macros::init;
+
+pub use binds::generate_bindings;
+
+pub use inventory;
 
 #[macro_use]
 pub mod error;
 pub mod map;
 pub use error::Error;
 
+pub mod binds;
 pub mod byond_string;
 pub mod global_call;
 pub mod prelude;
