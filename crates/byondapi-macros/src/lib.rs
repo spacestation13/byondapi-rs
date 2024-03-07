@@ -129,14 +129,14 @@ pub fn bind(attr: TokenStream, item: TokenStream) -> TokenStream {
             match #func_name(#proc_arg_unpacker) {
                 Ok(val) => val,
                 Err(e) => {
-                    let error_string = ::byondapi::value::ByondValue::try_from(e.0).unwrap();
+                    let error_string = ::byondapi::value::ByondValue::try_from(::std::format!("{e:?}")).unwrap();
                     ::byondapi::global_call::call_global_id(byond_string!("stack_trace"), &[error_string]).unwrap();
                     ::byondapi::value::ByondValue::null()
                 }
             }
 
         }
-        fn #func_name(#args) -> Result<::byondapi::value::ByondValue, ::byondapi::BindError>
+        fn #func_name(#args) -> Result<::byondapi::value::ByondValue, ::byondapi::Error>
         #body
     };
     result.into()
@@ -231,13 +231,13 @@ pub fn bind_raw_args(attr: TokenStream, item: TokenStream) -> TokenStream {
             match #func_name(args) {
                 Ok(val) => val,
                 Err(e) => {
-                    let error_string = ::byondapi::value::ByondValue::try_from(e.0).unwrap();
+                    let error_string = ::byondapi::value::ByondValue::try_from(::std::format!("{e:?}")).unwrap();
                     ::byondapi::global_call::call_global_id(byond_string!("stack_trace"), &[error_string]).unwrap();
                     ::byondapi::value::ByondValue::null()
                 }
             }
         }
-        fn #func_name(args: &mut [::byondapi::value::ByondValue]) -> Result<::byondapi::value::ByondValue, ::byondapi::BindError>
+        fn #func_name(args: &mut [::byondapi::value::ByondValue]) -> Result<::byondapi::value::ByondValue, ::byondapi::Error>
         #body
     };
     result.into()

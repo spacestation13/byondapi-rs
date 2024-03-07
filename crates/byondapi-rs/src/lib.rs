@@ -48,18 +48,6 @@ inventory::collect!(InitFunc);
 ///Or add a #[byondapi::init] attribute to a function
 pub struct InitFunc(pub fn() -> ());
 
-///Custom error type for binds, just to implement From for ?
-pub struct BindError(pub String);
-
-impl<E> From<E> for BindError
-where
-    E: std::fmt::Debug,
-{
-    fn from(value: E) -> Self {
-        BindError(format!("{value:#?}"))
-    }
-}
-
 ///This macro caches string ids and returns it instead of doing a stringid lookup everytime
 ///The macro will panic if the string doesn't already exist on byond init lib
 ///Example usage:
