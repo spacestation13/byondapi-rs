@@ -1,7 +1,11 @@
 mod static_global;
 
-///Plugin init system
-pub use inventory;
+///Macros
+pub use byondapi_macros;
+
+pub use byondapi_macros::bind;
+pub use byondapi_macros::bind_raw_args;
+pub use byondapi_macros::init;
 
 #[macro_use]
 pub mod error;
@@ -35,9 +39,22 @@ inventory::collect!(InitFunc);
 ///The lib is only loaded when any byondapi functions are called from byond
 ///To submit a function (func) to be ran by byondapi on it's libload, do:
 ///```
-///byondapi::inventory::submit! {InitFunc(func)}
+///byondapi::byondapi_macros::inventory::submit! {InitFunc(func)}
 ///```
+///Or add a #[byondapi::init] attribute to a function
 pub struct InitFunc(pub fn() -> ());
+
+///Custom error type for binds, just to implement From for ?
+pub struct BindError(pub String);
+
+impl<E> From<E> for BindError
+where
+    E: std::fmt::Debug,
+{
+    fn from(value: E) -> Self {
+        BindError(format!("{value:#?}"))
+    }
+}
 
 ///This macro caches string ids and returns it instead of doing a stringid lookup everytime
 ///The macro will panic if the string doesn't already exist on byond init lib
@@ -49,14 +66,6 @@ pub struct InitFunc(pub fn() -> ());
 macro_rules! byond_string {
     ($s:literal) => {{
         static STRING_ID: ::std::sync::OnceLock<u32> = ::std::sync::OnceLock::new();
-        *STRING_ID.get_or_init(|| ::byondapi::byond_string::str_id_of($s).unwrap())
-    }};
-}
-
-#[macro_export]
-macro_rules! byond_string_internal {
-    ($s:literal) => {{
-        static STRING_ID: ::std::sync::OnceLock<u32> = ::std::sync::OnceLock::new();
-        *STRING_ID.get_or_init(|| crate::byond_string::str_id_of($s).unwrap())
+        *STRING_ID.get_or_init(|| $crate::byond_string::str_id_of($s).unwrap())
     }};
 }

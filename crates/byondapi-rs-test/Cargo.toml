@@ -12,3 +12,4 @@ crate-type = ["cdylib"]
 byondapi = { path = "../byondapi-rs" }
 tempfile = "3.8.1"
 cargo_metadata = "0.18.1"
+eyre = "0.6.12"

@@ -61,7 +61,7 @@ impl ByondValue {
         let c_str = CString::new(s.into()).unwrap();
         let str_id = unsafe { byond().Byond_AddGetStrId(c_str.as_ptr()) };
         if str_id == u32::MAX {
-            return Err(Error::UnableToCreateString);
+            return Err(Error::UnableToCreateString(c_str));
         }
         Ok(Self(CByondValue {
             type_: ValueType::String as u8,

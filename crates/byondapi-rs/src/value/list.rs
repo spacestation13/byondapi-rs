@@ -1,11 +1,11 @@
-use crate::{byond_string_internal, static_global::byond, value::ByondValue, Error};
+use crate::{byond_string, static_global::byond, value::ByondValue, Error};
 /// List stuff goes here, Keep in mind that all indexing method starts at zero instead of one like byondland
 impl ByondValue {
     /// Gets an array of all the list keys, this means keys for assoc lists and values for regular lists
     pub fn get_list_keys(&self) -> Result<Vec<ByondValue>, Error> {
         use std::cell::RefCell;
         if !self.is_list() {
-            return Err(Error::NotAList);
+            return Err(Error::NotAList(*self));
         }
 
         thread_local! {
@@ -48,7 +48,7 @@ impl ByondValue {
     pub fn get_list(&self) -> Result<Vec<ByondValue>, Error> {
         use std::cell::RefCell;
         if !self.is_list() {
-            return Err(Error::NotAList);
+            return Err(Error::NotAList(*self));
         }
 
         thread_local! {
@@ -100,7 +100,7 @@ impl ByondValue {
     /// Reads a value by key through the ref. Fails if this isn't a list.
     pub fn read_list_index<I: TryInto<ByondValue>>(&self, index: I) -> Result<ByondValue, Error> {
         if !self.is_list() {
-            return Err(Error::NotAList);
+            return Err(Error::NotAList(*self));
         }
         let index: ByondValue = index.try_into().map_err(|_| Error::InvalidConversion)?;
         self.read_list_index_internal(&index)
@@ -113,7 +113,7 @@ impl ByondValue {
         value: V,
     ) -> Result<(), Error> {
         if !self.is_list() {
-            return Err(Error::NotAList);
+            return Err(Error::NotAList(*self));
         }
         let index: ByondValue = index.try_into().map_err(|_| Error::InvalidConversion)?;
         let value: ByondValue = value.try_into().map_err(|_| Error::InvalidConversion)?;
@@ -144,23 +144,23 @@ impl ByondValue {
     /// Pushes a value into a list
     pub fn push_list(&mut self, value: ByondValue) -> Result<(), Error> {
         if !self.is_list() {
-            return Err(Error::NotAList);
+            return Err(Error::NotAList(*self));
         }
-        self.call_id(byond_string_internal!("Add"), &[value])?;
+        self.call_id(byond_string!("Add"), &[value])?;
         Ok(())
     }
 
     /// Pops a value from a list
     pub fn pop_list(&mut self) -> Result<Option<ByondValue>, Error> {
         if !self.is_list() {
-            return Err(Error::NotAList);
+            return Err(Error::NotAList(*self));
         }
         let len = self.builtin_length()?.get_number()? as usize;
         if len == 0 {
             return Ok(None);
         }
         let value = self.read_list_index(len as f32)?;
-        self.call_id(byond_string_internal!("Remove"), &[value])?;
+        self.call_id(byond_string!("Remove"), &[value])?;
         Ok(Some(value))
     }
 }

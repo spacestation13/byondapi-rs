@@ -1,6 +1,6 @@
 ///Type enum for the [`byondapi_sys::ByondValueType`] field of [`byondapi_sys::CByondValue`], copied from auxtools
 #[repr(u8)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, num_enum::TryFromPrimitive)]
 #[non_exhaustive]
 pub enum ValueType {
     Null = 0x00,

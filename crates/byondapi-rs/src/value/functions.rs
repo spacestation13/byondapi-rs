@@ -26,7 +26,7 @@ impl ByondValue {
         if self.is_num() {
             Ok(unsafe { byond().ByondValue_GetNum(&self.0) })
         } else {
-            Err(Error::NotANum)
+            Err(Error::NotANum(*self))
         }
     }
 
@@ -34,7 +34,7 @@ impl ByondValue {
     pub fn get_cstring(&self) -> Result<CString, Error> {
         use std::cell::RefCell;
         if !self.is_str() {
-            return Err(Error::NotAString);
+            return Err(Error::NotAString(*self));
         }
 
         thread_local! {
@@ -85,7 +85,7 @@ impl ByondValue {
     /// Get the underlying ref number to this value
     pub fn get_ref(&self) -> Result<u4c, Error> {
         if self.is_str() || self.is_null() || self.is_num() {
-            return Err(Error::NotReferencable);
+            return Err(Error::NotReferencable(*self));
         }
         Ok(unsafe { byond().ByondValue_GetRef(&self.0) })
     }
@@ -93,7 +93,7 @@ impl ByondValue {
     /// Get the string id of this value, fail if this isn't a string
     pub fn get_strid(&self) -> Result<u4c, Error> {
         if !self.is_str() {
-            Err(Error::NotAString)
+            Err(Error::NotAString(*self))
         } else {
             Ok(unsafe { self.0.data.ref_ })
         }
@@ -113,7 +113,7 @@ impl ByondValue {
         let c_str = c_string.as_c_str();
         unsafe { byond().ByondValue_SetStr(&mut self.0, c_str.as_ptr()) }
         if self.is_null() {
-            return Err(Error::UnableToCreateString);
+            return Err(Error::UnableToCreateString(c_string));
         }
         Ok(())
     }
@@ -129,7 +129,7 @@ impl ByondValue {
     /// Read a variable through the ref. Fails if this isn't a ref type.
     pub fn read_var<T: Into<Vec<u8>>>(&self, name: T) -> Result<ByondValue, Error> {
         if self.is_num() || self.is_str() || self.is_ptr() || self.is_null() || self.is_list() {
-            return Err(Error::NotReferencable);
+            return Err(Error::NotReferencable(*self));
         }
         let c_string = CString::new(name).unwrap();
         let c_str = c_string.as_c_str();
@@ -172,7 +172,7 @@ impl ByondValue {
 
         let str_id = unsafe { byond().Byond_GetStrId(c_str.as_ptr()) };
         if str_id == crate::sys::u2c::MAX as u32 {
-            return Err(Error::InvalidProc);
+            return Err(Error::InvalidProc(c_string));
         }
 
         let ptr = args.as_ptr();
@@ -196,7 +196,7 @@ impl ByondValue {
     /// Read a variable through the ref. Fails if this isn't a ref type, or the id is invalid.
     pub fn read_var_id(&self, name: u4c) -> Result<ByondValue, Error> {
         if self.is_num() || self.is_str() || self.is_ptr() || self.is_null() || self.is_list() {
-            return Err(Error::NotReferencable);
+            return Err(Error::NotReferencable(*self));
         }
         let mut new_value = ByondValue::new();
         unsafe {
@@ -300,7 +300,7 @@ impl ByondValue {
     /// (key, value) for proper assoc lists
     pub fn iter(&self) -> Result<impl Iterator<Item = (ByondValue, ByondValue)> + '_, Error> {
         if !self.is_list() {
-            return Err(Error::NotAList);
+            return Err(Error::NotAList(*self));
         }
         let len: f32 = byond_length(self)?.try_into()?;
         Ok(ListIterator {
@@ -313,7 +313,7 @@ impl ByondValue {
     /// Iterates through key values of the list if the list is an assoc list, if not, just iterates through values
     pub fn values(&self) -> Result<impl Iterator<Item = ByondValue> + '_, Error> {
         if !self.is_list() {
-            return Err(Error::NotAList);
+            return Err(Error::NotAList(*self));
         }
         let len: f32 = byond_length(self)?.try_into()?;
         Ok(ValueIterator {

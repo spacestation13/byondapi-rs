@@ -1,231 +1,151 @@
 #![allow(clippy::missing_safety_doc)]
 
-use byondapi::{byond_string, map::*, parse_args, prelude::*};
+use byondapi::{byond_string, map::*, prelude::*};
 
-#[allow(dead_code)]
+#[test]
+fn generate_binds() {
+    byondapi::byondapi_macros::generate_bindings(env!("CARGO_CRATE_NAME"));
+}
+
 fn write_log<T: AsRef<[u8]>>(x: T) {
     std::fs::write("./rust_log.txt", x).unwrap()
 }
 
-use std::panic;
 fn setup_panic_handler() {
-    panic::set_hook(Box::new(|info| {
+    std::panic::set_hook(Box::new(|info| {
         write_log(format!("Panic {:#?}", info));
     }))
 }
 
-#[no_mangle]
-pub unsafe extern "C" fn test_connection(_argc: u4c, _argv: *mut ByondValue) -> ByondValue {
+#[byondapi::bind]
+fn test_connection() {
     setup_panic_handler();
-    ByondValue::new_num(69.0)
+    Ok(ByondValue::new_num(69.0))
 }
 
-#[no_mangle]
-pub unsafe extern "C" fn test_args(argc: u4c, argv: *mut ByondValue) -> ByondValue {
+#[byondapi::bind_raw_args]
+fn test_args() {
     setup_panic_handler();
-    let args = parse_args(argc, argv);
-    assert_eq!(args.len(), 1);
-    args[0]
+    assert_eq!(args.len(), 2);
+    Ok(args[1])
 }
 
-#[no_mangle]
-pub unsafe extern "C" fn test_ptr(argc: u4c, argv: *mut ByondValue) -> ByondValue {
+#[byondapi::bind]
+fn test_ptr(ptr: ByondValue) {
     setup_panic_handler();
-    let args = parse_args(argc, argv);
-    let pointer = match ByondValuePointer::new(args[0].clone()) {
-        Ok(ptr) => ptr,
-        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
-    };
+    let pointer = ByondValuePointer::new(ptr)?;
 
-    let strobj = match pointer.read() {
-        Ok(ptr) => ptr,
-        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
-    };
+    let strobj = pointer.read()?;
 
-    let new_name: ByondValue = format!("awa{}", strobj.get_string().unwrap())
-        .try_into()
-        .unwrap();
+    let new_name: ByondValue = format!("awa{}", strobj.get_string()?).try_into()?;
 
-    match pointer.write(&new_name) {
-        Ok(_) => {}
-        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
-    };
-
-    ByondValue::null()
+    pointer.write(&new_name)?;
+    Ok(ByondValue::null())
 }
 
-#[no_mangle]
-pub unsafe extern "C" fn test_proc_call(argc: u4c, argv: *mut ByondValue) -> ByondValue {
-    setup_panic_handler();
-    let args = parse_args(argc, argv);
-
-    let result = args[0].call("get_name", &[]);
-
-    match result {
-        Ok(res) => res,
-        Err(e) => format!("{:#?}", e).try_into().unwrap(),
-    }
+#[byondapi::bind]
+fn test_proc_call(object: ByondValue) {
+    Ok(object.call("get_name", &[])?)
 }
 
-#[no_mangle]
-pub unsafe extern "C" fn test_readwrite_var(argc: u4c, argv: *mut ByondValue) -> ByondValue {
+#[byondapi::bind]
+fn test_readwrite_var(object: ByondValue) {
     setup_panic_handler();
-    let args = parse_args(argc, argv);
-    let object = &args[0];
 
-    object
-        .read_var_id(byond_string!("name"))
-        .unwrap()
-        .get_string()
-        .unwrap();
+    object.read_var_id(byond_string!("name"))?.get_string()?;
 
-    match object.read_string("name") {
-        Ok(res) => res.try_into().unwrap(),
-        Err(e) => format!("{:#?}", e).try_into().unwrap(),
-    }
+    Ok(object.read_string("name")?.try_into()?)
 }
-#[no_mangle]
-pub unsafe extern "C" fn test_list_push(argc: u4c, argv: *mut ByondValue) -> ByondValue {
+#[byondapi::bind]
+fn test_list_push(mut list: ByondValue) {
     setup_panic_handler();
-    let args = parse_args(argc, argv);
 
-    let mut list = args[0];
+    list.push_list(ByondValue::new_num(8.0))?;
 
-    match list.push_list(ByondValue::new_num(8.0)) {
-        Ok(_) => {}
-        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
-    };
-
-    list.try_into().unwrap()
+    Ok(list)
 }
 
-#[no_mangle]
-pub unsafe extern "C" fn test_list_double(argc: u4c, argv: *mut ByondValue) -> ByondValue {
+#[byondapi::bind]
+fn test_list_double(list: ByondValue) {
     setup_panic_handler();
-    let args = parse_args(argc, argv);
 
-    let list = args[0];
+    let collection = list
+        .iter()?
+        .map(|(v, _)| (v.get_number().unwrap() * 2.).into())
+        .collect::<Vec<ByondValue>>();
 
-    let collection: Vec<ByondValue> = list
-        .iter()
-        .unwrap()
-        .map(|(v, _)| (v.get_number().unwrap() * 2.).try_into().unwrap())
-        .collect();
-
-    collection.as_slice().try_into().unwrap()
+    Ok(collection.as_slice().try_into()?)
 }
 
-#[no_mangle]
-pub unsafe extern "C" fn test_list_index(argc: u4c, argv: *mut ByondValue) -> ByondValue {
+#[byondapi::bind]
+fn test_list_index(list: ByondValue) {
     setup_panic_handler();
-    let args = parse_args(argc, argv);
 
-    let list = args[0];
-
-    list.read_list_index(3.0).unwrap()
+    Ok(list.read_list_index(3.0)?)
 }
 
-#[no_mangle]
-pub unsafe extern "C" fn test_list_pop(argc: u4c, argv: *mut ByondValue) -> ByondValue {
+#[byondapi::bind]
+fn test_list_pop(mut list: ByondValue) {
     setup_panic_handler();
-    let args = parse_args(argc, argv);
 
-    let mut list = args[0];
+    let element = list.pop_list()?;
 
-    let element = match list.pop_list() {
-        Ok(x) => x,
-        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
-    };
-
-    if list.builtin_length().unwrap().get_number().unwrap() as u32 != 4 {
-        return "pop did not actually remove item from list"
-            .try_into()
-            .unwrap();
+    if list.builtin_length()?.get_number()? as u32 != 4 {
+        return Err(eyre::eyre!("pop did not actually remove item from list").into());
     }
 
-    element.unwrap()
+    Ok(element.unwrap())
 }
 
-#[no_mangle]
-pub unsafe extern "C" fn test_length_with_list(argc: u4c, argv: *mut ByondValue) -> ByondValue {
+#[byondapi::bind]
+fn test_length_with_list(list: ByondValue) {
     setup_panic_handler();
-    let args = parse_args(argc, argv);
-
-    let list = args[0];
-
-    match list.builtin_length() {
-        Ok(x) => x,
-        Err(e) => format!("{:#?}", e).try_into().unwrap(),
-    }
+    Ok(list.builtin_length()?)
 }
-#[no_mangle]
-pub unsafe extern "C" fn test_block(argc: u4c, argv: *mut ByondValue) -> ByondValue {
-    setup_panic_handler();
-    let _args = parse_args(argc, argv);
 
-    let block = match byond_block(
+#[byondapi::bind]
+fn test_block() {
+    setup_panic_handler();
+
+    let block = byond_block(
         ByondXYZ::with_coords((1, 1, 1)),
         ByondXYZ::with_coords((2, 2, 1)),
-    ) {
-        Ok(list) => list,
-        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
-    };
+    )?;
 
     if block.len() != 4 {
-        return format!("block returned {} turfs when we expected 4", block.len())
-            .try_into()
-            .unwrap();
+        return Err(eyre::eyre!("block returned {} turfs when we expected 4", block.len()).into());
     }
 
-    (block.len() as f32).into()
+    Ok((block.len() as f32).into())
 }
 
-#[no_mangle]
-pub unsafe extern "C" fn test_length_with_str(argc: u4c, argv: *mut ByondValue) -> ByondValue {
+#[byondapi::bind]
+fn test_length_with_str(object: ByondValue) {
     setup_panic_handler();
-    let args = parse_args(argc, argv);
 
-    match byond_length(&args[0]) {
-        Ok(x) => x,
-        Err(e) => format!("{:#?}", e).try_into().unwrap(),
-    }
+    Ok(byond_length(&object)?)
 }
-#[no_mangle]
-pub unsafe extern "C" fn test_list_key_lookup(argc: u4c, argv: *mut ByondValue) -> ByondValue {
+#[byondapi::bind]
+fn test_list_key_lookup(mut list: ByondValue) {
     setup_panic_handler();
-    let args = parse_args(argc, argv);
 
-    let list = args.get_mut(0).unwrap();
-
-    let num: f32 = match list.read_list_index("cat") {
-        Ok(x) => x.try_into().unwrap(),
-        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
-    };
+    let num: f32 = list.read_list_index("cat")?.try_into()?;
     assert_eq!(num, 7.0);
 
-    let num: f32 = match list.read_list_index("dog") {
-        Ok(x) => x.try_into().unwrap(),
-        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
-    };
+    let num: f32 = list.read_list_index("dog")?.try_into()?;
     assert_eq!(num, 5.0);
 
-    let num: f32 = match list.read_list_index("parrot") {
-        Ok(x) => x.try_into().unwrap(),
-        Err(e) => return format!("{:#?}", e).try_into().unwrap(),
-    };
+    let num: f32 = list.read_list_index("parrot")?.try_into()?;
     assert_eq!(num, 4.0);
 
-    if let Err(e) = list.write_list_index("parrot", 14.0) {
-        return format!("{:#?}", e).try_into().unwrap();
-    };
+    list.write_list_index("parrot", 14.0)?;
 
-    let key: String = list.read_list_index(3.0).unwrap().try_into().unwrap();
+    let key: String = list.read_list_index(3.0)?.try_into()?;
 
     assert_eq!("parrot", key);
 
     let map = list
-        .iter()
-        .unwrap()
+        .iter()?
         .map(|(k, v)| (k.get_string().unwrap(), v.get_number().unwrap() as u32))
         .collect::<Vec<_>>();
 
@@ -238,30 +158,27 @@ pub unsafe extern "C" fn test_list_key_lookup(argc: u4c, argv: *mut ByondValue) 
         ]
     );
 
-    ByondValue::new()
+    Ok(Default::default())
 }
 
-#[no_mangle]
-pub unsafe extern "C" fn test_ref(argc: u4c, argv: *mut ByondValue) -> ByondValue {
+#[byondapi::bind]
+fn test_ref(turf: ByondValue) {
     setup_panic_handler();
-    let args = parse_args(argc, argv);
 
-    let turf = args.get(0).unwrap();
     let turf_type = turf.get_type();
-    let turf_id = turf.get_ref().unwrap();
+    let turf_id = turf.get_ref()?;
 
-    ByondValue::try_from(format!("turf_id: {turf_id}, turf_type: {turf_type}")).unwrap()
+    Ok(ByondValue::try_from(format!(
+        "turf_id: {turf_id}, turf_type: {turf_type}"
+    ))?)
 }
 
-#[no_mangle]
-pub unsafe extern "C" fn test_non_assoc_list(argc: u4c, argv: *mut ByondValue) -> ByondValue {
+#[byondapi::bind]
+fn test_non_assoc_list(list: ByondValue) {
     setup_panic_handler();
-    let args = parse_args(argc, argv);
-    let list = args.get(0).unwrap();
 
     let map = list
-        .iter()
-        .unwrap()
+        .iter()?
         .map(|(k, v)| {
             if !v.is_null() {
                 panic!("value is not null")
@@ -275,16 +192,14 @@ pub unsafe extern "C" fn test_non_assoc_list(argc: u4c, argv: *mut ByondValue) -
         vec!["cat".to_owned(), "dog".to_owned(), "parrot".to_owned()]
     );
 
-    ByondValue::new()
+    Ok(Default::default())
 }
 
-#[no_mangle]
-pub unsafe extern "C" fn test_list_read(argc: u4c, argv: *mut ByondValue) -> ByondValue {
+#[byondapi::bind]
+fn test_list_read(list: ByondValue) {
     setup_panic_handler();
-    let args = parse_args(argc, argv);
-    let list = args.get(0).unwrap();
 
-    let map = list.get_list_keys().unwrap();
+    let map = list.get_list_keys()?;
     let values = map
         .into_iter()
         .map(|item| item.get_string().unwrap())
@@ -295,5 +210,5 @@ pub unsafe extern "C" fn test_list_read(argc: u4c, argv: *mut ByondValue) -> Byo
         vec!["cat".to_owned(), "dog".to_owned(), "parrot".to_owned()]
     );
 
-    ByondValue::new()
+    Ok(Default::default())
 }

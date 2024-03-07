@@ -1,14 +1,14 @@
 //! Error types for any problems this runs into, including internal BYOND errors.
 use std::ffi::{CStr, CString};
 
-use crate::static_global::byond;
+use crate::{prelude::ByondValue, static_global::byond};
 
 #[derive(Debug)]
 pub enum Error {
     /// This error is thrown when you try to convert a [`crate::ByondValue`] into a type which it does not represent, or the value failed to convert to a [`crate::ByondValue`].
     InvalidConversion,
     /// This error is thrown from call when you try to call something that isn't in BYOND's string tree (thus is not a valid proc)
-    InvalidProc,
+    InvalidProc(CString),
     /// Thrown when trying to get a [`String`] from a [`crate::ByondValue`].
     NonUtf8String,
     /// Internal BYOND API error
@@ -18,20 +18,20 @@ pub enum Error {
     /// Thrown by us when we know this call will panic internally because of the version
     NotAvailableForThisByondVersion,
     /// Thrown by us when we know this type does not have a refnumber
-    NotReferencable,
+    NotReferencable(ByondValue),
     /// Thrown by us when we know this type is not a list, and we're expecting one
-    NotAList,
+    NotAList(ByondValue),
     /// Thrown by us when we know this type is not a string, and we're expecting one
-    NotAString,
+    NotAString(ByondValue),
     /// Thrown by us when we know this type is not a number, and we're expecting one
-    NotANum,
+    NotANum(ByondValue),
     /// Thrown by us when we know this type is not a pointer, and we're expecting one
-    NotAPtr,
+    NotAPtr(ByondValue),
     /// Thrown by [`crate::byond_string::str_id_of_cstr`] when the string doesn't exist in
     /// byondland
-    NonExistentString,
+    NonExistentString(CString),
     /// Thrown when we know byondland failed to create a string
-    UnableToCreateString,
+    UnableToCreateString(CString),
 }
 
 impl Error {
@@ -48,7 +48,9 @@ impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::InvalidConversion => write!(f, "Cannot convert value to target type"),
-            Self::InvalidProc => write!(f, "Cannot call proc, proc doesn't exist"),
+            Self::InvalidProc(procname) => {
+                write!(f, "Cannot call proc {procname:?}, proc doesn't exist")
+            }
             Self::NonUtf8String => write!(f, "String is not utf8"),
             Self::ByondError(e) => write!(f, "Byondapi error: {:#?}", e.0),
             Self::UnknownByondError => write!(f, "Unknown byondapi error"),
@@ -56,13 +58,15 @@ impl std::fmt::Display for Error {
                 f,
                 "This call is not available on current version of the api"
             ),
-            Self::NotReferencable => write!(f, "Cannot get a ref from this value"),
-            Self::NotAList => write!(f, "Value is not a list"),
-            Self::NotAString => write!(f, "Value is not a string"),
-            Self::NotANum => write!(f, "Value is not a number"),
-            Self::NotAPtr => write!(f, "Value is not a pointer"),
-            Self::NonExistentString => write!(f, "String id not found"),
-            Self::UnableToCreateString => write!(f, "Unable to create string"),
+            Self::NotReferencable(val) => write!(f, "Value is not a reference {val:?}"),
+            Self::NotAList(val) => write!(f, "Value is not a list {val:?}"),
+            Self::NotAString(val) => write!(f, "Value is not a string {val:?}"),
+            Self::NotANum(val) => write!(f, "Value is not a number {val:?}"),
+            Self::NotAPtr(val) => write!(f, "Value is not a pointer {val:?}"),
+            Self::NonExistentString(string) => write!(f, "String id of \"{string:?}\" not found"),
+            Self::UnableToCreateString(string) => {
+                write!(f, "Unable to create string \"{string:#?}\"")
+            }
         }
     }
 }
