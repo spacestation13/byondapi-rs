@@ -32,8 +32,6 @@ pub enum Error {
     NonExistentString(CString),
     /// Thrown when we know byondland failed to create a string
     UnableToCreateString(CString),
-    /// Custom error type thrown by binds
-    BindError(String),
 }
 
 impl Error {
@@ -69,7 +67,6 @@ impl std::fmt::Display for Error {
             Self::UnableToCreateString(string) => {
                 write!(f, "Unable to create string \"{string:#?}\"")
             }
-            Self::BindError(string) => write!(f, "{string}"),
         }
     }
 }

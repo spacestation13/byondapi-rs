@@ -91,9 +91,7 @@ fn test_list_pop(mut list: ByondValue) {
     let element = list.pop_list()?;
 
     if list.builtin_length()?.get_number()? as u32 != 4 {
-        return Err(byondapi::Error::BindError(format!(
-            "pop did not actually remove item from list"
-        )));
+        return Err(eyre::eyre!("pop did not actually remove item from list"));
     }
 
     Ok(element.unwrap())
@@ -115,10 +113,10 @@ fn test_block() {
     )?;
 
     if block.len() != 4 {
-        return Err(byondapi::Error::BindError(format!(
+        return Err(eyre::eyre!(
             "block returned {} turfs when we expected 4",
             block.len()
-        )));
+        ));
     }
 
     Ok((block.len() as f32).into())

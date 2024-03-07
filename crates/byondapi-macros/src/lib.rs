@@ -136,7 +136,7 @@ pub fn bind(attr: TokenStream, item: TokenStream) -> TokenStream {
             }
 
         }
-        fn #func_name(#args) -> Result<::byondapi::value::ByondValue, ::byondapi::Error>
+        fn #func_name(#args) -> ::eyre::Result<::byondapi::value::ByondValue>
         #body
     };
     result.into()
@@ -237,7 +237,7 @@ pub fn bind_raw_args(attr: TokenStream, item: TokenStream) -> TokenStream {
                 }
             }
         }
-        fn #func_name(args: &mut [::byondapi::value::ByondValue]) -> Result<::byondapi::value::ByondValue, ::byondapi::Error>
+        fn #func_name(args: &mut [::byondapi::value::ByondValue]) -> ::eyre::Result<::byondapi::value::ByondValue>
         #body
     };
     result.into()
