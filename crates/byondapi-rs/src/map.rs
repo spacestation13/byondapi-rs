@@ -38,7 +38,6 @@ pub fn byond_block(corner1: ByondXYZ, corner2: ByondXYZ) -> Result<Vec<ByondValu
     }
 
     BUFFER.with_borrow_mut(|buff| -> Result<Vec<ByondValue>, Error> {
-        let initial_len = buff.capacity() as u32;
         let mut len = buff.capacity() as u32;
         // Safety: buffer capacity is passed to byond, which makes sure it writes in-bound
         let initial_res = unsafe {
@@ -46,8 +45,7 @@ pub fn byond_block(corner1: ByondXYZ, corner2: ByondXYZ) -> Result<Vec<ByondValu
         };
         match (initial_res, len) {
             (false, 1..) => {
-                debug_assert!(len > initial_len);
-                buff.reserve_exact((len - initial_len) as usize);
+                buff.reserve_exact(len as usize);
                 // Safety: buffer capacity is passed to byond, which makes sure it writes in-bound
                 unsafe {
                     map_byond_error!(byond().Byond_Block(

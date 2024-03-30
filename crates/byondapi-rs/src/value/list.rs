@@ -13,7 +13,6 @@ impl ByondValue {
         }
 
         BUFFER.with_borrow_mut(|buff| -> Result<Vec<ByondValue>, Error> {
-            let initial_len = buff.capacity() as u32;
             let mut len = buff.capacity() as u32;
 
             // Safety: buffer capacity is passed to byond, which makes sure it writes in-bound
@@ -21,8 +20,7 @@ impl ByondValue {
                 unsafe { byond().Byond_ReadList(&self.0, buff.as_mut_ptr().cast(), &mut len) };
             match (initial_res, len) {
                 (false, 1..) => {
-                    debug_assert!(len > initial_len);
-                    buff.reserve_exact((len - initial_len) as usize);
+                    buff.reserve_exact(len as usize);
                     // Safety: buffer capacity is passed to byond, which makes sure it writes in-bound
                     unsafe {
                         map_byond_error!(byond().Byond_ReadList(
@@ -58,7 +56,6 @@ impl ByondValue {
         }
 
         BUFFER.with_borrow_mut(|buff| -> Result<Vec<ByondValue>, Error> {
-            let initial_len = buff.capacity() as u32;
             let mut len = buff.capacity() as u32;
 
             // Safety: buffer capacity is passed to byond, which makes sure it writes in-bound
@@ -66,8 +63,7 @@ impl ByondValue {
                 unsafe { byond().Byond_ReadListAssoc(&self.0, buff.as_mut_ptr().cast(), &mut len) };
             match (initial_res, len) {
                 (false, 1..) => {
-                    debug_assert!(len > initial_len);
-                    buff.reserve_exact((len - initial_len) as usize);
+                    buff.reserve_exact(len as usize);
                     // Safety: buffer capacity is passed to byond, which makes sure it writes in-bound
                     unsafe {
                         map_byond_error!(byond().Byond_ReadListAssoc(
