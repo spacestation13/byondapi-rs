@@ -42,13 +42,15 @@ impl ByondValue {
         }
 
         let bytes = BUFFER.with_borrow_mut(|buff| -> Result<Vec<u8>, Error> {
+            let initial_len = buff.capacity() as u32;
             let mut len = buff.capacity() as u32;
             // Safety: buffer capacity is passed to byond, which makes sure it writes in-bound
             let initial_res =
                 unsafe { byond().Byond_ToString(&self.0, buff.as_mut_ptr().cast(), &mut len) };
             match (initial_res, len) {
                 (false, 1..) => {
-                    buff.reserve_exact(len as usize);
+                    debug_assert!(len > initial_len);
+                    buff.reserve_exact((len - initial_len) as usize);
                     // Safety: buffer capacity is passed to byond, which makes sure it writes in-bound
                     unsafe {
                         map_byond_error!(byond().Byond_ToString(
