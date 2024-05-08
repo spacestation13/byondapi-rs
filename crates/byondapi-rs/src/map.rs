@@ -20,6 +20,9 @@ impl ByondXYZ {
     pub fn with_coords((x, y, z): (i16, i16, i16)) -> Self {
         Self(CByondXYZ { x, y, z, junk: 0 })
     }
+    pub fn coordinates(&self) -> (i16, i16, i16) {
+        (self.0.x, self.0.y, self.0.z)
+    }
 }
 
 impl Default for ByondXYZ {
