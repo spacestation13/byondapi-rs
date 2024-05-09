@@ -153,6 +153,14 @@
 	var/list/L = list("cat" = 0, "dog" = 1, "parrot" = 5)
 	test_list_read(L)
 
+/datum/testobject
+	var/test_name = "dust"
+
+/test/proc/test_byondapi_new()
+	var/datum/testobject = test_new_obj()
+	if(testobject.test_name != "dust")
+		throw EXCEPTION("Did not create a new object!")
+
 // BEGIN_INTERNALS
 // END_INTERNALS
 // BEGIN_FILE_DIR

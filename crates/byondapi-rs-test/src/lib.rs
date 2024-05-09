@@ -215,3 +215,11 @@ fn test_list_read(list: ByondValue) {
 
     Ok(Default::default())
 }
+
+#[byondapi::bind]
+fn test_new_obj() {
+    Ok(ByondValue::builtin_new(
+        ByondValue::try_from("/datum/testobject")?,
+        &[],
+    )?)
+}
