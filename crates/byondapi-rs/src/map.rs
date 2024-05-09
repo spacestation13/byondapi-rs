@@ -73,15 +73,6 @@ pub fn byond_block(corner1: ByondXYZ, corner2: ByondXYZ) -> Result<Vec<ByondValu
     })
 }
 
-/// Corresponds to [`dm::length`](https://www.byond.com/docs/ref/#/proc/length)
-/// Gives the length of a list or the length in bytes of a string.
-pub fn byond_length(src: &ByondValue) -> Result<ByondValue, Error> {
-    let mut output = ByondValue::new();
-    // Safety: src and output must be initialized, we take care of this.
-    unsafe { map_byond_error!(byond().Byond_Length(&src.0, &mut output.0))? };
-    Ok(output)
-}
-
 /// Corresponds to the first variation of [`dm::locate(Type) in Container`](https://www.byond.com/docs/ref/#/proc/locate)
 /// Finds an object prototype or tag within the haystack, usually used for finding objects within a turf/area/etc
 pub fn byond_locatein(needle: &ByondValue, haystack: &ByondValue) -> Result<ByondValue, Error> {

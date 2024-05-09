@@ -3,7 +3,7 @@ use std::ffi::CString;
 use byondapi_sys::{u4c, ByondValueType, CByondValue};
 
 use super::ByondValue;
-use crate::{map::byond_length, static_global::byond, Error};
+use crate::{static_global::byond, Error};
 
 /// # Compatibility with the C++ API
 impl ByondValue {
@@ -33,9 +33,6 @@ impl ByondValue {
     /// Try to get a [`CString`] or fail if this isn't a string type
     pub fn get_cstring(&self) -> Result<CString, Error> {
         use std::cell::RefCell;
-        if !self.is_str() {
-            return Err(Error::NotAString(*self));
-        }
 
         thread_local! {
             static BUFFER: RefCell<Vec<u8>> = RefCell::new(Vec::with_capacity(1));
@@ -252,17 +249,6 @@ impl ByondValue {
     }
 }
 
-/// # Builtins
-impl ByondValue {
-    pub fn builtin_length(&self) -> Result<ByondValue, Error> {
-        let mut result = ByondValue::new();
-        unsafe {
-            map_byond_error!(byond().Byond_Length(&self.0, &mut result.0))?;
-        }
-        Ok(result)
-    }
-}
-
 /// # Helpers
 impl ByondValue {
     /// Reads a number from a var. Fails if this isn't a ref type or this isn't a number.
@@ -302,7 +288,7 @@ impl ByondValue {
         if !self.is_list() {
             return Err(Error::NotAList(*self));
         }
-        let len: f32 = byond_length(self)?.try_into()?;
+        let len: f32 = self.builtin_length()?.try_into()?;
         Ok(ListIterator {
             value: self,
             len: len as u32,
@@ -315,7 +301,7 @@ impl ByondValue {
         if !self.is_list() {
             return Err(Error::NotAList(*self));
         }
-        let len: f32 = byond_length(self)?.try_into()?;
+        let len: f32 = self.builtin_length()?.try_into()?;
         Ok(ValueIterator {
             value: self,
             len: len as u32,

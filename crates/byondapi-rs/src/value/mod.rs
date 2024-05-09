@@ -12,6 +12,7 @@ pub struct ByondValue(pub CByondValue);
 /// It is safe to send ByondValue with ownership, but it is not safe to have references between threads.
 unsafe impl Send for ByondValue {}
 
+pub mod builtins;
 pub mod constructors;
 pub mod conversion;
 pub mod functions;

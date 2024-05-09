@@ -126,7 +126,7 @@ fn test_block() {
 fn test_length_with_str(object: ByondValue) {
     setup_panic_handler();
 
-    Ok(byond_length(&object)?)
+    Ok(object.builtin_length()?)
 }
 #[byondapi::bind]
 fn test_list_key_lookup(mut list: ByondValue) {
@@ -202,7 +202,7 @@ fn test_non_assoc_list(list: ByondValue) {
 fn test_list_read(list: ByondValue) {
     setup_panic_handler();
 
-    let map = list.get_list_keys()?;
+    let map = list.get_list_values()?;
     let values = map
         .into_iter()
         .map(|item| item.get_string().unwrap())

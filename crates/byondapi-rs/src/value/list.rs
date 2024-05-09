@@ -1,8 +1,8 @@
 use crate::{byond_string, static_global::byond, value::ByondValue, Error};
 /// List stuff goes here, Keep in mind that all indexing method starts at zero instead of one like byondland
 impl ByondValue {
-    /// Gets an array of all the list keys, this means keys for assoc lists and values for regular lists
-    pub fn get_list_keys(&self) -> Result<Vec<ByondValue>, Error> {
+    /// Gets an array of all the list values, this means values for assoc lists and just items in the listfor regular lists
+    pub fn get_list_values(&self) -> Result<Vec<ByondValue>, Error> {
         use std::cell::RefCell;
         if !self.is_list() {
             return Err(Error::NotAList(*self));
