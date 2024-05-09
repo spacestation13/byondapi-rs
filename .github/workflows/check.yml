@@ -78,6 +78,7 @@ jobs:
         run: |
           bash ./tools/setup_byond_windows.sh
           $Env:BYOND_LOCATION = "$HOME\BYOND\byond\bin"
+          $Env:RUST_BACKTRACE = 1
           cargo test --package byondapi-test --target i686-pc-windows-msvc --test test -- test_byondapi_with_dreamdaemon --exact --nocapture
 
   run_test_linux:
@@ -108,5 +109,6 @@ jobs:
       - name: Run tests
         run: |
           bash ./tools/setup_byond_linux.sh
+          $Env:RUST_BACKTRACE = 1
           source $HOME/BYOND/byond/bin/byondsetup
           cargo test --package byondapi-test --target i686-unknown-linux-gnu --test test -- test_byondapi_with_dreamdaemon --exact --nocapture
