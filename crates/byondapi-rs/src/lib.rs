@@ -29,6 +29,9 @@ pub unsafe fn parse_args(
     argc: byondapi_sys::u4c,
     argv: *mut ByondValue,
 ) -> &'static mut [ByondValue] {
+    if argv.is_null() {
+        return &[];
+    }
     unsafe { std::slice::from_raw_parts_mut(argv, argc as usize) }
 }
 
