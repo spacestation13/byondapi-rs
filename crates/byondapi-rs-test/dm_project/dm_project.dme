@@ -157,8 +157,8 @@
 	var/test_name = "dust"
 
 /test/proc/test_byondapi_new()
-	var/datum/testobject = test_new_obj()
-	if(testobject.test_name != "dust")
+	var/datum/testobject/fuck = test_new_obj()
+	if(fuck.test_name != "dust")
 		throw EXCEPTION("Did not create a new object!")
 
 // BEGIN_INTERNALS
