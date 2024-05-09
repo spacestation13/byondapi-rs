@@ -24,6 +24,7 @@ pub mod value;
 use crate::value::ByondValue;
 /// # Safety
 /// Don't pass in a null argv pointer please god
+/// UPDATE: it does pass in a null argv in cases where there are no args
 /// Just give this what BYOND gives you and pray for the best
 pub unsafe fn parse_args(
     argc: byondapi_sys::u4c,
