@@ -11,6 +11,9 @@
 
 #define BYONDAPI_TEST (__byondapi_test || __detect_byondapi_test())
     
+/proc/test_new_obj()
+	return call_ext(BYONDAPI_TEST, "byond:test_new_obj_ffi")()
+
 /proc/test_list_read(list)
 	return call_ext(BYONDAPI_TEST, "byond:test_list_read_ffi")(list)
 
