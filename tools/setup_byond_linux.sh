@@ -2,7 +2,7 @@
 set -euo pipefail
 
 BYOND_MAJOR=515
-BYOND_MINOR=1621
+BYOND_MINOR=1637
 
 if [ -d "$HOME/BYOND/byond/bin" ] && grep -Fxq "${BYOND_MAJOR}.${BYOND_MINOR}" $HOME/BYOND/version.txt;
 then
