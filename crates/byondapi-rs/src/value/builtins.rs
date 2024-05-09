@@ -2,6 +2,7 @@ use super::ByondValue;
 use crate::{static_global::byond, Error};
 
 impl ByondValue {
+    /// Try to get a length of a string in bytes, lists in number of assoc elements probably, will fail if it's neither a list or string
     pub fn builtin_length(&self) -> Result<ByondValue, Error> {
         let mut result = ByondValue::new();
         unsafe {
@@ -9,6 +10,7 @@ impl ByondValue {
         }
         Ok(result)
     }
+    /// Try to create a new byond object, equivalent to byond's new
     pub fn builtin_new(
         value_type: ByondValue,
         arglist: &[ByondValue],
@@ -24,7 +26,7 @@ impl ByondValue {
         }
         Ok(result)
     }
-
+    /// Try to create a new byond object, equivalent to byond's new, but takes a list as arguments instead
     pub fn builtin_newarglist(
         value_type: ByondValue,
         arglist: ByondValue,

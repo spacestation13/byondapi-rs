@@ -109,6 +109,5 @@ jobs:
       - name: Run tests
         run: |
           bash ./tools/setup_byond_linux.sh
-          $Env:RUST_BACKTRACE = 1
           source $HOME/BYOND/byond/bin/byondsetup
-          cargo test --package byondapi-test --target i686-unknown-linux-gnu --test test -- test_byondapi_with_dreamdaemon --exact --nocapture
+          RUST_BACKTRACE=1 cargo test --package byondapi-test --target i686-unknown-linux-gnu --test test -- test_byondapi_with_dreamdaemon --exact --nocapture
