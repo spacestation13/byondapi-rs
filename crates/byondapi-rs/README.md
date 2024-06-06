@@ -4,7 +4,7 @@ This crate implements a rusty safe API for using BYONDAPI.
 
 # WARNING
 
-This library automatically initializes on the first function call, using lazy_static!. This initialization can fail
+This library automatically initializes on the first function call, using OnceCell. This initialization can fail
 in one circumstance: where the symbols needed by the BYONDAPI are not found in the current executable.
 
 The only sane way to handle this is to panic, which will inevitably unwind across the FFI barrier, which is **undefined
