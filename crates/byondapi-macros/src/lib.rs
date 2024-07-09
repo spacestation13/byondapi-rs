@@ -46,19 +46,29 @@ pub fn bind(attr: TokenStream, item: TokenStream) -> TokenStream {
     let args = &input.sig.inputs;
 
     //Check for returns
-    match &input.sig.output {
-        syn::ReturnType::Default => {} //
-
-        syn::ReturnType::Type(_, ty) => {
-            return syn::Error::new(ty.span(), "Do not specify the return value of binds")
-                .to_compile_error()
-                .into()
+    let func_return = match &input.sig.output {
+        syn::ReturnType::Default => {
+            return syn::Error::new(
+                input.span(),
+                "Empty returns are not allowed, please return a Result",
+            )
+            .to_compile_error()
+            .into()
         }
-    }
+
+        syn::ReturnType::Type(_, ty) => match ty.as_ref() {
+            &syn::Type::Path(_) => &input.sig.output,
+            _ => {
+                return syn::Error::new(input.span(), "Invalid return type, please return a Result")
+                    .to_compile_error()
+                    .into()
+            }
+        },
+    };
 
     let signature = quote! {
         #[no_mangle]
-        pub unsafe extern "C" fn #func_name_ffi (
+        pub unsafe extern "C-unwind" fn #func_name_ffi (
             __argc: ::byondapi::sys::u4c,
             __argv: *mut ::byondapi::value::ByondValue
         ) -> ::byondapi::value::ByondValue
@@ -142,7 +152,7 @@ pub fn bind(attr: TokenStream, item: TokenStream) -> TokenStream {
             }
 
         }
-        fn #func_name(#args) -> ::eyre::Result<::byondapi::value::ByondValue>
+        fn #func_name(#args) #func_return
         #body
     };
     result.into()
@@ -163,15 +173,25 @@ pub fn bind_raw_args(attr: TokenStream, item: TokenStream) -> TokenStream {
     let func_name_ffi_disp = quote!(#func_name_ffi).to_string();
 
     //Check for returns
-    match &input.sig.output {
-        syn::ReturnType::Default => {} //
-
-        syn::ReturnType::Type(_, ty) => {
-            return syn::Error::new(ty.span(), "Do not specify the return value of binds")
-                .to_compile_error()
-                .into()
+    let func_return = match &input.sig.output {
+        syn::ReturnType::Default => {
+            return syn::Error::new(
+                input.span(),
+                "Empty returns are not allowed, please return a Result",
+            )
+            .to_compile_error()
+            .into()
         }
-    }
+
+        syn::ReturnType::Type(_, ty) => match ty.as_ref() {
+            &syn::Type::Path(_) => &input.sig.output,
+            _ => {
+                return syn::Error::new(input.span(), "Invalid return type, please return a Result")
+                    .to_compile_error()
+                    .into()
+            }
+        },
+    };
 
     if !input.sig.inputs.is_empty() {
         return syn::Error::new(
@@ -184,7 +204,7 @@ pub fn bind_raw_args(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let signature = quote! {
         #[no_mangle]
-        pub unsafe extern "C" fn #func_name_ffi (
+        pub unsafe extern "C-unwind" fn #func_name_ffi (
             __argc: ::byondapi::sys::u4c,
             __argv: *mut ::byondapi::value::ByondValue
         ) -> ::byondapi::value::ByondValue
@@ -249,7 +269,7 @@ pub fn bind_raw_args(attr: TokenStream, item: TokenStream) -> TokenStream {
                 }
             }
         }
-        fn #func_name(args: &mut [::byondapi::value::ByondValue]) -> ::eyre::Result<::byondapi::value::ByondValue>
+        fn #func_name(args: &mut [::byondapi::value::ByondValue]) #func_return
         #body
     };
     result.into()

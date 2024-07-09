@@ -19,6 +19,7 @@ pub mod binds;
 pub mod byond_string;
 pub mod global_call;
 pub mod prelude;
+pub mod threadsync;
 pub mod value;
 
 use crate::value::ByondValue;

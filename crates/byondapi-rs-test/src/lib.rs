@@ -1,6 +1,7 @@
 #![allow(clippy::missing_safety_doc)]
 
 use byondapi::{byond_string, map::*, prelude::*};
+use eyre::Result;
 
 #[test]
 fn generate_binds() {
@@ -18,20 +19,20 @@ fn setup_panic_handler() {
 }
 
 #[byondapi::bind]
-fn test_connection() {
+fn test_connection() -> Result<ByondValue> {
     setup_panic_handler();
     Ok(ByondValue::new_num(69.0))
 }
 
 #[byondapi::bind_raw_args]
-fn test_args() {
+fn test_args() -> Result<ByondValue> {
     setup_panic_handler();
     assert_eq!(args.len(), 2);
     Ok(args[1])
 }
 
 #[byondapi::bind]
-fn test_ptr(ptr: ByondValue) {
+fn test_ptr(ptr: ByondValue) -> Result<ByondValue> {
     setup_panic_handler();
     let pointer = ByondValuePointer::new(ptr)?;
 
@@ -44,12 +45,12 @@ fn test_ptr(ptr: ByondValue) {
 }
 
 #[byondapi::bind]
-fn test_proc_call(object: ByondValue) {
+fn test_proc_call(object: ByondValue) -> Result<ByondValue> {
     Ok(object.call("get_name", &[])?)
 }
 
 #[byondapi::bind]
-fn test_readwrite_var(object: ByondValue) {
+fn test_readwrite_var(object: ByondValue) -> Result<ByondValue> {
     setup_panic_handler();
 
     object.read_var_id(byond_string!("name"))?.get_string()?;
@@ -57,7 +58,7 @@ fn test_readwrite_var(object: ByondValue) {
     Ok(object.read_string("name")?.try_into()?)
 }
 #[byondapi::bind]
-fn test_list_push(mut list: ByondValue) {
+fn test_list_push(mut list: ByondValue) -> Result<ByondValue> {
     setup_panic_handler();
 
     list.push_list(ByondValue::new_num(8.0))?;
@@ -66,7 +67,7 @@ fn test_list_push(mut list: ByondValue) {
 }
 
 #[byondapi::bind]
-fn test_list_double(list: ByondValue) {
+fn test_list_double(list: ByondValue) -> Result<ByondValue> {
     setup_panic_handler();
 
     let collection = list
@@ -78,14 +79,14 @@ fn test_list_double(list: ByondValue) {
 }
 
 #[byondapi::bind]
-fn test_list_index(list: ByondValue) {
+fn test_list_index(list: ByondValue) -> Result<ByondValue> {
     setup_panic_handler();
 
     Ok(list.read_list_index(3.0)?)
 }
 
 #[byondapi::bind]
-fn test_list_pop(mut list: ByondValue) {
+fn test_list_pop(mut list: ByondValue) -> Result<ByondValue> {
     setup_panic_handler();
 
     let element = list.pop_list()?;
@@ -98,13 +99,13 @@ fn test_list_pop(mut list: ByondValue) {
 }
 
 #[byondapi::bind]
-fn test_length_with_list(list: ByondValue) {
+fn test_length_with_list(list: ByondValue) -> Result<ByondValue> {
     setup_panic_handler();
     Ok(list.builtin_length()?)
 }
 
 #[byondapi::bind]
-fn test_block() {
+fn test_block() -> Result<ByondValue> {
     setup_panic_handler();
 
     let block = byond_block(
@@ -123,13 +124,13 @@ fn test_block() {
 }
 
 #[byondapi::bind]
-fn test_length_with_str(object: ByondValue) {
+fn test_length_with_str(object: ByondValue) -> Result<ByondValue> {
     setup_panic_handler();
 
     Ok(object.builtin_length()?)
 }
 #[byondapi::bind]
-fn test_list_key_lookup(mut list: ByondValue) {
+fn test_list_key_lookup(mut list: ByondValue) -> Result<ByondValue> {
     setup_panic_handler();
 
     let num: f32 = list.read_list_index("cat")?.try_into()?;
@@ -165,7 +166,7 @@ fn test_list_key_lookup(mut list: ByondValue) {
 }
 
 #[byondapi::bind]
-fn test_ref(turf: ByondValue) {
+fn test_ref(turf: ByondValue) -> Result<ByondValue> {
     setup_panic_handler();
 
     let turf_type = turf.get_type();
@@ -177,7 +178,7 @@ fn test_ref(turf: ByondValue) {
 }
 
 #[byondapi::bind]
-fn test_non_assoc_list(list: ByondValue) {
+fn test_non_assoc_list(list: ByondValue) -> Result<ByondValue> {
     setup_panic_handler();
 
     let map = list
@@ -199,7 +200,7 @@ fn test_non_assoc_list(list: ByondValue) {
 }
 
 #[byondapi::bind]
-fn test_list_read(list: ByondValue) {
+fn test_list_read(list: ByondValue) -> Result<ByondValue> {
     setup_panic_handler();
 
     let map = list.get_list_values()?;
@@ -217,7 +218,7 @@ fn test_list_read(list: ByondValue) {
 }
 
 #[byondapi::bind]
-fn test_new_obj() {
+fn test_new_obj() -> Result<ByondValue> {
     Ok(ByondValue::builtin_new(
         ByondValue::try_from("/datum/testobject")?,
         &[],
