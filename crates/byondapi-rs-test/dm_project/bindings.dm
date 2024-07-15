@@ -11,56 +11,73 @@
 
 #define BYONDAPI_TEST (__byondapi_test || __detect_byondapi_test())
     
+///Tests new
 /proc/test_new_obj()
 	return call_ext(BYONDAPI_TEST, "byond:test_new_obj_ffi")()
 
+///Tests lists read
 /proc/test_list_read(list)
 	return call_ext(BYONDAPI_TEST, "byond:test_list_read_ffi")(list)
 
+///Tests non-assoc lists
 /proc/test_non_assoc_list(list)
 	return call_ext(BYONDAPI_TEST, "byond:test_non_assoc_list_ffi")(list)
 
+///Tests ref
 /proc/test_ref(turf)
 	return call_ext(BYONDAPI_TEST, "byond:test_ref_ffi")(turf)
 
+///Tests lists lookup
 /proc/test_list_key_lookup(list)
 	return call_ext(BYONDAPI_TEST, "byond:test_list_key_lookup_ffi")(list)
 
+///Tests length with strings
 /proc/test_length_with_str(object)
 	return call_ext(BYONDAPI_TEST, "byond:test_length_with_str_ffi")(object)
 
+///Tests block
 /proc/test_block()
 	return call_ext(BYONDAPI_TEST, "byond:test_block_ffi")()
 
+///Tests lists length
 /proc/test_length_with_list(list)
 	return call_ext(BYONDAPI_TEST, "byond:test_length_with_list_ffi")(list)
 
+///Tests lists popping
 /proc/test_list_pop(list)
 	return call_ext(BYONDAPI_TEST, "byond:test_list_pop_ffi")(list)
 
+///Tests lists indexing
 /proc/test_list_index(list)
 	return call_ext(BYONDAPI_TEST, "byond:test_list_index_ffi")(list)
 
+///Tests lists
 /proc/test_list_double(list)
 	return call_ext(BYONDAPI_TEST, "byond:test_list_double_ffi")(list)
 
+///Tests list pushes
 /proc/test_list_push(list)
 	return call_ext(BYONDAPI_TEST, "byond:test_list_push_ffi")(list)
 
+///Tests readwrite vars
 /proc/test_readwrite_var(object)
 	return call_ext(BYONDAPI_TEST, "byond:test_readwrite_var_ffi")(object)
 
+///Tests proccalls
 /proc/test_proc_call(object)
 	return call_ext(BYONDAPI_TEST, "byond:test_proc_call_ffi")(object)
 
+///Tests pointers
 /proc/test_ptr(ptr)
 	return call_ext(BYONDAPI_TEST, "byond:test_ptr_ffi")(ptr)
 
+///Tests raw args binds
 /proc/test_args(...)
 	var/list/args_copy = args.Copy()
 	args_copy.Insert(1, src)
 	return call_ext(BYONDAPI_TEST, "byond:test_args_ffi")(arglist(args_copy))
 
+///Tests main lib connection
 /proc/test_connection()
 	return call_ext(BYONDAPI_TEST, "byond:test_connection_ffi")()
 

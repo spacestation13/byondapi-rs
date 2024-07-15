@@ -45,6 +45,31 @@ pub fn bind(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let args = &input.sig.inputs;
 
+    let all_docs = input
+        .attrs
+        .iter()
+        .filter(|attr| matches!(attr.style, syn::AttrStyle::Outer))
+        .filter_map(|attr| match &attr.meta {
+            syn::Meta::NameValue(nameval) => {
+                let ident = nameval.path.get_ident()?;
+                if ident.to_string() == "doc".to_string() {
+                    match &nameval.value {
+                        syn::Expr::Lit(literal) => match &literal.lit {
+                            syn::Lit::Str(docstring) => {
+                                Some(format!("///{}\n", docstring.value(),))
+                            }
+                            _ => None,
+                        },
+                        _ => None,
+                    }
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        })
+        .collect::<String>();
+
     //Check for returns
     let func_return = match &input.sig.output {
         syn::ReturnType::Default => {
@@ -103,6 +128,7 @@ pub fn bind(attr: TokenStream, item: TokenStream) -> TokenStream {
                         proc_path: #p,
                         func_name: #func_name_ffi_disp,
                         func_arguments: #arg_names_disp,
+                        docs: #all_docs,
                         is_variadic: false,
                     }
                 });
@@ -125,6 +151,7 @@ pub fn bind(attr: TokenStream, item: TokenStream) -> TokenStream {
                         proc_path: #func_name_disp,
                         func_name: #func_name_ffi_disp,
                         func_arguments: #arg_names_disp,
+                        docs: #all_docs,
                         is_variadic: false,
                     }
                 });
@@ -171,6 +198,31 @@ pub fn bind_raw_args(attr: TokenStream, item: TokenStream) -> TokenStream {
     let func_name_ffi = format!("{func_name_disp}_ffi");
     let func_name_ffi = Ident::new(&func_name_ffi, func_name.span());
     let func_name_ffi_disp = quote!(#func_name_ffi).to_string();
+
+    let all_docs = input
+        .attrs
+        .iter()
+        .filter(|attr| matches!(attr.style, syn::AttrStyle::Outer))
+        .filter_map(|attr| match &attr.meta {
+            syn::Meta::NameValue(nameval) => {
+                let ident = nameval.path.get_ident()?;
+                if ident.to_string() == "doc".to_string() {
+                    match &nameval.value {
+                        syn::Expr::Lit(literal) => match &literal.lit {
+                            syn::Lit::Str(docstring) => {
+                                Some(format!("///{}\n", docstring.value(),))
+                            }
+                            _ => None,
+                        },
+                        _ => None,
+                    }
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        })
+        .collect::<String>();
 
     //Check for returns
     let func_return = match &input.sig.output {
@@ -221,6 +273,7 @@ pub fn bind_raw_args(attr: TokenStream, item: TokenStream) -> TokenStream {
                         proc_path: #p,
                         func_name: #func_name_ffi_disp,
                         func_arguments: "",
+                        docs: #all_docs,
                         is_variadic: true,
                     }
                 });
@@ -243,6 +296,7 @@ pub fn bind_raw_args(attr: TokenStream, item: TokenStream) -> TokenStream {
                             proc_path: #func_name_disp,
                             func_name: #func_name_ffi_disp,
                             func_arguments: "",
+                            docs: #all_docs,
                             is_variadic: true,
                         }
                     });

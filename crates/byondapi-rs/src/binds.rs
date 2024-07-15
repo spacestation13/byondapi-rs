@@ -4,6 +4,7 @@ pub struct Bind {
     pub proc_path: &'static str,
     pub func_name: &'static str,
     pub func_arguments: &'static str,
+    pub docs: &'static str,
     pub is_variadic: bool,
 }
 
@@ -32,6 +33,7 @@ pub fn generate_bindings(libname: &str) {
     .unwrap();
     for thing in inventory::iter::<Bind> {
         let path = thing.proc_path;
+        let docs = thing.docs;
         let func_name = thing.func_name;
         let func_arguments = thing.func_arguments;
         let func_arguments_srcless = func_arguments
@@ -41,7 +43,7 @@ pub fn generate_bindings(libname: &str) {
         if thing.is_variadic {
             //can't directly modify args, fuck you byond
             file.write_fmt(format_args!(
-                r#"{path}(...)
+                r#"{docs}{path}(...)
 	var/list/args_copy = args.Copy()
 	args_copy.Insert(1, src)
 	return call_ext({libname_upper}, "byond:{func_name}")(arglist(args_copy))
@@ -51,7 +53,7 @@ pub fn generate_bindings(libname: &str) {
             .unwrap()
         } else {
             file.write_fmt(format_args!(
-                r#"{path}({func_arguments_srcless})
+                r#"{docs}{path}({func_arguments_srcless})
 	return call_ext({libname_upper}, "byond:{func_name}")({func_arguments})
 
 "#

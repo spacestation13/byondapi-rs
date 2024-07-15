@@ -18,12 +18,14 @@ fn setup_panic_handler() {
     }))
 }
 
+///Tests main lib connection
 #[byondapi::bind]
 fn test_connection() -> Result<ByondValue> {
     setup_panic_handler();
     Ok(ByondValue::new_num(69.0))
 }
 
+///Tests raw args binds
 #[byondapi::bind_raw_args]
 fn test_args() -> Result<ByondValue> {
     setup_panic_handler();
@@ -31,6 +33,7 @@ fn test_args() -> Result<ByondValue> {
     Ok(args[1])
 }
 
+///Tests pointers
 #[byondapi::bind]
 fn test_ptr(ptr: ByondValue) -> Result<ByondValue> {
     setup_panic_handler();
@@ -44,11 +47,13 @@ fn test_ptr(ptr: ByondValue) -> Result<ByondValue> {
     Ok(ByondValue::null())
 }
 
+///Tests proccalls
 #[byondapi::bind]
 fn test_proc_call(object: ByondValue) -> Result<ByondValue> {
     Ok(object.call("get_name", &[])?)
 }
 
+///Tests readwrite vars
 #[byondapi::bind]
 fn test_readwrite_var(object: ByondValue) -> Result<ByondValue> {
     setup_panic_handler();
@@ -57,6 +62,8 @@ fn test_readwrite_var(object: ByondValue) -> Result<ByondValue> {
 
     Ok(object.read_string("name")?.try_into()?)
 }
+
+///Tests list pushes
 #[byondapi::bind]
 fn test_list_push(mut list: ByondValue) -> Result<ByondValue> {
     setup_panic_handler();
@@ -66,6 +73,7 @@ fn test_list_push(mut list: ByondValue) -> Result<ByondValue> {
     Ok(list)
 }
 
+///Tests lists
 #[byondapi::bind]
 fn test_list_double(list: ByondValue) -> Result<ByondValue> {
     setup_panic_handler();
@@ -78,6 +86,7 @@ fn test_list_double(list: ByondValue) -> Result<ByondValue> {
     Ok(collection.as_slice().try_into()?)
 }
 
+///Tests lists indexing
 #[byondapi::bind]
 fn test_list_index(list: ByondValue) -> Result<ByondValue> {
     setup_panic_handler();
@@ -85,6 +94,7 @@ fn test_list_index(list: ByondValue) -> Result<ByondValue> {
     Ok(list.read_list_index(3.0)?)
 }
 
+///Tests lists popping
 #[byondapi::bind]
 fn test_list_pop(mut list: ByondValue) -> Result<ByondValue> {
     setup_panic_handler();
@@ -98,12 +108,14 @@ fn test_list_pop(mut list: ByondValue) -> Result<ByondValue> {
     Ok(element.unwrap())
 }
 
+///Tests lists length
 #[byondapi::bind]
 fn test_length_with_list(list: ByondValue) -> Result<ByondValue> {
     setup_panic_handler();
     Ok(list.builtin_length()?)
 }
 
+///Tests block
 #[byondapi::bind]
 fn test_block() -> Result<ByondValue> {
     setup_panic_handler();
@@ -123,12 +135,15 @@ fn test_block() -> Result<ByondValue> {
     Ok((block.len() as f32).into())
 }
 
+///Tests length with strings
 #[byondapi::bind]
 fn test_length_with_str(object: ByondValue) -> Result<ByondValue> {
     setup_panic_handler();
 
     Ok(object.builtin_length()?)
 }
+
+///Tests lists lookup
 #[byondapi::bind]
 fn test_list_key_lookup(mut list: ByondValue) -> Result<ByondValue> {
     setup_panic_handler();
@@ -165,6 +180,7 @@ fn test_list_key_lookup(mut list: ByondValue) -> Result<ByondValue> {
     Ok(Default::default())
 }
 
+///Tests ref
 #[byondapi::bind]
 fn test_ref(turf: ByondValue) -> Result<ByondValue> {
     setup_panic_handler();
@@ -177,6 +193,7 @@ fn test_ref(turf: ByondValue) -> Result<ByondValue> {
     ))?)
 }
 
+///Tests non-assoc lists
 #[byondapi::bind]
 fn test_non_assoc_list(list: ByondValue) -> Result<ByondValue> {
     setup_panic_handler();
@@ -199,6 +216,7 @@ fn test_non_assoc_list(list: ByondValue) -> Result<ByondValue> {
     Ok(Default::default())
 }
 
+///Tests lists read
 #[byondapi::bind]
 fn test_list_read(list: ByondValue) -> Result<ByondValue> {
     setup_panic_handler();
@@ -217,6 +235,7 @@ fn test_list_read(list: ByondValue) -> Result<ByondValue> {
     Ok(Default::default())
 }
 
+///Tests new
 #[byondapi::bind]
 fn test_new_obj() -> Result<ByondValue> {
     Ok(ByondValue::builtin_new(
