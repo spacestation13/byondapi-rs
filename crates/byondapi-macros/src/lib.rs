@@ -142,8 +142,8 @@ pub fn bind(attr: TokenStream, item: TokenStream) -> TokenStream {
                     let error_string = ::byondapi::value::ByondValue::try_from(::std::format!("{e:?}")).unwrap();
                     ::byondapi::global_call::call_global_id({
                             static STACK_TRACE: ::std::sync::OnceLock<u32> = ::std::sync::OnceLock::new();
-                            *STACK_TRACE.get_or_init(|| ::byondapi::byond_string::str_id_of("stack_trace")
-                                .expect("byondapi-rs implicitly expects stack_trace to exist as a proc for error reporting purposes, this proc doesn't exist!")
+                            *STACK_TRACE.get_or_init(|| ::byondapi::byond_string::str_id_of("byondapi_stack_trace")
+                                .expect("byondapi-rs implicitly expects byondapi_stack_trace to exist as a proc for error reporting purposes, this proc doesn't exist!")
                             )
                         }
                         ,&[error_string]).unwrap();
@@ -260,8 +260,8 @@ pub fn bind_raw_args(attr: TokenStream, item: TokenStream) -> TokenStream {
                     let error_string = ::byondapi::value::ByondValue::try_from(::std::format!("{e:?}")).unwrap();
                     ::byondapi::global_call::call_global_id({
                             static STACK_TRACE: ::std::sync::OnceLock<u32> = ::std::sync::OnceLock::new();
-                            *STACK_TRACE.get_or_init(|| ::byondapi::byond_string::str_id_of("stack_trace")
-                                .expect("byondapi-rs implicitly expects stack_trace to exist as a proc for error reporting purposes, this proc doesn't exist!")
+                            *STACK_TRACE.get_or_init(|| ::byondapi::byond_string::str_id_of("byondapi_stack_trace")
+                                .expect("byondapi-rs implicitly expects byondapi_stack_trace to exist as a proc for error reporting purposes, this proc doesn't exist!")
                             )
                         }
                         ,&[error_string]).unwrap();
