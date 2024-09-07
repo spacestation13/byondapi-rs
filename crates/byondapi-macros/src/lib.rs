@@ -13,7 +13,7 @@ fn extract_args(a: &syn::FnArg) -> &syn::PatType {
 #[allow(clippy::test_attr_in_doctest)]
 /// Macro for generating byond binds
 /// Usage:
-/// ```
+/// ```ignore
 /// use byondapi::prelude::*;
 /// #[byondapi::bind]
 /// fn example() {Ok(ByondValue::null())}
@@ -23,7 +23,7 @@ fn extract_args(a: &syn::FnArg) -> &syn::PatType {
 ///
 /// ```
 /// Then generate the bindings.dm file with
-/// ```
+/// ```ignore
 /// #[test]
 /// fn generate_binds() {
 ///     byondapi::byondapi_macros::generate_bindings(env!("CARGO_CRATE_NAME"));
