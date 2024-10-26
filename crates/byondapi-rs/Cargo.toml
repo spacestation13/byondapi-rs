@@ -15,9 +15,9 @@ exclude = [".vscode/*"]
 [dependencies]
 byondapi-sys = { path = "../byondapi-sys", version = "0.11.2" }
 byondapi-macros = { path = "../byondapi-macros", version = "0.1.3" }
-libloading = "0.8.4"
+libloading = "0.8.5"
 inventory = "0.3.15"
-num_enum = "0.7.2"
+num_enum = "0.7.3"
 
 [features]
 default = ["byond-515-1621"]

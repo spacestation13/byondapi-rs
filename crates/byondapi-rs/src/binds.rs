@@ -27,7 +27,10 @@ pub fn generate_bindings(libname: &str) {
 		return __{libname} = \"{libname}\"
 
 #define {libname_upper} (__{libname} || __detect_{libname}())
-    
+
+/proc/byondapi_stack_trace(msg)
+	CRASH(msg)
+
 "
     ))
     .unwrap();
