@@ -62,13 +62,24 @@ pub fn generate_bindings(libname: &str) {
             ))
             .unwrap()
         } else {
-            file.write_fmt(format_args!(
-                r#"{docs}{path}({func_arguments_srcless})
+            if cfg!(feature = "byond-515-1621") {
+                file.write_fmt(format_args!(
+                    r#"{docs}{path}({func_arguments_srcless})
 	return call_ext({libname_upper}, "byond:{func_name}")({func_arguments})
 
 "#
-            ))
-            .unwrap()
+                ))
+                .unwrap()
+            } else {
+                file.write_fmt(format_args!(
+                    r#"{docs}{path}({func_arguments_srcless})
+	var/static/loaded = load_ext({libname_upper}, "byond:{func_name}")
+	return call_ext(loaded)({func_arguments})
+
+"#
+                ))
+                .unwrap()
+            }
         }
     }
 }

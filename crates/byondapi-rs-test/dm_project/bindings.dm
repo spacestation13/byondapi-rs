@@ -13,63 +13,78 @@
 
 ///Tests new
 /proc/test_new_obj()
-	return call_ext(BYONDAPI_TEST, "byond:test_new_obj_ffi")()
+	var/static/loaded = load_ext(BYONDAPI_TEST, "byond:test_new_obj_ffi")
+	return call_ext(loaded)()
 
 ///Tests lists read
 /proc/test_list_read(list)
-	return call_ext(BYONDAPI_TEST, "byond:test_list_read_ffi")(list)
+	var/static/loaded = load_ext(BYONDAPI_TEST, "byond:test_list_read_ffi")
+	return call_ext(loaded)(list)
 
 ///Tests non-assoc lists
 /proc/test_non_assoc_list(list)
-	return call_ext(BYONDAPI_TEST, "byond:test_non_assoc_list_ffi")(list)
+	var/static/loaded = load_ext(BYONDAPI_TEST, "byond:test_non_assoc_list_ffi")
+	return call_ext(loaded)(list)
 
 ///Tests ref
 /proc/test_ref(turf)
-	return call_ext(BYONDAPI_TEST, "byond:test_ref_ffi")(turf)
+	var/static/loaded = load_ext(BYONDAPI_TEST, "byond:test_ref_ffi")
+	return call_ext(loaded)(turf)
 
 ///Tests lists lookup
 /proc/test_list_key_lookup(list)
-	return call_ext(BYONDAPI_TEST, "byond:test_list_key_lookup_ffi")(list)
+	var/static/loaded = load_ext(BYONDAPI_TEST, "byond:test_list_key_lookup_ffi")
+	return call_ext(loaded)(list)
 
 ///Tests length with strings
 /proc/test_length_with_str(object)
-	return call_ext(BYONDAPI_TEST, "byond:test_length_with_str_ffi")(object)
+	var/static/loaded = load_ext(BYONDAPI_TEST, "byond:test_length_with_str_ffi")
+	return call_ext(loaded)(object)
 
 ///Tests block
 /proc/test_block()
-	return call_ext(BYONDAPI_TEST, "byond:test_block_ffi")()
+	var/static/loaded = load_ext(BYONDAPI_TEST, "byond:test_block_ffi")
+	return call_ext(loaded)()
 
 ///Tests lists length
 /proc/test_length_with_list(list)
-	return call_ext(BYONDAPI_TEST, "byond:test_length_with_list_ffi")(list)
+	var/static/loaded = load_ext(BYONDAPI_TEST, "byond:test_length_with_list_ffi")
+	return call_ext(loaded)(list)
 
 ///Tests lists popping
 /proc/test_list_pop(list)
-	return call_ext(BYONDAPI_TEST, "byond:test_list_pop_ffi")(list)
+	var/static/loaded = load_ext(BYONDAPI_TEST, "byond:test_list_pop_ffi")
+	return call_ext(loaded)(list)
 
 ///Tests lists indexing
 /proc/test_list_index(list)
-	return call_ext(BYONDAPI_TEST, "byond:test_list_index_ffi")(list)
+	var/static/loaded = load_ext(BYONDAPI_TEST, "byond:test_list_index_ffi")
+	return call_ext(loaded)(list)
 
 ///Tests lists
 /proc/test_list_double(list)
-	return call_ext(BYONDAPI_TEST, "byond:test_list_double_ffi")(list)
+	var/static/loaded = load_ext(BYONDAPI_TEST, "byond:test_list_double_ffi")
+	return call_ext(loaded)(list)
 
 ///Tests list pushes
 /proc/test_list_push(list)
-	return call_ext(BYONDAPI_TEST, "byond:test_list_push_ffi")(list)
+	var/static/loaded = load_ext(BYONDAPI_TEST, "byond:test_list_push_ffi")
+	return call_ext(loaded)(list)
 
 ///Tests readwrite vars
 /proc/test_readwrite_var(object)
-	return call_ext(BYONDAPI_TEST, "byond:test_readwrite_var_ffi")(object)
+	var/static/loaded = load_ext(BYONDAPI_TEST, "byond:test_readwrite_var_ffi")
+	return call_ext(loaded)(object)
 
 ///Tests proccalls
 /proc/test_proc_call(object)
-	return call_ext(BYONDAPI_TEST, "byond:test_proc_call_ffi")(object)
+	var/static/loaded = load_ext(BYONDAPI_TEST, "byond:test_proc_call_ffi")
+	return call_ext(loaded)(object)
 
 ///Tests pointers
 /proc/test_ptr(ptr)
-	return call_ext(BYONDAPI_TEST, "byond:test_ptr_ffi")(ptr)
+	var/static/loaded = load_ext(BYONDAPI_TEST, "byond:test_ptr_ffi")
+	return call_ext(loaded)(ptr)
 
 ///Tests raw args binds
 /proc/test_args(...)
@@ -79,5 +94,6 @@
 
 ///Tests main lib connection
 /proc/test_connection()
-	return call_ext(BYONDAPI_TEST, "byond:test_connection_ffi")()
+	var/static/loaded = load_ext(BYONDAPI_TEST, "byond:test_connection_ffi")
+	return call_ext(loaded)()
 
