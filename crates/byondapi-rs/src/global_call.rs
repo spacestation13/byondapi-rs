@@ -16,7 +16,7 @@ pub fn call_global<T: Into<Vec<u8>>>(name: T, args: &[ByondValue]) -> Result<Byo
         return Err(Error::InvalidProc(c_string));
     }
     let ptr = args.as_ptr();
-    let mut new_value = ByondValue::new();
+    let mut new_value = ByondValue::default();
     unsafe {
         map_byond_error!(byond().Byond_CallGlobalProcByStrId(
             str_id,
@@ -33,7 +33,7 @@ pub fn call_global<T: Into<Vec<u8>>>(name: T, args: &[ByondValue]) -> Result<Byo
 /// Implicitly set waitfor=0, will never block.
 pub fn call_global_id(name: u4c, args: &[ByondValue]) -> Result<ByondValue, Error> {
     let ptr = args.as_ptr();
-    let mut new_value = ByondValue::new();
+    let mut new_value = ByondValue::default();
     unsafe {
         map_byond_error!(byond().Byond_CallGlobalProcByStrId(
             name,

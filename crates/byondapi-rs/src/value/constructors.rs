@@ -13,10 +13,6 @@ impl Default for ByondValue {
 
 /// # Constructors
 impl ByondValue {
-    pub fn new() -> Self {
-        ByondValue::null()
-    }
-
     pub fn null() -> Self {
         Self(CByondValue {
             type_: ValueType::Null as u8,
@@ -73,7 +69,7 @@ impl ByondValue {
     }
 
     pub fn new_list() -> Result<Self, Error> {
-        let mut new_self = Self::new();
+        let mut new_self = Self::default();
 
         unsafe { map_byond_error!(byond().Byond_CreateList(&mut new_self.0))? }
 

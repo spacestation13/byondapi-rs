@@ -13,6 +13,10 @@ pub use inventory;
 #[macro_use]
 pub mod error;
 pub mod map;
+#[cfg(feature = "byond-516-1648")]
+pub mod pixloc;
+#[cfg(feature = "byond-516-1648")]
+pub mod runtime;
 pub use error::Error;
 
 pub mod binds;

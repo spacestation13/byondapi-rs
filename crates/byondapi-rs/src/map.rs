@@ -8,15 +8,6 @@ use crate::{prelude::ByondValue, static_global::byond, Error};
 pub struct ByondXYZ(CByondXYZ);
 
 impl ByondXYZ {
-    pub fn new() -> Self {
-        Self(CByondXYZ {
-            x: 0,
-            y: 0,
-            z: 0,
-            junk: 0,
-        })
-    }
-
     pub fn with_coords((x, y, z): (i16, i16, i16)) -> Self {
         Self(CByondXYZ { x, y, z, junk: 0 })
     }
@@ -27,7 +18,12 @@ impl ByondXYZ {
 
 impl Default for ByondXYZ {
     fn default() -> Self {
-        Self::new()
+        Self(CByondXYZ {
+            x: 0,
+            y: 0,
+            z: 0,
+            junk: 0,
+        })
     }
 }
 
@@ -76,7 +72,7 @@ pub fn byond_block(corner1: ByondXYZ, corner2: ByondXYZ) -> Result<Vec<ByondValu
 /// Corresponds to the first variation of [`dm::locate(Type) in Container`](https://www.byond.com/docs/ref/#/proc/locate)
 /// Finds an object prototype or tag within the haystack, usually used for finding objects within a turf/area/etc
 pub fn byond_locatein(needle: &ByondValue, haystack: &ByondValue) -> Result<ByondValue, Error> {
-    let mut output = ByondValue::new();
+    let mut output = ByondValue::default();
 
     // Safety: needle, haystack, and output must be initialized, we take care of this.
     unsafe { map_byond_error!(byond().Byond_LocateIn(&needle.0, &haystack.0, &mut output.0))? };
@@ -87,7 +83,7 @@ pub fn byond_locatein(needle: &ByondValue, haystack: &ByondValue) -> Result<Byon
 /// Corresponds to the third and forth variation of [`dm::locate(Tag/TextRef)`](https://www.byond.com/docs/ref/#/proc/locate)
 /// Finds an object prototype or tag within the world.
 pub fn byond_locateby(target: &ByondValue) -> Result<ByondValue, Error> {
-    let mut output = ByondValue::new();
+    let mut output = ByondValue::default();
 
     // Safety: target and output must be initialized, we take care of this.
     unsafe {
@@ -100,7 +96,7 @@ pub fn byond_locateby(target: &ByondValue) -> Result<ByondValue, Error> {
 /// Corresponds to the second variation of [`dm::locate(X,Y,Z)`](https://www.byond.com/docs/ref/#/proc/locate)
 /// Finds a turf at the given coordinates.
 pub fn byond_locatexyz(coords: ByondXYZ) -> Result<ByondValue, Error> {
-    let mut output = ByondValue::new();
+    let mut output = ByondValue::default();
 
     // Safety: coords and output must be initialized, we take care of this.
     unsafe { map_byond_error!(byond().Byond_LocateXYZ(&coords.0, &mut output.0))? };
@@ -111,7 +107,7 @@ pub fn byond_locatexyz(coords: ByondXYZ) -> Result<ByondValue, Error> {
 /// Corresponds to accessing [`atom.loc`](https://www.byond.com/docs/ref/#/atom/var/loc)
 /// Gets the location of the target, which will be 0,0,0 if the atom is not directly on a turf.
 pub fn byond_xyz(target: &ByondValue) -> Result<ByondXYZ, Error> {
-    let mut output = ByondXYZ::new();
+    let mut output = ByondXYZ::default();
 
     // Safety: target and output must be initialized, we take care of this.
     unsafe { map_byond_error!(byond().Byond_XYZ(&target.0, &mut output.0))? };

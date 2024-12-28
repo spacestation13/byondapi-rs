@@ -1,6 +1,6 @@
 [package]
 name = "byondapi-macros"
-version = "0.1.3"
+version = "0.2.3"
 edition = "2021"
 description = "Macros for byondapi"
 license = "MIT"
@@ -17,3 +17,6 @@ proc-macro2 = "1.0"
 [dependencies.syn]
 version = "2.0"
 features = ["full", "parsing", "printing"]
+
+[features]
+old-crash-workaround = []

@@ -1,9 +1,6 @@
 #include "test_map.dmm"
 #include "bindings.dm"
 
-/proc/byondapi_stack_trace(msg)
-	CRASH(msg)
-
 /turf/turf_type_a
 	color = "#FF0000"
 /turf/turf_type_b

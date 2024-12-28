@@ -131,7 +131,7 @@ impl ByondValue {
         let c_string = CString::new(name).unwrap();
         let c_str = c_string.as_c_str();
 
-        let mut new_value = ByondValue::new();
+        let mut new_value = ByondValue::default();
 
         unsafe {
             map_byond_error!(byond().Byond_ReadVar(&self.0, c_str.as_ptr(), &mut new_value.0))?;
@@ -173,7 +173,7 @@ impl ByondValue {
         }
 
         let ptr = args.as_ptr();
-        let mut new_value = ByondValue::new();
+        let mut new_value = ByondValue::default();
         unsafe {
             map_byond_error!(byond().Byond_CallProcByStrId(
                 &self.0,
@@ -195,7 +195,7 @@ impl ByondValue {
         if self.is_num() || self.is_str() || self.is_ptr() || self.is_null() || self.is_list() {
             return Err(Error::NotReferencable(*self));
         }
-        let mut new_value = ByondValue::new();
+        let mut new_value = ByondValue::default();
         unsafe {
             map_byond_error!(byond().Byond_ReadVarByStrId(&self.0, name, &mut new_value.0))?;
         }
@@ -217,7 +217,7 @@ impl ByondValue {
     /// For example `/obj/proc/get_name` would have to be called as `obj.call("get name")`.
     pub fn call_id(&self, name: u4c, args: &[ByondValue]) -> Result<ByondValue, Error> {
         let ptr = args.as_ptr();
-        let mut new_value = ByondValue::new();
+        let mut new_value = ByondValue::default();
         unsafe {
             map_byond_error!(byond().Byond_CallProcByStrId(
                 &self.0,

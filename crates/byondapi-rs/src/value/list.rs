@@ -122,7 +122,7 @@ impl ByondValue {
 
     /// Reads a value by key through the ref. Fails if the index doesn't exist
     pub fn read_list_index_internal(&self, index: &ByondValue) -> Result<ByondValue, Error> {
-        let mut result = ByondValue::new();
+        let mut result = ByondValue::default();
         unsafe {
             map_byond_error!(byond().Byond_ReadListIndex(&self.0, &index.0, &mut result.0))?;
         }

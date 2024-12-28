@@ -159,6 +159,23 @@ pub fn bind(attr: TokenStream, item: TokenStream) -> TokenStream {
         }
     };
 
+    let crash_syntax = if cfg!(feature = "old-crash-workaround") {
+        quote! {
+            let error_string = ::byondapi::value::ByondValue::try_from(error_string).unwrap();
+            ::byondapi::global_call::call_global_id({
+                static STACK_TRACE: ::std::sync::OnceLock<u32> = ::std::sync::OnceLock::new();
+                *STACK_TRACE.get_or_init(|| ::byondapi::byond_string::str_id_of("byondapi_stack_trace")
+                    .expect("byondapi-rs implicitly expects byondapi_stack_trace to exist as a proc for error reporting purposes, this proc doesn't exist!")
+                )
+            }
+            ,&[error_string]).unwrap();
+        }
+    } else {
+        quote! {
+            ::byondapi::runtime::byond_runtime(error_string);
+        }
+    };
+
     let result = quote! {
         #cthook_prelude
         #signature {
@@ -166,14 +183,8 @@ pub fn bind(attr: TokenStream, item: TokenStream) -> TokenStream {
             match #func_name(#proc_arg_unpacker) {
                 Ok(val) => val,
                 Err(e) => {
-                    let error_string = ::byondapi::value::ByondValue::try_from(::std::format!("{e:?}")).unwrap();
-                    ::byondapi::global_call::call_global_id({
-                            static STACK_TRACE: ::std::sync::OnceLock<u32> = ::std::sync::OnceLock::new();
-                            *STACK_TRACE.get_or_init(|| ::byondapi::byond_string::str_id_of("byondapi_stack_trace")
-                                .expect("byondapi-rs implicitly expects byondapi_stack_trace to exist as a proc for error reporting purposes, this proc doesn't exist!")
-                            )
-                        }
-                        ,&[error_string]).unwrap();
+                    let error_string = ::std::format!("{e:?}");
+                    #crash_syntax
                     ::byondapi::value::ByondValue::null()
                 }
             }
@@ -303,6 +314,22 @@ pub fn bind_raw_args(attr: TokenStream, item: TokenStream) -> TokenStream {
             }
         }
     };
+    let crash_syntax = if cfg!(feature = "old-crash-workaround") {
+        quote! {
+            let error_string = ::byondapi::value::ByondValue::try_from(error_string).unwrap();
+            ::byondapi::global_call::call_global_id({
+                static STACK_TRACE: ::std::sync::OnceLock<u32> = ::std::sync::OnceLock::new();
+                *STACK_TRACE.get_or_init(|| ::byondapi::byond_string::str_id_of("byondapi_stack_trace")
+                    .expect("byondapi-rs implicitly expects byondapi_stack_trace to exist as a proc for error reporting purposes, this proc doesn't exist!")
+                )
+            }
+            ,&[error_string]).unwrap();
+        }
+    } else {
+        quote! {
+            ::byondapi::runtime::byond_runtime(error_string);
+        }
+    };
 
     let result = quote! {
         #cthook_prelude
@@ -311,14 +338,8 @@ pub fn bind_raw_args(attr: TokenStream, item: TokenStream) -> TokenStream {
             match #func_name(args) {
                 Ok(val) => val,
                 Err(e) => {
-                    let error_string = ::byondapi::value::ByondValue::try_from(::std::format!("{e:?}")).unwrap();
-                    ::byondapi::global_call::call_global_id({
-                            static STACK_TRACE: ::std::sync::OnceLock<u32> = ::std::sync::OnceLock::new();
-                            *STACK_TRACE.get_or_init(|| ::byondapi::byond_string::str_id_of("byondapi_stack_trace")
-                                .expect("byondapi-rs implicitly expects byondapi_stack_trace to exist as a proc for error reporting purposes, this proc doesn't exist!")
-                            )
-                        }
-                        ,&[error_string]).unwrap();
+                    let error_string = ::std::format!("{e:?}");
+                    #crash_syntax
                     ::byondapi::value::ByondValue::null()
                 }
             }

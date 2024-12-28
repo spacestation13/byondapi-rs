@@ -12,7 +12,7 @@ impl ByondValuePointer {
 
     /// Read from this pointer and get a new [`ByondValue`]
     pub fn read(&self) -> Result<ByondValue, Error> {
-        let mut new_value = ByondValue::new();
+        let mut new_value = ByondValue::default();
 
         unsafe {
             map_byond_error!(byond().Byond_ReadPointer(&self.0 .0, &mut new_value.0))?;

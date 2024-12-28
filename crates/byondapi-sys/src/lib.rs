@@ -21,6 +21,8 @@ compile_error!("BYOND API only supports Windows and Linux");
 mod byond_rawbind {
     #[cfg(feature = "byond-515-1621")]
     include!(concat!(env!("OUT_DIR"), "/bindings_515_1621.rs"));
+    #[cfg(feature = "byond-516-1648")]
+    include!(concat!(env!("OUT_DIR"), "/bindings_516_1648.rs"));
 }
 
 #[cfg(doc)]
@@ -99,5 +101,7 @@ pub use byond_rawbind::u8c;
 pub use byond_rawbind::ByondCallback;
 pub use byond_rawbind::ByondValueData;
 pub use byond_rawbind::ByondValueType;
+#[cfg(feature = "byond-516-1648")]
+pub use byond_rawbind::CByondPixLoc;
 pub use byond_rawbind::CByondValue;
 pub use byond_rawbind::CByondXYZ;
