@@ -1,6 +1,6 @@
 [package]
 name = "byondapi"
-version = "0.5.11"
+version = "0.5.12"
 authors = ["tigercat2000 <nick.pilant@gmail.com>"]
 edition = "2021"
 description = "Idiomatic Rust bindings for BYONDAPI"
