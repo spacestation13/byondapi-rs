@@ -1,7 +1,8 @@
 use super::ByondValue;
 use std::ops::{Deref, DerefMut};
 
-/// Refcounted ByondValue, for refs you want rust to handle incrementing and decrementing.
+/// Refcounted [`ByondValue`], for refs you want rust to handle incrementing and decrementing.
+/// Recommended practise is to not use the [`ByondValue`] that's already converted to [`RcByondValue`]
 #[derive(Debug)]
 pub struct RcByondValue(ByondValue);
 
