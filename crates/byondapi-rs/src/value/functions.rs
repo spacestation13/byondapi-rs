@@ -316,7 +316,7 @@ struct ValueIterator<'a> {
     len: u32,
     ctr: u32,
 }
-impl<'a> Iterator for ValueIterator<'a> {
+impl Iterator for ValueIterator<'_> {
     type Item = ByondValue;
     fn next(&mut self) -> Option<Self::Item> {
         if self.ctr <= self.len {
@@ -340,7 +340,7 @@ struct ListIterator<'a> {
     len: u32,
     ctr: u32,
 }
-impl<'a> Iterator for ListIterator<'a> {
+impl Iterator for ListIterator<'_> {
     type Item = (ByondValue, ByondValue);
     fn next(&mut self) -> Option<Self::Item> {
         if self.ctr <= self.len {

@@ -52,7 +52,7 @@ pub fn bind(attr: TokenStream, item: TokenStream) -> TokenStream {
         .filter_map(|attr| match &attr.meta {
             syn::Meta::NameValue(nameval) => {
                 let ident = nameval.path.get_ident()?;
-                if ident.to_string() == "doc".to_string() {
+                if *ident == "doc" {
                     match &nameval.value {
                         syn::Expr::Lit(literal) => match &literal.lit {
                             syn::Lit::Str(docstring) => {
@@ -217,7 +217,7 @@ pub fn bind_raw_args(attr: TokenStream, item: TokenStream) -> TokenStream {
         .filter_map(|attr| match &attr.meta {
             syn::Meta::NameValue(nameval) => {
                 let ident = nameval.path.get_ident()?;
-                if ident.to_string() == "doc".to_string() {
+                if *ident == "doc" {
                     match &nameval.value {
                         syn::Expr::Lit(literal) => match &literal.lit {
                             syn::Lit::Str(docstring) => {
