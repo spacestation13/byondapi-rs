@@ -5,6 +5,8 @@ use byondapi_sys::{ByondValueType, CByondValue};
 use crate::static_global::byond;
 
 /// [Newtype](https://doc.rust-lang.org/rust-by-example/generics/new_types.html) pattern over [`CByondValue`]
+/// WARNING: If this value is a ref created by byond passed to byondapi, it's a temp ref and will be deleted in a while
+/// Please convert it into a RcByondValue if you want byond to persist this ref
 #[repr(transparent)]
 #[derive(Clone, Copy)]
 pub struct ByondValue(pub CByondValue);
@@ -18,6 +20,7 @@ pub mod conversion;
 pub mod functions;
 pub mod list;
 pub mod pointer;
+pub mod refcounted;
 pub mod trait_impls;
 pub mod types;
 

@@ -233,6 +233,7 @@ impl ByondValue {
 }
 
 /// # Refcount operations
+/// DO NOT USE, use [`super::refcounted::RcByondValue`] instead
 impl ByondValue {
     pub fn increment_ref(&mut self) {
         unsafe { byond().ByondValue_IncRef(&self.0) }
