@@ -243,6 +243,10 @@ impl ByondValue {
         unsafe { byond().ByondValue_DecRef(&self.0) }
     }
 
+    pub fn decrement_tempref(&mut self) {
+        unsafe { byond().ByondValue_DecTempRef(&self.0) }
+    }
+
     pub fn get_refcount(&self) -> Result<u32, Error> {
         let mut result = 0u32;
         unsafe { map_byond_error!(byond().Byond_Refcount(&self.0, &mut result))? };

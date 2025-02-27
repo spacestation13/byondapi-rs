@@ -1,6 +1,6 @@
 [package]
 name = "byondapi"
-version = "0.5.12"
+version = "0.5.13"
 authors = ["tigercat2000 <nick.pilant@gmail.com>"]
 edition = "2021"
 description = "Idiomatic Rust bindings for BYONDAPI"
@@ -20,9 +20,9 @@ inventory = "0.3.19"
 num_enum = "0.7.3"
 
 [features]
-default = ["byond-516-1648"]
+default = ["byond-516-1651"]
 byond-515-1621 = [
     "byondapi-macros/old-crash-workaround",
     "byondapi-sys/byond-515-1621",
 ]
-byond-516-1648 = ["byondapi-sys/byond-516-1648"]
+byond-516-1651 = ["byondapi-sys/byond-516-1651"]

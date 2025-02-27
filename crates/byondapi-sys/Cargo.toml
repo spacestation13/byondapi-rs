@@ -1,6 +1,6 @@
 [package]
 name = "byondapi-sys"
-version = "0.12.2"
+version = "0.12.3"
 authors = ["tigercat2000 <nick.pilant@gmail.com>"]
 edition = "2021"
 description = "Raw bindgen bindings for byondapi"
@@ -24,6 +24,6 @@ bindgen = "0.71"
 doxygen-rs = "0.4"
 
 [features]
-default = ["byond-516-1648"]
+default = ["byond-516-1651"]
 byond-515-1621 = []
-byond-516-1648 = []
+byond-516-1651 = []
