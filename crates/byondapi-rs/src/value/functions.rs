@@ -115,6 +115,12 @@ impl ByondValue {
         Ok(())
     }
 
+    /// Replaces whatever is currently in this value with a string that's pointed to by the stringid
+    /// # DO NOT PASS STRINGIDS THAT ARE NOT RETURNED BY [`crate::byond_string::str_id_of`]
+    pub fn set_strid(&mut self, strid: u4c) {
+        unsafe { byond().ByondValue_SetStrId(&mut self.0, strid) }
+    }
+
     /// Replaces whatever is currently in this value with a ref
     pub fn set_ref(&mut self, type_: ByondValueType, ref_: u4c) {
         unsafe { byond().ByondValue_SetRef(&mut self.0, type_, ref_) }
