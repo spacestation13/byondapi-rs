@@ -12,6 +12,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        feature_flags: [byond-515-1621, byond-516-1651]
+        os: [ubuntu-latest, windows-latest]
         include:
           - os: ubuntu-latest
             target_name: i686-unknown-linux-gnu
@@ -39,7 +41,7 @@ jobs:
         with:
           toolchain: stable
           command: check
-          args: --target ${{ matrix.target_name }}
+          args: --target ${{ matrix.target_name }} --no-default-features --features ${{ matrix.feature_flags }}
 
   check_fmt:
     name: Check format

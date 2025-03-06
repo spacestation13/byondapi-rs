@@ -117,6 +117,7 @@ impl ByondValue {
 
     /// Replaces whatever is currently in this value with a string that's pointed to by the stringid
     /// # DO NOT PASS STRINGIDS THAT ARE NOT RETURNED BY [`crate::byond_string::str_id_of`]
+    #[cfg(feature = "byond-516-1651")]
     pub fn set_strid(&mut self, strid: u4c) {
         unsafe { byond().ByondValue_SetStrId(&mut self.0, strid) }
     }
@@ -249,6 +250,7 @@ impl ByondValue {
         unsafe { byond().ByondValue_DecRef(&self.0) }
     }
 
+    #[cfg(feature = "byond-516-1651")]
     pub fn decrement_tempref(&mut self) {
         unsafe { byond().ByondValue_DecTempRef(&self.0) }
     }
