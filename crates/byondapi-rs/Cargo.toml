@@ -26,3 +26,4 @@ byond-515-1621 = [
     "byondapi-sys/byond-515-1621",
 ]
 byond-516-1651 = ["byondapi-sys/byond-516-1651"]
+opendream = ["byondapi-sys/opendream"]
