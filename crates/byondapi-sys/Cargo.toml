@@ -27,3 +27,4 @@ doxygen-rs = "0.4"
 default = ["byond-516-1651"]
 byond-515-1621 = []
 byond-516-1651 = []
+opendream = []
