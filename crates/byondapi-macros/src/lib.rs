@@ -169,10 +169,11 @@ pub fn bind(attr: TokenStream, item: TokenStream) -> TokenStream {
                 )
             }
             ,&[error_string]).unwrap();
+            ::byondapi::value::ByondValue::null()
         }
     } else {
         quote! {
-            ::byondapi::runtime::byond_runtime(error_string);
+            ::byondapi::runtime::byond_runtime(error_string)
         }
     };
 
@@ -184,8 +185,8 @@ pub fn bind(attr: TokenStream, item: TokenStream) -> TokenStream {
                 Ok(val) => val,
                 Err(e) => {
                     let error_string = ::std::format!("{e:?}");
+                    ::std::mem::drop(e);
                     #crash_syntax
-                    ::byondapi::value::ByondValue::null()
                 }
             }
 
@@ -324,10 +325,11 @@ pub fn bind_raw_args(attr: TokenStream, item: TokenStream) -> TokenStream {
                 )
             }
             ,&[error_string]).unwrap();
+            ::byondapi::value::ByondValue::null()
         }
     } else {
         quote! {
-            ::byondapi::runtime::byond_runtime(error_string);
+            ::byondapi::runtime::byond_runtime(error_string)
         }
     };
 
@@ -339,8 +341,8 @@ pub fn bind_raw_args(attr: TokenStream, item: TokenStream) -> TokenStream {
                 Ok(val) => val,
                 Err(e) => {
                     let error_string = ::std::format!("{e:?}");
+                    ::std::mem::drop(e);
                     #crash_syntax
-                    ::byondapi::value::ByondValue::null()
                 }
             }
         }
