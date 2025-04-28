@@ -173,7 +173,7 @@ pub fn bind(attr: TokenStream, item: TokenStream) -> TokenStream {
         }
     } else {
         quote! {
-            ::byondapi::runtime::byond_runtime(error_string)
+            unsafe { ::byondapi::runtime::byond_runtime(error_string) }
         }
     };
 
@@ -329,7 +329,7 @@ pub fn bind_raw_args(attr: TokenStream, item: TokenStream) -> TokenStream {
         }
     } else {
         quote! {
-            ::byondapi::runtime::byond_runtime(error_string)
+            unsafe { ::byondapi::runtime::byond_runtime(error_string) }
         }
     };
 
