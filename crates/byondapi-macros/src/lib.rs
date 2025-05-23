@@ -129,7 +129,7 @@ pub fn bind(attr: TokenStream, item: TokenStream) -> TokenStream {
                         func_name: #func_name_ffi_disp,
                         func_arguments: #arg_names_disp,
                         docs: #all_docs,
-                        is_variadic: false,
+                        function_type: ::byondapi::binds::FunctionType::Default,
                     }
                 });
             }
@@ -152,7 +152,7 @@ pub fn bind(attr: TokenStream, item: TokenStream) -> TokenStream {
                         func_name: #func_name_ffi_disp,
                         func_arguments: #arg_names_disp,
                         docs: #all_docs,
-                        is_variadic: false,
+                        function_type: ::byondapi::binds::FunctionType::Default,
                     }
                 });
             }
@@ -286,7 +286,7 @@ pub fn bind_raw_args(attr: TokenStream, item: TokenStream) -> TokenStream {
                         func_name: #func_name_ffi_disp,
                         func_arguments: "",
                         docs: #all_docs,
-                        is_variadic: true,
+                        function_type: ::byondapi::binds::FunctionType::Variadic,
                     }
                 });
             }
@@ -309,7 +309,7 @@ pub fn bind_raw_args(attr: TokenStream, item: TokenStream) -> TokenStream {
                             func_name: #func_name_ffi_disp,
                             func_arguments: "",
                             docs: #all_docs,
-                            is_variadic: true,
+                            function_type: ::byondapi::binds::FunctionType::Variadic,
                         }
                     });
             }
@@ -347,6 +347,158 @@ pub fn bind_raw_args(attr: TokenStream, item: TokenStream) -> TokenStream {
             }
         }
         fn #func_name(args: &mut [::byondapi::value::ByondValue]) #func_return
+        #body
+    };
+    result.into()
+}
+
+#[proc_macro_attribute]
+pub fn bind_macro(attr: TokenStream, item: TokenStream) -> TokenStream {
+    let input = syn::parse_macro_input!(item as syn::ItemFn);
+    let proc = syn::parse_macro_input!(attr as Option<syn::Lit>);
+
+    let func_name = &input.sig.ident;
+    let func_name_disp = quote!(#func_name).to_string();
+
+    let func_name_ffi = format!("{func_name_disp}_ffi");
+    let func_name_ffi = Ident::new(&func_name_ffi, func_name.span());
+    let func_name_ffi_disp = quote!(#func_name_ffi).to_string();
+
+    let args = &input.sig.inputs;
+
+    let all_docs = input
+        .attrs
+        .iter()
+        .filter(|attr| matches!(attr.style, syn::AttrStyle::Outer))
+        .filter_map(|attr| match &attr.meta {
+            syn::Meta::NameValue(nameval) => {
+                let ident = nameval.path.get_ident()?;
+                if *ident == "doc" {
+                    match &nameval.value {
+                        syn::Expr::Lit(literal) => match &literal.lit {
+                            syn::Lit::Str(docstring) => {
+                                Some(format!("///{}\n", docstring.value(),))
+                            }
+                            _ => None,
+                        },
+                        _ => None,
+                    }
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        })
+        .collect::<String>();
+
+    //Check for returns
+    let func_return = match &input.sig.output {
+        syn::ReturnType::Default => {
+            return syn::Error::new(
+                input.span(),
+                "Empty returns are not allowed, please return a Result",
+            )
+            .to_compile_error()
+            .into()
+        }
+
+        syn::ReturnType::Type(_, ty) => match ty.as_ref() {
+            &syn::Type::Path(_) => &input.sig.output,
+            _ => {
+                return syn::Error::new(input.span(), "Invalid return type, please return a Result")
+                    .to_compile_error()
+                    .into()
+            }
+        },
+    };
+
+    let signature = quote! {
+        #[no_mangle]
+        pub unsafe extern "C-unwind" fn #func_name_ffi (
+            __argc: ::byondapi::sys::u4c,
+            __argv: *mut ::byondapi::value::ByondValue
+        ) -> ::byondapi::value::ByondValue
+    };
+
+    let body = &input.block;
+    let mut arg_names: syn::punctuated::Punctuated<syn::Ident, syn::Token![,]> =
+        syn::punctuated::Punctuated::new();
+    let mut proc_arg_unpacker: syn::punctuated::Punctuated<
+        proc_macro2::TokenStream,
+        syn::Token![,],
+    > = syn::punctuated::Punctuated::new();
+
+    for arg in args.iter().map(extract_args) {
+        if let syn::Pat::Ident(p) = &*arg.pat {
+            arg_names.push(p.ident.clone());
+            let index = arg_names.len() - 1;
+            proc_arg_unpacker.push(quote! {
+                args.get(#index).map(::byondapi::value::ByondValue::clone).unwrap_or_default()
+            });
+        }
+    }
+
+    let arg_names_disp = quote!(#arg_names).to_string();
+
+    //Submit to inventory
+    let cthook_prelude = match &proc {
+        Some(something) => {
+            return syn::Error::new(
+                something.span(),
+                "Function rename is not supported for macros",
+            )
+            .to_compile_error()
+            .into()
+        }
+        None => {
+            let func_name_disp = func_name_disp.clone();
+            quote! {
+                ::byondapi::inventory::submit!({
+                    ::byondapi::binds::Bind{
+                        proc_path: #func_name_disp,
+                        func_name: #func_name_ffi_disp,
+                        func_arguments: #arg_names_disp,
+                        docs: #all_docs,
+                        function_type: ::byondapi::binds::FunctionType::Macro,
+                    }
+                });
+            }
+        }
+    };
+
+    let crash_syntax = if cfg!(feature = "old-crash-workaround") {
+        quote! {
+            let error_string = ::byondapi::value::ByondValue::try_from(error_string).unwrap();
+            ::byondapi::global_call::call_global_id({
+                static STACK_TRACE: ::std::sync::OnceLock<u32> = ::std::sync::OnceLock::new();
+                *STACK_TRACE.get_or_init(|| ::byondapi::byond_string::str_id_of("byondapi_stack_trace")
+                    .expect("byondapi-rs implicitly expects byondapi_stack_trace to exist as a proc for error reporting purposes, this proc doesn't exist!")
+                )
+            }
+            ,&[error_string]).unwrap();
+            ::byondapi::value::ByondValue::null()
+        }
+    } else {
+        quote! {
+            unsafe { ::byondapi::runtime::byond_runtime(error_string) }
+        }
+    };
+
+    let result = quote! {
+        #cthook_prelude
+        #signature {
+            let args = unsafe { ::byondapi::parse_args(__argc, __argv) };
+            match #func_name(#proc_arg_unpacker) {
+                Ok(val) => val,
+                Err(e) => {
+                    let error_string = ::std::format!("{e:?}");
+                    ::std::mem::drop(e);
+                    #crash_syntax
+                }
+            }
+
+        }
+        fn #func_name(#args) #func_return
         #body
     };
     result.into()

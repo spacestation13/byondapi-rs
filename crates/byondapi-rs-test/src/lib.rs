@@ -243,3 +243,16 @@ fn test_new_obj() -> Result<ByondValue> {
         &[],
     )?)
 }
+
+///Tests macro style binds
+#[byondapi::bind_macro]
+fn test_new_obj_macro(
+    object: ByondValue,
+    number: ByondValue,
+    thing: ByondValue,
+) -> Result<ByondValue> {
+    Ok(ByondValue::builtin_new(
+        ByondValue::try_from("/datum/testobject")?,
+        &[],
+    )?)
+}

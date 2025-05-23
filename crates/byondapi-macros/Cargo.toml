@@ -1,6 +1,6 @@
 [package]
 name = "byondapi-macros"
-version = "0.2.3"
+version = "0.3.3"
 edition = "2021"
 description = "Macros for byondapi"
 license = "MIT"

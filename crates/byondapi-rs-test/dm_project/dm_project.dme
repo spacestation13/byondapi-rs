@@ -158,6 +158,11 @@
 	if(fuck.test_name != "dust")
 		throw EXCEPTION("Did not create a new object!")
 
+/test/proc/test_byondapi_new_macro()
+	var/datum/testobject/fuck = test_new_obj_macro()
+	if(fuck.test_name != "dust")
+		throw EXCEPTION("Did not create a new object!")
+
 // BEGIN_INTERNALS
 // END_INTERNALS
 // BEGIN_FILE_DIR

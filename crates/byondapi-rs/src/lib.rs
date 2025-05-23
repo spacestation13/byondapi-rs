@@ -3,6 +3,7 @@ mod static_global;
 ///Macros
 pub use byondapi_macros;
 pub use byondapi_macros::bind;
+pub use byondapi_macros::bind_macro;
 pub use byondapi_macros::bind_raw_args;
 pub use byondapi_macros::init;
 

@@ -5,7 +5,12 @@ pub struct Bind {
     pub func_name: &'static str,
     pub func_arguments: &'static str,
     pub docs: &'static str,
-    pub is_variadic: bool,
+    pub function_type: FunctionType,
+}
+pub enum FunctionType {
+    Macro,
+    Variadic,
+    Default,
 }
 
 inventory::collect!(Bind);
@@ -50,34 +55,70 @@ pub fn generate_bindings(libname: &str) {
             .to_owned()
             .replace("src, ", "")
             .replace("src", "");
-        if thing.is_variadic {
-            //can't directly modify args, fuck you byond
-            file.write_fmt(format_args!(
-                r#"{docs}{path}(...)
+        match thing.function_type {
+            FunctionType::Macro => {
+                if cfg!(feature = "byond-515-1621") {
+                    file.write_fmt(format_args!(
+                r#"{docs}#define {func_name}({func_arguments}) call_ext({libname_upper}, "byond:{func_name}")({func_arguments})
+
+"#
+            ))
+            .unwrap();
+                } else {
+                    file.write_fmt(format_args!(
+                r#"{docs}var/static/loaded_{libname_upper}_{func_name} = load_ext({libname_upper}, "byond:{func_name}")
+#define {func_name}({func_arguments}) call_ext(loaded_{libname_upper}_{func_name})({func_arguments})
+
+"#
+            ))
+            .unwrap();
+                }
+            }
+            FunctionType::Variadic => {
+                //can't directly modify args, fuck you byond
+                if cfg!(feature = "byond-515-1621") {
+                    file.write_fmt(format_args!(
+                        r#"{docs}{path}(...)
 	var/list/args_copy = args.Copy()
 	args_copy.Insert(1, src)
 	return call_ext({libname_upper}, "byond:{func_name}")(arglist(args_copy))
 
 "#
-            ))
-            .unwrap()
-        } else if cfg!(feature = "byond-515-1621") {
-            file.write_fmt(format_args!(
-                r#"{docs}{path}({func_arguments_srcless})
+                    ))
+                    .unwrap()
+                } else {
+                    file.write_fmt(format_args!(
+                        r#"{docs}{path}(...)
+	var/list/args_copy = args.Copy()
+	args_copy.Insert(1, src)
+	var/static/loaded = load_ext({libname_upper}, "byond:{func_name}")
+	return call_ext(loaded)(arglist(args_copy))
+
+"#
+                    ))
+                    .unwrap()
+                }
+            }
+            FunctionType::Default => {
+                if cfg!(feature = "byond-515-1621") {
+                    file.write_fmt(format_args!(
+                        r#"{docs}{path}({func_arguments_srcless})
 	return call_ext({libname_upper}, "byond:{func_name}")({func_arguments})
 
 "#
-            ))
-            .unwrap()
-        } else {
-            file.write_fmt(format_args!(
-                r#"{docs}{path}({func_arguments_srcless})
+                    ))
+                    .unwrap()
+                } else {
+                    file.write_fmt(format_args!(
+                        r#"{docs}{path}({func_arguments_srcless})
 	var/static/loaded = load_ext({libname_upper}, "byond:{func_name}")
 	return call_ext(loaded)({func_arguments})
 
 "#
-            ))
-            .unwrap()
+                    ))
+                    .unwrap()
+                }
+            }
         }
     }
 }
