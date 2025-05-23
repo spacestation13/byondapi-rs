@@ -13,11 +13,12 @@ impl PartialEq for ByondValue {
 // Debug!
 impl Debug for ByondValue {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let type_enum: ValueType = self
-            .0
-            .type_
-            .try_into()
-            .unwrap_or_else(|_| panic!("Unimplemented type: {:X}", self.0.type_));
+        let Ok(type_enum) = self.0.type_.try_into() else {
+            return f
+                .debug_tuple("ByondValue")
+                .field(&format!("Unknown type: {:X}", self.0.type_))
+                .finish();
+        };
         let typ = format!("{type_enum:?}");
 
         let value = match type_enum {
