@@ -30,7 +30,8 @@ impl ByondValue {
         }
     }
 
-    /// Try to get a [`CString`] or fail if this isn't a string type
+    /// Try to get a [`CString`] or fail if the string returned is invalid or an error is returned
+    /// from byond
     pub fn get_cstring(&self) -> Result<CString, Error> {
         use std::cell::RefCell;
 
@@ -69,7 +70,8 @@ impl ByondValue {
         CString::from_vec_with_nul(bytes).map_err(|_| Error::NonUtf8String)
     }
 
-    /// Try to get a [`String`] or fail if this isn't a string type or isn't utf8
+    /// Try to get a [`String`] or fail if the string returned is invalid, or an error is returned
+    /// by byond
     pub fn get_string(&self) -> Result<String, Error> {
         self.get_cstring().map(|cstring| {
             cstring

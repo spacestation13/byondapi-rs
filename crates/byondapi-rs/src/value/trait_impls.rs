@@ -24,6 +24,9 @@ impl Debug for ByondValue {
         let value = match type_enum {
             ValueType::Null => "NULL".to_owned(),
             ValueType::Number => format!("{}", unsafe { self.0.data.ref_ as f32 }),
+            ValueType::String => self
+                .get_string()
+                .unwrap_or_else(|_| "Invalid string".to_owned()),
             _ => format!("[{:X}]", unsafe { self.0.data.ref_ }),
         };
 

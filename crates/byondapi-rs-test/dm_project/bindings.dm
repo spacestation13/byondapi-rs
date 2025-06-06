@@ -11,6 +11,10 @@
 
 #define BYONDAPI_TEST (__byondapi_test || __detect_byondapi_test())
 
+///Tests macro style binds
+var/static/loaded_byondapi_test_test_new_obj_macro_ffi = load_ext(BYONDAPI_TEST, "byond:test_new_obj_macro_ffi")
+#define test_new_obj_macro_ffi(_object, _number, _thing) call_ext(loaded_byondapi_test_test_new_obj_macro_ffi)(_object, _number, _thing)
+
 ///Tests new
 /proc/test_new_obj()
 	var/static/loaded = load_ext(BYONDAPI_TEST, "byond:test_new_obj_ffi")
@@ -90,7 +94,8 @@
 /proc/test_args(...)
 	var/list/args_copy = args.Copy()
 	args_copy.Insert(1, src)
-	return call_ext(BYONDAPI_TEST, "byond:test_args_ffi")(arglist(args_copy))
+	var/static/loaded = load_ext(BYONDAPI_TEST, "byond:test_args_ffi")
+	return call_ext(loaded)(arglist(args_copy))
 
 ///Tests main lib connection
 /proc/test_connection()

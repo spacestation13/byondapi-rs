@@ -66,8 +66,8 @@ pub fn generate_bindings(libname: &str) {
             .unwrap();
                 } else {
                     file.write_fmt(format_args!(
-                r#"{docs}var/static/loaded_{libname_upper}_{func_name} = load_ext({libname_upper}, "byond:{func_name}")
-#define {func_name}({func_arguments}) call_ext(loaded_{libname_upper}_{func_name})({func_arguments})
+                r#"{docs}var/static/loaded_{libname}_{func_name} = load_ext({libname_upper}, "byond:{func_name}")
+#define {func_name}({func_arguments}) call_ext(loaded_{libname}_{func_name})({func_arguments})
 
 "#
             ))
