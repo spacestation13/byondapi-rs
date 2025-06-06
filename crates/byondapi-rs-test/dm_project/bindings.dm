@@ -11,9 +11,9 @@
 
 #define BYONDAPI_TEST (__byondapi_test || __detect_byondapi_test())
 
+var/static/__loaded_byondapi_test_test_new_obj_macro_ffi = load_ext(BYONDAPI_TEST, "byond:test_new_obj_macro_ffi")
 ///Tests macro style binds
-var/static/loaded_byondapi_test_test_new_obj_macro_ffi = load_ext(BYONDAPI_TEST, "byond:test_new_obj_macro_ffi")
-#define test_new_obj_macro_ffi(_object, _number, _thing) call_ext(loaded_byondapi_test_test_new_obj_macro_ffi)(_object, _number, _thing)
+#define test_new_obj_macro_byondapi_test(_object, _number, _thing) call_ext(__loaded_byondapi_test_test_new_obj_macro_ffi)(_object, _number, _thing)
 
 ///Tests new
 /proc/test_new_obj()

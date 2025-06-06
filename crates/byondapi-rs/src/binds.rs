@@ -57,17 +57,18 @@ pub fn generate_bindings(libname: &str) {
             .replace("src", "");
         match thing.function_type {
             FunctionType::Macro => {
+                let func_name_libname = func_name.replace("_ffi", &format!("_{libname}"));
                 if cfg!(feature = "byond-515-1621") {
                     file.write_fmt(format_args!(
-                r#"{docs}#define {func_name}({func_arguments}) call_ext({libname_upper}, "byond:{func_name}")({func_arguments})
+                r#"{docs}#define {func_name_libname}({func_arguments}) call_ext({libname_upper}, "byond:{func_name}")({func_arguments})
 
 "#
             ))
             .unwrap();
                 } else {
                     file.write_fmt(format_args!(
-                r#"{docs}var/static/loaded_{libname}_{func_name} = load_ext({libname_upper}, "byond:{func_name}")
-#define {func_name}({func_arguments}) call_ext(loaded_{libname}_{func_name})({func_arguments})
+                r#"var/static/__loaded_{libname}_{func_name} = load_ext({libname_upper}, "byond:{func_name}")
+{docs}#define {func_name_libname}({func_arguments}) call_ext(__loaded_{libname}_{func_name})({func_arguments})
 
 "#
             ))
