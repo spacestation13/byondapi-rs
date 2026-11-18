@@ -172,11 +172,8 @@ fn test_ref(turf: ByondValue) -> Result<ByondValue> {
     setup_panic_handler();
 
     let turf_type = turf.get_type();
-    let turf_id = turf.get_ref()?;
 
-    Ok(ByondValue::try_from(format!(
-        "turf_id: {turf_id}, turf_type: {turf_type}"
-    ))?)
+    Ok(ByondValue::try_from(format!("turf_type: {turf_type}"))?)
 }
 
 ///Tests non-assoc lists

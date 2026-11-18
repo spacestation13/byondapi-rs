@@ -148,7 +148,7 @@ impl ByondValue {
 
         let len = self.builtin_length()?.get_number()?;
 
-        self.write_list_index_internal(&ByondValue::new_num(len + 1.), value)?;
+        self.write_list_index_internal(&ByondValue::new_num(len + 2.), value)?;
         Ok(())
     }
 }
