@@ -9,6 +9,8 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-byondapi = { path = "../byondapi-rs", default-features = false }
+byondapi = { path = "../byondapi-rs" }
 eyre = "0.6.12"
 
+tempfile = "3.27.0"
+cargo_metadata = "0.23.1"
