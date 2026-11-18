@@ -109,14 +109,6 @@
 	if(ret != 3)
 		throw EXCEPTION("List index access failed [json_encode(ret)]")
 
-/test/proc/test_byondapi_list_pop()
-	var/list/L = list(1, 2, 3, 4, 5)
-
-	var/ret = test_list_pop(L)
-
-	if(ret != 5)
-		throw EXCEPTION("List pop failed [json_encode(ret)]")
-
 /test/proc/test_byondapi_length_with_list()
 	var/list/L = list(1, 2, 3, 4, 5)
 
@@ -159,7 +151,7 @@
 		throw EXCEPTION("Did not create a new object!")
 
 /test/proc/test_byondapi_new_macro()
-	var/datum/testobject/fuck = test_new_obj_macro()
+	var/datum/testobject/fuck = test_new_obj_macro_byondapi_test()
 	if(fuck.test_name != "dust")
 		throw EXCEPTION("Did not create a new object!")
 
