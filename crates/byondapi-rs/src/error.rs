@@ -1,9 +1,7 @@
 //! Error types for any problems this runs into, including internal BYOND errors.
-#[cfg(not(feature = "byond-516-1682"))]
-use std::ffi::CStr;
 use std::ffi::CString;
 
-use crate::{prelude::ByondValue, static_global::byond};
+use crate::static_global::byond;
 
 #[derive(Debug)]
 pub enum Error {
@@ -20,15 +18,15 @@ pub enum Error {
     /// Thrown by us when we know this call will panic internally because of the version
     NotAvailableForThisByondVersion,
     /// Thrown by us when we know this type does not have a refnumber
-    NotReferencable(ByondValue),
+    NotReferencable(String),
     /// Thrown by us when we know this type is not a list, and we're expecting one
-    NotAList(ByondValue),
+    NotAList(String),
     /// Thrown by us when we know this type is not a string, and we're expecting one
-    NotAString(ByondValue),
+    NotAString(String),
     /// Thrown by us when we know this type is not a number, and we're expecting one
-    NotANum(ByondValue),
+    NotANum(String),
     /// Thrown by us when we know this type is not a pointer, and we're expecting one
-    NotAPtr(ByondValue),
+    NotAPtr(String),
     /// Thrown by [`crate::byond_string::str_id_of_cstr`] when the string doesn't exist in
     /// byondland
     NonExistentString(CString),
@@ -79,20 +77,6 @@ impl std::error::Error for Error {}
 pub struct ByondError(pub CString);
 
 impl ByondError {
-    #[cfg(not(feature = "byond-516-1682"))]
-    pub fn get_last() -> Option<Self> {
-        // Safety: It's always safe to call Byond_LastError.
-        let ptr = unsafe { byond().Byond_LastError() };
-        if !ptr.is_null() {
-            // Safety: We have to trust that BYOND gave us a valid C string.
-            let cstr = unsafe { CStr::from_ptr(ptr) };
-            Some(ByondError(cstr.to_owned()))
-        } else {
-            None
-        }
-    }
-
-    #[cfg(feature = "byond-516-1682")]
     pub fn get_last() -> Option<Self> {
         use std::cell::RefCell;
 
@@ -108,7 +92,6 @@ impl ByondError {
                 (false, 1..) => {
                     buff.reserve_exact(len as usize);
                     if unsafe { byond().Byond_LastError(buff.as_mut_ptr().cast(), &mut len) } {
-
                         unsafe { buff.set_len(len as usize) };
                         Some(std::mem::take(buff))
                     } else {

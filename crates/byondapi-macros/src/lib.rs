@@ -67,26 +67,6 @@ fn get_return(input: &syn::ItemFn) -> Result<&syn::ReturnType, TokenStream> {
     }
 }
 
-fn crash_syntax() -> proc_macro2::TokenStream {
-    if cfg!(feature = "old-crash-workaround") {
-        quote! {
-            let error_string = ::byondapi::value::ByondValue::try_from(error_string).unwrap();
-            ::byondapi::global_call::call_global_id({
-                static STACK_TRACE: ::std::sync::OnceLock<u32> = ::std::sync::OnceLock::new();
-                *STACK_TRACE.get_or_init(|| ::byondapi::byond_string::str_id_of("byondapi_stack_trace")
-                    .expect("byondapi-rs implicitly expects byondapi_stack_trace to exist as a proc for error reporting purposes, this proc doesn't exist!")
-                )
-            }
-            ,&[error_string]).unwrap();
-            ::byondapi::value::ByondValue::null()
-        }
-    } else {
-        quote! {
-            unsafe { ::byondapi::runtime::byond_runtime(error_string) }
-        }
-    }
-}
-
 fn get_args_disp(
     input: &syn::ItemFn,
 ) -> (
@@ -202,7 +182,9 @@ pub fn bind(attr: TokenStream, item: TokenStream) -> TokenStream {
         }
     };
 
-    let crash_syntax = crash_syntax();
+    let crash_syntax = quote! {
+        unsafe { ::byondapi::runtime::byond_runtime(error_string) }
+    };
 
     let result = quote! {
         #cthook_prelude
@@ -299,7 +281,9 @@ pub fn bind_raw_args(attr: TokenStream, item: TokenStream) -> TokenStream {
         }
     };
 
-    let crash_syntax = crash_syntax();
+    let crash_syntax = quote! {
+        unsafe { ::byondapi::runtime::byond_runtime(error_string) }
+    };
 
     let result = quote! {
         #cthook_prelude
@@ -375,7 +359,9 @@ pub fn bind_macro(attr: TokenStream, item: TokenStream) -> TokenStream {
         }
     };
 
-    let crash_syntax = crash_syntax();
+    let crash_syntax = quote! {
+        unsafe { ::byondapi::runtime::byond_runtime(error_string) }
+    };
 
     let result = quote! {
         #cthook_prelude

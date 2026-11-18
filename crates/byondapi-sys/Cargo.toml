@@ -1,6 +1,6 @@
 [package]
 name = "byondapi-sys"
-version = "0.12.3"
+version = "0.13.3"
 authors = ["tigercat2000 <nick.pilant@gmail.com>"]
 edition = "2021"
 description = "Raw bindgen bindings for byondapi"
@@ -17,15 +17,11 @@ default-target = "i686-unknown-linux-gnu"
 targets = []                              # Do not build the doc with any other target than the default.
 
 [dependencies]
-libloading = "0.8"
+libloading = "0.9.1"
 
 [build-dependencies]
-bindgen = "0.71"
+bindgen = "0.73.2"
 doxygen-rs = "0.4"
 
 [features]
-default = ["byond-516-1682"]
-byond-515-1621 = []
-byond-516-1651 = []
-byond-516-1682 = []
 opendream = []

@@ -1,17 +1,22 @@
 use crate::prelude::*;
 use crate::static_global::byond;
 use crate::Error;
-use std::ffi::{CStr, CString};
+use std::ffi::CString;
 
 pub fn str_id_of<T: Into<Vec<u8>>>(string: T) -> Result<u4c, Error> {
     let c_string = CString::new(string).unwrap();
-    str_id_of_cstr(c_string.as_c_str())
+    let res = unsafe { byond().Byond_GetStrId(c_string.as_ptr()) };
+    if res == u2c::MAX as u32 {
+        return Err(Error::NonExistentString(c_string.to_owned()));
+    }
+    Ok(res)
 }
 
-pub fn str_id_of_cstr(string: &CStr) -> Result<u4c, Error> {
-    let res = unsafe { byond().Byond_GetStrId(string.as_ptr()) };
+pub fn addget_str_id_of<T: Into<Vec<u8>>>(string: T) -> Result<u4c, Error> {
+    let c_string = CString::new(string).unwrap();
+    let res = unsafe { byond().Byond_AddGetStrId(c_string.as_ptr()) };
     if res == u2c::MAX as u32 {
-        return Err(Error::NonExistentString(string.to_owned()));
+        return Err(Error::UnableToCreateString(c_string.to_owned()));
     }
     Ok(res)
 }

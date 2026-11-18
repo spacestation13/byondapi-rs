@@ -32,12 +32,17 @@ impl ByondValue {
         arglist: ByondValue,
     ) -> Result<ByondValue, Error> {
         if !arglist.is_list() {
-            return Err(Error::NotAList(arglist));
+            return Err(Error::NotAList(format!("{:?}", arglist)));
         };
         let mut result = ByondValue::default();
         unsafe {
             map_byond_error!(byond().Byond_NewArglist(&value_type.0, &arglist.0, &mut result.0))?;
         }
         Ok(result)
+    }
+
+    /// Not the same as ==, this is equivalent to byond's ~= operator
+    pub fn builtin_equiv(self, other: &ByondValue) -> bool {
+        unsafe { byond().ByondValue_Equiv(&self.0, &other.0) }
     }
 }

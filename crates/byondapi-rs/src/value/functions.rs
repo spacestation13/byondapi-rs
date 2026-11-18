@@ -13,25 +13,22 @@ impl ByondValue {
         std::mem::replace(&mut self.0, unsafe { std::mem::zeroed() })
     }
 
-    /// Try to get a [`bool`] or fail if this isn't a number type
-    pub fn get_bool(&self) -> Result<bool, Error> {
-        self.get_number().map(|num| match num as u32 {
-            (1..) => true,
-            0 => false,
-        })
+    /// Try to get a [`bool`], the value's truthyness is based on byond's rules
+    pub fn get_bool(&self) -> bool {
+        unsafe { byond().ByondValue_IsTrue(&self.0) }
     }
 
     /// Try to get an [`f32`] or fail if this isn't a number type
     pub fn get_number(&self) -> Result<f32, Error> {
-        if self.is_num() {
-            Ok(unsafe { byond().ByondValue_GetNum(&self.0) })
+        let res = unsafe { byond().ByondValue_GetNum(&self.0) };
+        if !res.is_nan() {
+            Ok(res)
         } else {
-            Err(Error::NotANum(*self))
+            Err(Error::NotANum(format!("{:?}", self)))
         }
     }
 
-    /// Try to get a [`CString`] or fail if the string returned is invalid or an error is returned
-    /// from byond
+    /// Try to get a [`CString`] from this value, equivalent to byond's ToString
     pub fn get_cstring(&self) -> Result<CString, Error> {
         use std::cell::RefCell;
 
@@ -83,18 +80,20 @@ impl ByondValue {
 
     /// Get the underlying ref number to this value
     pub fn get_ref(&self) -> Result<u4c, Error> {
-        if self.is_str() || self.is_null() || self.is_num() {
-            return Err(Error::NotReferencable(*self));
+        let res = unsafe { byond().ByondValue_GetRef(&self.0) };
+        if res == 0 {
+            Err(Error::NotReferencable(format!("{:?}", self)))
+        } else {
+            Ok(res)
         }
-        Ok(unsafe { byond().ByondValue_GetRef(&self.0) })
     }
 
     /// Get the string id of this value, fail if this isn't a string
     pub fn get_strid(&self) -> Result<u4c, Error> {
         if !self.is_str() {
-            Err(Error::NotAString(*self))
+            Err(Error::NotAString(format!("{:?}", self)))
         } else {
-            Ok(unsafe { self.0.data.ref_ })
+            Ok(self.get_ref()?)
         }
     }
 }
@@ -103,11 +102,17 @@ impl ByondValue {
 impl ByondValue {
     /// Replaces whatever is currently in this value with a number
     pub fn set_number(&mut self, f: f32) {
-        unsafe { byond().ByondValue_SetNum(&mut self.0, f) }
+        unsafe {
+            byond().ByondValue_DecRef(&self.0);
+            byond().ByondValue_SetNum(&mut self.0, f);
+        }
     }
 
     /// Replaces whatever is currently in this value with a string
     pub fn set_str<T: Into<Vec<u8>>>(&mut self, f: T) -> Result<(), Error> {
+        unsafe {
+            byond().ByondValue_DecRef(&self.0);
+        }
         let c_string = CString::new(f).unwrap();
         let c_str = c_string.as_c_str();
         unsafe { byond().ByondValue_SetStr(&mut self.0, c_str.as_ptr()) }
@@ -118,15 +123,23 @@ impl ByondValue {
     }
 
     /// Replaces whatever is currently in this value with a string that's pointed to by the stringid
-    /// # DO NOT PASS STRINGIDS THAT ARE NOT RETURNED BY [`crate::byond_string::str_id_of`]
-    #[cfg(any(feature = "byond-516-1651", feature = "byond-516-1682"))]
-    pub fn set_strid(&mut self, strid: u4c) {
-        unsafe { byond().ByondValue_SetStrId(&mut self.0, strid) }
+    /// # Safety
+    /// # I HAVE VERIFIED THIS STRINGID IS A STRINGID RETURNED BY [`crate::byond_string::str_id_of`] OR [`crate::ByondValue::get_strid`]
+    pub unsafe fn set_strid(&mut self, strid: u4c) {
+        unsafe {
+            byond().ByondValue_DecRef(&self.0);
+            byond().ByondValue_SetStrId(&mut self.0, strid)
+        }
     }
 
     /// Replaces whatever is currently in this value with a ref
-    pub fn set_ref(&mut self, type_: ByondValueType, ref_: u4c) {
-        unsafe { byond().ByondValue_SetRef(&mut self.0, type_, ref_) }
+    /// # Safety
+    /// This must be a valid ref
+    pub unsafe fn set_ref(&mut self, type_: ByondValueType, ref_: u4c) {
+        unsafe {
+            byond().ByondValue_DecRef(&self.0);
+            byond().ByondValue_SetRef(&mut self.0, type_, ref_)
+        }
     }
 }
 
@@ -134,8 +147,8 @@ impl ByondValue {
 impl ByondValue {
     /// Read a variable through the ref. Fails if this isn't a ref type.
     pub fn read_var<T: Into<Vec<u8>>>(&self, name: T) -> Result<ByondValue, Error> {
-        if self.is_num() || self.is_str() || self.is_ptr() || self.is_null() || self.is_list() {
-            return Err(Error::NotReferencable(*self));
+        if !self.is_ref() {
+            return Err(Error::NotReferencable(format!("{:?}", self)));
         }
         let c_string = CString::new(name).unwrap();
         let c_str = c_string.as_c_str();
@@ -201,8 +214,8 @@ impl ByondValue {
 impl ByondValue {
     /// Read a variable through the ref. Fails if this isn't a ref type, or the id is invalid.
     pub fn read_var_id(&self, name: u4c) -> Result<ByondValue, Error> {
-        if self.is_num() || self.is_str() || self.is_ptr() || self.is_null() || self.is_list() {
-            return Err(Error::NotReferencable(*self));
+        if !self.is_ref() {
+            return Err(Error::NotReferencable(format!("{:?}", self)));
         }
         let mut new_value = ByondValue::default();
         unsafe {
@@ -219,11 +232,7 @@ impl ByondValue {
 
     /// Call a proc using self as src. Fails if this isn't a ref type, or the id is invalid.
     ///
-    /// Implicitly set waitfor=0, will never block.
-    ///
-    /// # WARNING FOR BYOND 515.1609 and 515.1610
-    /// This is treated as verb name, so underscores are replaced with spaces.
-    /// For example `/obj/proc/get_name` would have to be called as `obj.call("get name")`.
+    /// Implicitly set waitfor=0, will never block unless called on another thread.
     pub fn call_id(&self, name: u4c, args: &[ByondValue]) -> Result<ByondValue, Error> {
         let ptr = args.as_ptr();
         let mut new_value = ByondValue::default();
@@ -242,23 +251,20 @@ impl ByondValue {
 }
 
 /// # Refcount operations
-/// DO NOT USE, use [`super::refcounted::RcByondValue`] instead
 impl ByondValue {
-    pub fn increment_ref(&mut self) {
+    /// # Safety
+    ///
+    /// This increments the refcount of the value pointed to by byondvalue, I have made sure this
+    /// does not leak
+    pub unsafe fn increment_ref(&mut self) {
         unsafe { byond().ByondValue_IncRef(&self.0) }
     }
 
-    pub fn decrement_ref(&mut self) {
-        unsafe { byond().ByondValue_DecRef(&self.0) }
-    }
-
-    #[cfg(feature = "byond-516-1651")]
-    pub fn decrement_tempref(&mut self) {
-        unsafe { byond().ByondValue_DecTempRef(&self.0) }
-    }
-
-    #[cfg(feature = "byond-516-1682")]
-    pub fn decrement_tempref(&mut self) {
+    /// # Safety
+    ///
+    /// This decrements the refcount of the value pointed to by byondvalue, I have made sure this
+    /// does not delete values when it shouldn't be
+    pub unsafe fn decrement_ref(&mut self) {
         unsafe { byond().ByondValue_DecRef(&self.0) }
     }
 
@@ -306,7 +312,7 @@ impl ByondValue {
     /// (key, value) for proper assoc lists
     pub fn iter(&self) -> Result<impl Iterator<Item = (ByondValue, ByondValue)> + '_, Error> {
         if !self.is_list() {
-            return Err(Error::NotAList(*self));
+            return Err(Error::NotAList(format!("{:?}", self)));
         }
         let len: f32 = self.builtin_length()?.try_into()?;
         Ok(ListIterator {
@@ -319,7 +325,7 @@ impl ByondValue {
     /// Iterates through key values of the list if the list is an assoc list, if not, just iterates through values
     pub fn values(&self) -> Result<impl Iterator<Item = ByondValue> + '_, Error> {
         if !self.is_list() {
-            return Err(Error::NotAList(*self));
+            return Err(Error::NotAList(format!("{:?}", self)));
         }
         let len: f32 = self.builtin_length()?.try_into()?;
         Ok(ValueIterator {

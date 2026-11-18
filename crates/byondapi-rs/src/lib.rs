@@ -14,9 +14,7 @@ pub use inventory;
 #[macro_use]
 pub mod error;
 pub mod map;
-#[cfg(any(feature = "byond-516-1651", feature = "byond-516-1682"))]
 pub mod pixloc;
-#[cfg(any(feature = "byond-516-1651", feature = "byond-516-1682"))]
 pub mod runtime;
 pub use error::Error;
 

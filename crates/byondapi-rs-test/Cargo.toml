@@ -10,12 +10,5 @@ crate-type = ["cdylib"]
 
 [dependencies]
 byondapi = { path = "../byondapi-rs", default-features = false }
-tempfile = "3.20.0"
-cargo_metadata = "0.19.2"
 eyre = "0.6.12"
 
-[features]
-default = ["byond-516-1682"]
-byond-515-1621 = ["byondapi/byond-515-1621",]
-byond-516-1651 = ["byondapi/byond-516-1651"]
-byond-516-1682 = ["byondapi/byond-516-1682"]

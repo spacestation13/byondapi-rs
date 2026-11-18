@@ -14,58 +14,82 @@ impl Default for ByondValue {
 /// # Constructors
 impl ByondValue {
     pub fn null() -> Self {
-        Self(CByondValue {
-            type_: ValueType::Null as u8,
+        let mut value = CByondValue {
+            type_: 0,
             junk1: 0,
             junk2: 0,
             junk3: 0,
             data: byondapi_sys::ByondValueData { ref_: 0 },
-        })
-    }
-
-    pub fn new_ref(typ: ValueType, ptr: u4c) -> Self {
-        Self(CByondValue {
-            type_: typ as u8,
-            junk1: 0,
-            junk2: 0,
-            junk3: 0,
-            data: byondapi_sys::ByondValueData { ref_: ptr },
-        })
+        };
+        unsafe {
+            byond().ByondValue_Clear(&mut value);
+        }
+        Self(value)
     }
 
     pub fn new_num(f: f32) -> Self {
-        Self(CByondValue {
-            type_: ValueType::Number as u8,
+        let mut value = CByondValue {
+            type_: 0,
             junk1: 0,
             junk2: 0,
             junk3: 0,
-            data: byondapi_sys::ByondValueData { num: f },
-        })
+            data: byondapi_sys::ByondValueData { ref_: 0 },
+        };
+        unsafe {
+            byond().ByondValue_SetNum(&mut value, f);
+        };
+        Self(value)
+    }
+
+    /// # Safety
+    /// I have made sure this is a valid ref
+    pub unsafe fn new_ref(typ: ValueType, ptr: u4c) -> Self {
+        let mut value = CByondValue {
+            type_: 0,
+            junk1: 0,
+            junk2: 0,
+            junk3: 0,
+            data: byondapi_sys::ByondValueData { ref_: 0 },
+        };
+        unsafe {
+            byond().ByondValue_SetRef(&mut value, typ as u8, ptr);
+            byond().ByondValue_IncRef(&value)
+        }
+        Self(value)
     }
 
     pub fn new_global_ref() -> Self {
-        Self(CByondValue {
+        let value = CByondValue {
             type_: ValueType::World as u8,
             junk1: 0,
             junk2: 0,
             junk3: 0,
             data: byondapi_sys::ByondValueData { ref_: 1 },
-        })
+        };
+
+        unsafe { byond().ByondValue_IncRef(&value) }
+        Self(value)
     }
 
     pub fn new_str<S: Into<Vec<u8>>>(s: S) -> Result<Self, Error> {
         let c_str = CString::new(s.into()).unwrap();
-        let str_id = unsafe { byond().Byond_AddGetStrId(c_str.as_ptr()) };
-        if str_id == u32::MAX {
-            return Err(Error::UnableToCreateString(c_str));
-        }
-        Ok(Self(CByondValue {
-            type_: ValueType::String as u8,
+        let mut value = CByondValue {
+            type_: 0,
             junk1: 0,
             junk2: 0,
             junk3: 0,
-            data: byondapi_sys::ByondValueData { ref_: str_id },
-        }))
+            data: byondapi_sys::ByondValueData { ref_: 0 },
+        };
+        unsafe {
+            byond().ByondValue_SetStr(&mut value, c_str.as_ptr());
+        }
+        if unsafe { byond().ByondValue_IsNull(&value) } {
+            return Err(Error::UnableToCreateString(c_str));
+        }
+        unsafe {
+            byond().ByondValue_IncRef(&value);
+        }
+        Ok(Self(value))
     }
 
     pub fn new_list() -> Result<Self, Error> {

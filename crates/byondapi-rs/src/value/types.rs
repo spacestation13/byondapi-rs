@@ -1,4 +1,5 @@
 ///Type enum for the [`byondapi_sys::ByondValueType`] field of [`byondapi_sys::CByondValue`], copied from auxtools
+///May change between byond versions
 #[repr(u8)]
 #[derive(Copy, Clone, Debug, num_enum::TryFromPrimitive)]
 #[non_exhaustive]

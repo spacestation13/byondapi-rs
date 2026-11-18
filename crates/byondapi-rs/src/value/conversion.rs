@@ -20,6 +20,20 @@ impl From<f32> for ByondValue {
     }
 }
 
+impl From<ByondValue> for bool {
+    fn from(value: ByondValue) -> Self {
+        value.get_bool()
+    }
+}
+
+impl From<&ByondValue> for bool {
+    fn from(value: &ByondValue) -> Self {
+        value.get_bool()
+    }
+}
+
+// TryFrom ByondValue -> x impls
+
 impl TryFrom<&str> for ByondValue {
     type Error = Error;
 
@@ -33,23 +47,6 @@ impl TryFrom<String> for ByondValue {
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         ByondValue::new_str(value)
-    }
-}
-
-// TryFrom ByondValue -> x impls
-impl TryFrom<ByondValue> for bool {
-    type Error = Error;
-
-    fn try_from(value: ByondValue) -> Result<Self, Self::Error> {
-        value.get_bool()
-    }
-}
-
-impl TryFrom<&ByondValue> for bool {
-    type Error = Error;
-
-    fn try_from(value: &ByondValue) -> Result<Self, Self::Error> {
-        value.get_bool()
     }
 }
 

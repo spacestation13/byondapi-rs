@@ -1,6 +1,6 @@
 [package]
 name = "byondapi"
-version = "0.6.14"
+version = "0.7.14"
 authors = ["tigercat2000 <nick.pilant@gmail.com>"]
 edition = "2021"
 description = "Idiomatic Rust bindings for BYONDAPI"
@@ -13,18 +13,11 @@ exclude = [".vscode/*"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-byondapi-sys = { path = "../byondapi-sys", version = "0.12.3", default-features = false }
-byondapi-macros = { path = "../byondapi-macros", version = "0.3.3" }
-libloading = "0.8.7"
+byondapi-sys = { path = "../byondapi-sys", version = "0.13.3", default-features = false }
+byondapi-macros = { path = "../byondapi-macros", version = "0.4.3" }
+libloading = "0.9.1"
 inventory = "0.3.20"
 num_enum = "0.7.3"
 
 [features]
-default = ["byond-516-1682"]
-byond-515-1621 = [
-    "byondapi-macros/old-crash-workaround",
-    "byondapi-sys/byond-515-1621",
-]
-byond-516-1651 = ["byondapi-sys/byond-516-1651"]
-byond-516-1682 = ["byondapi-sys/byond-516-1682"]
 opendream = ["byondapi-sys/opendream"]
