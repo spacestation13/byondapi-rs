@@ -166,4 +166,15 @@ impl ByondValue {
         self.call_id(byond_string!("Remove"), &[ByondValue::new_num(len as f32)])?;
         Ok(Some(value))
     }
+
+    /// Removes multiple values from a list, returns the number of values removed
+    pub fn remove_items(&mut self, values: &[ByondValue]) -> Result<u32, Error> {
+        if !self.is_list() {
+            return Err(Error::NotAList(format!("{:?}", self)));
+        }
+
+        Ok(unsafe {
+            byond().Byond_ListRemove(&self.0, values.as_ptr().cast(), values.len() as u32)
+        })
+    }
 }

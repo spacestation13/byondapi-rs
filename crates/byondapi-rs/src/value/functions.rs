@@ -9,13 +9,16 @@ use crate::{static_global::byond, Error};
 impl ByondValue {
     /// This is available for when you really really need access to the raw [`CByondValue`] but you shouldn't use this
     /// normally.
-    pub fn into_inner(mut self) -> CByondValue {
+    /// # Safety
+    /// I will not forget to decref this later
+    /// Unless I am passing this CByondValue back to byond and dont want that to happen
+    pub unsafe fn into_inner(mut self) -> CByondValue {
         std::mem::replace(&mut self.0, unsafe { std::mem::zeroed() })
     }
 
     /// Try to get a [`bool`], the value's truthyness is based on byond's rules
     pub fn get_bool(&self) -> bool {
-        unsafe { byond().ByondValue_IsTrue(&self.0) }
+        self.is_true()
     }
 
     /// Try to get an [`f32`] or fail if this isn't a number type
@@ -114,8 +117,7 @@ impl ByondValue {
             byond().ByondValue_DecRef(&self.0);
         }
         let c_string = CString::new(f).unwrap();
-        let c_str = c_string.as_c_str();
-        unsafe { byond().ByondValue_SetStr(&mut self.0, c_str.as_ptr()) }
+        unsafe { byond().ByondValue_SetStr(&mut self.0, c_string.as_ptr()) }
         if self.is_null() {
             return Err(Error::UnableToCreateString(c_string));
         }
@@ -124,7 +126,7 @@ impl ByondValue {
 
     /// Replaces whatever is currently in this value with a string that's pointed to by the stringid
     /// # Safety
-    /// # I HAVE VERIFIED THIS STRINGID IS A STRINGID RETURNED BY [`crate::byond_string::str_id_of`] OR [`crate::ByondValue::get_strid`]
+    /// This must be a valid stringid
     pub unsafe fn set_strid(&mut self, strid: u4c) {
         unsafe {
             byond().ByondValue_DecRef(&self.0);
@@ -151,12 +153,11 @@ impl ByondValue {
             return Err(Error::NotReferencable(format!("{:?}", self)));
         }
         let c_string = CString::new(name).unwrap();
-        let c_str = c_string.as_c_str();
 
         let mut new_value = ByondValue::default();
 
         unsafe {
-            map_byond_error!(byond().Byond_ReadVar(&self.0, c_str.as_ptr(), &mut new_value.0))?;
+            map_byond_error!(byond().Byond_ReadVar(&self.0, c_string.as_ptr(), &mut new_value.0))?;
         }
 
         Ok(new_value)
@@ -169,43 +170,29 @@ impl ByondValue {
         other: &ByondValue,
     ) -> Result<(), Error> {
         let c_string = CString::new(name).unwrap();
-        let c_str = c_string.as_c_str();
 
-        unsafe { map_byond_error!(byond().Byond_WriteVar(&self.0, c_str.as_ptr(), &other.0)) }
+        unsafe { map_byond_error!(byond().Byond_WriteVar(&self.0, c_string.as_ptr(), &other.0)) }
     }
 
     /// Call a proc using self as src. Fails if this isn't a ref type.
     ///
     /// Implicitly set waitfor=0, will never block.
-    ///
-    /// # WARNING FOR BYOND 515.1609 and 515.1610
-    /// This is treated as verb name, so underscores are replaced with spaces.
-    /// For example `/obj/proc/get_name` would have to be called as `obj.call("get name")`.
     pub fn call<T: Into<Vec<u8>>>(
         &self,
         name: T,
         args: &[ByondValue],
     ) -> Result<ByondValue, Error> {
         let c_string = CString::new(name).unwrap();
-        let c_str = c_string.as_c_str();
-
-        let str_id = unsafe { byond().Byond_GetStrId(c_str.as_ptr()) };
-        if str_id == crate::sys::u2c::MAX as u32 {
-            return Err(Error::InvalidProc(c_string));
-        }
-
-        let ptr = args.as_ptr();
         let mut new_value = ByondValue::default();
         unsafe {
-            map_byond_error!(byond().Byond_CallProcByStrId(
+            map_byond_error!(byond().Byond_CallProc(
                 &self.0,
-                str_id,
-                ptr as *const byondapi_sys::CByondValue,
+                c_string.as_ptr(),
+                args.as_ptr().cast(),
                 args.len() as u32,
                 &mut new_value.0
             ))?;
         }
-
         Ok(new_value)
     }
 }
@@ -234,13 +221,12 @@ impl ByondValue {
     ///
     /// Implicitly set waitfor=0, will never block unless called on another thread.
     pub fn call_id(&self, name: u4c, args: &[ByondValue]) -> Result<ByondValue, Error> {
-        let ptr = args.as_ptr();
         let mut new_value = ByondValue::default();
         unsafe {
             map_byond_error!(byond().Byond_CallProcByStrId(
                 &self.0,
                 name,
-                ptr as *const byondapi_sys::CByondValue,
+                args.as_ptr().cast(),
                 args.len() as u32,
                 &mut new_value.0
             ))?;

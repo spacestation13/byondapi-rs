@@ -43,7 +43,7 @@ fn ffi_function_signature(func_name_ffi: Ident) -> proc_macro2::TokenStream {
         pub unsafe extern "C-unwind" fn #func_name_ffi (
             __argc: ::byondapi::sys::u4c,
             __argv: *mut ::byondapi::value::ByondValue
-        ) -> ::byondapi::value::ByondValue
+        ) -> ::byondapi::prelude::InternalByondValue
     }
 }
 
@@ -191,7 +191,7 @@ pub fn bind(attr: TokenStream, item: TokenStream) -> TokenStream {
         #signature {
             let args = unsafe { ::byondapi::parse_args(__argc, __argv) };
             match #func_name(#proc_arg_unpacker) {
-                Ok(val) => val,
+                Ok(val) => unsafe { val.into_inner() },
                 Err(e) => {
                     let error_string = ::std::format!("{e:?}");
                     ::std::mem::drop(e);
@@ -290,7 +290,7 @@ pub fn bind_raw_args(attr: TokenStream, item: TokenStream) -> TokenStream {
         #signature {
             let mut args = unsafe { ::byondapi::parse_args(__argc, __argv) };
             match #func_name(args) {
-                Ok(val) => val,
+                Ok(val) => unsafe { val.into_inner() },
                 Err(e) => {
                     let error_string = ::std::format!("{e:?}");
                     ::std::mem::drop(e);
@@ -368,7 +368,7 @@ pub fn bind_macro(attr: TokenStream, item: TokenStream) -> TokenStream {
         #signature {
             let args = unsafe { ::byondapi::parse_args(__argc, __argv) };
             match #func_name(#proc_arg_unpacker) {
-                Ok(val) => val,
+                Ok(val) => unsafe { val.into_inner() },
                 Err(e) => {
                     let error_string = ::std::format!("{e:?}");
                     ::std::mem::drop(e);

@@ -1,6 +1,5 @@
 use super::{types::ValueType, ByondValue};
 use crate::static_global::byond;
-use byondapi_sys::CByondValue;
 use std::fmt::Debug;
 
 // Equality
@@ -45,13 +44,8 @@ impl Clone for ByondValue {
         unsafe {
             byond().ByondValue_IncRef(&self.0);
         };
-        Self(CByondValue {
-            type_: self.0.type_,
-            junk1: self.0.junk1,
-            junk2: self.0.junk2,
-            junk3: self.0.junk3,
-            data: self.0.data,
-        })
+        //cbyondvalue is copy but byondvalue is not
+        Self(self.0)
     }
 }
 

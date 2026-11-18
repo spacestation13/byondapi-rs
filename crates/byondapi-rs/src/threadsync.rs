@@ -12,13 +12,13 @@ extern "C-unwind" fn trampoline<F: FnOnce() -> ByondValue + Send>(
     data: *mut c_void,
 ) -> CByondValue {
     let data = unsafe { Box::from_raw(data as *mut CallbackData<F>) };
-    (data.callback.unwrap())().into_inner()
+    unsafe { (data.callback.unwrap())().into_inner() }
 }
 
 #[cfg(windows)]
 extern "C" fn trampoline<F: FnOnce() -> ByondValue + Send>(data: *mut c_void) -> CByondValue {
     let data = unsafe { Box::from_raw(data as *mut CallbackData<F>) };
-    (data.callback.unwrap())().into_inner()
+    unsafe { (data.callback.unwrap())().into_inner() }
 }
 
 pub fn thread_sync<F>(callback: F, block: bool) -> ByondValue
