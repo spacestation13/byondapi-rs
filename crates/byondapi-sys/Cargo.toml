@@ -17,10 +17,10 @@ default-target = "i686-unknown-linux-gnu"
 targets = []                              # Do not build the doc with any other target than the default.
 
 [dependencies]
-libloading = "0.9.1"
+libloading = "0.8.9"
 
 [build-dependencies]
-bindgen = "0.73.2"
+bindgen = "0.72.1"
 doxygen-rs = "0.4"
 
 [features]
