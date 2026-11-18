@@ -68,9 +68,23 @@ fn test_readwrite_var(object: ByondValue) -> Result<ByondValue> {
 fn test_list_push(mut list: ByondValue) -> Result<ByondValue> {
     setup_panic_handler();
 
-    list.push_list(&ByondValue::new_num(8.0))?;
+    list.push_list(ByondValue::new_num(8.0))?;
 
     Ok(list)
+}
+
+///Tests lists popping
+#[byondapi::bind]
+fn test_list_pop(mut list: ByondValue) -> Result<ByondValue> {
+    setup_panic_handler();
+
+    let element = list.pop_list()?;
+
+    if list.builtin_length()?.get_number()? as u32 != 4 {
+        return Err(eyre::eyre!("pop did not actually remove item from list"));
+    }
+
+    Ok(element.unwrap())
 }
 
 ///Tests lists

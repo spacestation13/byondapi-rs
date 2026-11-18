@@ -1,3 +1,4 @@
+use crate::byond_string;
 use crate::{static_global::byond, value::ByondValue, Error};
 /// List stuff goes here, Keep in mind that all indexing method starts at zero instead of one like byondland
 impl ByondValue {
@@ -141,14 +142,28 @@ impl ByondValue {
         Ok(())
     }
 
-    pub fn push_list(&mut self, value: &ByondValue) -> Result<(), Error> {
+    /// Pushes a value into a list
+    /// Not ideal, there is no bindings for this yet
+    pub fn push_list(&mut self, value: ByondValue) -> Result<(), Error> {
         if !self.is_list() {
             return Err(Error::NotAList(format!("{:?}", self)));
         }
-
-        let len = self.builtin_length()?.get_number()?;
-
-        self.write_list_index_internal(&ByondValue::new_num(len + 2.), value)?;
+        self.call_id(byond_string!("Add"), &[value])?;
         Ok(())
+    }
+
+    /// Pops a value from a list
+    /// Not ideal, there is no bindings for this yet
+    pub fn pop_list(&mut self) -> Result<Option<ByondValue>, Error> {
+        if !self.is_list() {
+            return Err(Error::NotAList(format!("{:?}", self)));
+        }
+        let len = self.builtin_length()?.get_number()? as usize;
+        if len == 0 {
+            return Ok(None);
+        }
+        let value = self.read_list_index(len as f32)?;
+        self.call_id(byond_string!("Remove"), &[ByondValue::new_num(len as f32)])?;
+        Ok(Some(value))
     }
 }

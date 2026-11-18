@@ -34,17 +34,17 @@ var/static/__loaded_byondapi_test_test_new_obj_macro_ffi = load_ext(BYONDAPI_TES
 	var/static/loaded = load_ext(BYONDAPI_TEST, "byond:test_ref_ffi")
 	return call_ext(loaded)(turf)
 
+///Tests lists lookup
+/proc/test_list_key_lookup(list)
+	var/static/loaded = load_ext(BYONDAPI_TEST, "byond:test_list_key_lookup_ffi")
+	return call_ext(loaded)(list)
+
 ///Tests raw args binds
 /proc/test_args(...)
 	var/list/args_copy = args.Copy()
 	args_copy.Insert(1, src)
 	var/static/loaded = load_ext(BYONDAPI_TEST, "byond:test_args_ffi")
 	return call_ext(loaded)(arglist(args_copy))
-
-///Tests lists lookup
-/proc/test_list_key_lookup(list)
-	var/static/loaded = load_ext(BYONDAPI_TEST, "byond:test_list_key_lookup_ffi")
-	return call_ext(loaded)(list)
 
 ///Tests length with strings
 /proc/test_length_with_str(object)
@@ -69,6 +69,11 @@ var/static/__loaded_byondapi_test_test_new_obj_macro_ffi = load_ext(BYONDAPI_TES
 ///Tests lists
 /proc/test_list_double(list)
 	var/static/loaded = load_ext(BYONDAPI_TEST, "byond:test_list_double_ffi")
+	return call_ext(loaded)(list)
+
+///Tests lists popping
+/proc/test_list_pop(list)
+	var/static/loaded = load_ext(BYONDAPI_TEST, "byond:test_list_pop_ffi")
 	return call_ext(loaded)(list)
 
 ///Tests list pushes

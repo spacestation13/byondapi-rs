@@ -1,4 +1,6 @@
-use bindgen::{callbacks::ParseCallbacks, Abi};
+use bindgen::callbacks::ParseCallbacks;
+#[cfg(unix)]
+use bindgen::Abi;
 use std::path::{Path, PathBuf};
 
 fn main() {
@@ -28,11 +30,22 @@ fn generate_all() {
     std::fs::copy(header_path, target).expect("Failed to copy to out_dir");
     let wrapper = copy_wrapper(&out_dir);
 
+    // c-unwind doesn't seem to work on windows, the library just doesnt find the entry points in
+    // byondcore
+    #[cfg(unix)]
     let builder = bindgen::Builder::default()
         .header(wrapper.to_string_lossy())
         .dynamic_library_name("ByondApi")
         .dynamic_link_require_all(true)
         .override_abi(Abi::CUnwind, "Byond.*")
+        // Also make headers included by main header dependencies of the build
+        .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
+        .parse_callbacks(Box::new(DoxygenCallbacks));
+    #[cfg(windows)]
+    let builder = bindgen::Builder::default()
+        .header(wrapper.to_string_lossy())
+        .dynamic_library_name("ByondApi")
+        .dynamic_link_require_all(true)
         // Also make headers included by main header dependencies of the build
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
         .parse_callbacks(Box::new(DoxygenCallbacks));

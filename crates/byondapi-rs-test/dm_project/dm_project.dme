@@ -94,6 +94,14 @@
 	if(!islist(ret) || ret[8] != 8)
 		throw EXCEPTION("List push failed")
 
+/test/proc/test_byondapi_list_pop()
+	var/list/L = list(1, 2, 3, 4, 5)
+
+	var/ret = test_list_pop(L)
+
+	if(ret != 5)
+		throw EXCEPTION("List pop failed [json_encode(ret)]")
+
 /test/proc/test_byondapi_list_double()
 	var/list/L = list(1, 2, 3, 4, 5, 6, 7)
 

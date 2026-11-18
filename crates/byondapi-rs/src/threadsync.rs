@@ -7,9 +7,16 @@ struct CallbackData<F: FnOnce() -> ByondValue + Send> {
     callback: Option<F>,
 }
 
+#[cfg(unix)]
 extern "C-unwind" fn trampoline<F: FnOnce() -> ByondValue + Send>(
     data: *mut c_void,
 ) -> CByondValue {
+    let data = unsafe { Box::from_raw(data as *mut CallbackData<F>) };
+    (data.callback.unwrap())().into_inner()
+}
+
+#[cfg(windows)]
+extern "C" fn trampoline<F: FnOnce() -> ByondValue + Send>(data: *mut c_void) -> CByondValue {
     let data = unsafe { Box::from_raw(data as *mut CallbackData<F>) };
     (data.callback.unwrap())().into_inner()
 }
