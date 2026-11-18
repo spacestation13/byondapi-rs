@@ -151,7 +151,7 @@
 		throw EXCEPTION("Did not create a new object!")
 
 /test/proc/test_byondapi_new_macro()
-	var/datum/testobject/fuck = test_new_obj_macro_byondapi_test()
+	var/datum/testobject/fuck = test_new_obj_macro_byondapi_test(1, 2, 3)
 	if(fuck.test_name != "dust")
 		throw EXCEPTION("Did not create a new object!")
 

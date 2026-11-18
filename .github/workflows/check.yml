@@ -89,6 +89,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install the right version of libcurl
+        shell: bash
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libcurl4t64:i386
+
       - name: Setup Toolchains
         uses: dtolnay/rust-toolchain@stable
         with:
