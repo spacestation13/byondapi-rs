@@ -53,11 +53,6 @@ impl ByondValue {
         unsafe { byond().ByondValue_IsList(&self.0) }
     }
 
-    pub fn is_ref(&self) -> bool {
-        // Safety: This operation only fails if our CByondValue is invalid, which cannot happen.
-        (unsafe { byond().ByondValue_GetRef(&self.0) } != 0)
-    }
-
     pub fn is_ptr(&self) -> bool {
         is_pointer_shim(self)
     }

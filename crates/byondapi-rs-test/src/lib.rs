@@ -186,8 +186,11 @@ fn test_ref(turf: ByondValue) -> Result<ByondValue> {
     setup_panic_handler();
 
     let turf_type = turf.get_type();
+    let reference = turf.get_ref();
 
-    Ok(ByondValue::try_from(format!("turf_type: {turf_type}"))?)
+    Ok(ByondValue::try_from(format!(
+        "turf index: {reference}, turf_type: {turf_type}"
+    ))?)
 }
 
 ///Tests non-assoc lists
@@ -236,7 +239,7 @@ fn test_list_read(list: ByondValue) -> Result<ByondValue> {
 #[byondapi::bind]
 fn test_new_obj() -> Result<ByondValue> {
     Ok(ByondValue::builtin_new(
-        ByondValue::try_from("/datum/testobject")?,
+        &ByondValue::try_from("/datum/testobject")?,
         &[],
     )?)
 }
@@ -249,7 +252,7 @@ fn test_new_obj_macro(
     _thing: ByondValue,
 ) -> Result<ByondValue> {
     Ok(ByondValue::builtin_new(
-        ByondValue::try_from("/datum/testobject")?,
+        &ByondValue::try_from("/datum/testobject")?,
         &[],
     )?)
 }

@@ -101,6 +101,8 @@
 
 	if(ret != 5)
 		throw EXCEPTION("List pop failed [json_encode(ret)]")
+	if(L.len != 4)
+		throw EXCEPTION("List pop didn't modify the list [json_encode(L)]")
 
 /test/proc/test_byondapi_list_double()
 	var/list/L = list(1, 2, 3, 4, 5, 6, 7)

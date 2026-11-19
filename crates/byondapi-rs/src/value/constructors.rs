@@ -1,6 +1,6 @@
 use std::ffi::CString;
 
-use byondapi_sys::{u4c, CByondValue};
+use byondapi_sys::CByondValue;
 
 use super::{types::ValueType, ByondValue};
 use crate::{static_global::byond, Error};
@@ -13,6 +13,7 @@ impl Default for ByondValue {
 
 /// # Constructors
 impl ByondValue {
+    /// Creates a null ByondValue
     pub fn null() -> Self {
         unsafe {
             let mut value = std::mem::MaybeUninit::uninit();
@@ -21,6 +22,7 @@ impl ByondValue {
         }
     }
 
+    /// Creates a number ByondValue
     pub fn new_num(f: f32) -> Self {
         unsafe {
             let mut value = std::mem::MaybeUninit::uninit();
@@ -29,9 +31,8 @@ impl ByondValue {
         }
     }
 
-    /// # Safety
-    /// I have made sure this is a valid ref
-    pub unsafe fn new_ref(typ: ValueType, ptr: u4c) -> Self {
+    /// Creates a reference ByondValue and increments its ref
+    pub fn new_ref(typ: ValueType, ptr: u32) -> Self {
         unsafe {
             let mut value = std::mem::MaybeUninit::uninit();
             byond().ByondValue_SetRef(value.as_mut_ptr(), typ as u8, ptr);
@@ -42,6 +43,7 @@ impl ByondValue {
         }
     }
 
+    /// Creates a global reference ByondValue and increments its ref
     pub fn new_global_ref() -> Self {
         let value = CByondValue {
             type_: ValueType::World as u8,
@@ -55,6 +57,8 @@ impl ByondValue {
         Self(value)
     }
 
+    /// Creates a string ByondValue and increments its ref
+    /// Fails if the string is not a valid utf8 or other byond reasons
     pub fn new_str<S: Into<Vec<u8>>>(s: S) -> Result<Self, Error> {
         let c_str = CString::new(s.into()).unwrap();
         unsafe {
@@ -71,33 +75,38 @@ impl ByondValue {
         }
     }
 
+    /// Creates a list ByondValue
+    /// Fails for byond reasons
     pub fn new_list() -> Result<Self, Error> {
-        let mut new_self = Self::default();
-
-        unsafe { map_byond_error!(byond().Byond_CreateList(&mut new_self.0))? }
-
-        Ok(new_self)
-    }
-
-    pub fn new_list_with_capacity(len: u32) -> Result<Self, Error> {
-        let mut new_self = Self::default();
-
-        unsafe { map_byond_error!(byond().Byond_CreateListLen(&mut new_self.0, len))? }
-
-        Ok(new_self)
-    }
-
-    pub fn new_dimensional_list(len: &[u32], dimension: u32) -> Result<Self, Error> {
-        let mut new_self = Self::default();
-
         unsafe {
-            map_byond_error!(byond().Byond_CreateDimensionalList(
-                &mut new_self.0,
-                len.as_ptr(),
-                dimension
-            ))?
+            let mut new_self = std::mem::MaybeUninit::uninit();
+            map_byond_error!(byond().Byond_CreateList(new_self.as_mut_ptr()))?;
+            Ok(Self(new_self.assume_init()))
         }
+    }
 
-        Ok(new_self)
+    /// Creates a list ByondValue with capacity
+    /// Fails for byond reasons
+    pub fn new_list_with_capacity(len: u32) -> Result<Self, Error> {
+        unsafe {
+            let mut new_self = std::mem::MaybeUninit::uninit();
+            map_byond_error!(byond().Byond_CreateListLen(new_self.as_mut_ptr(), len))?;
+            Ok(Self(new_self.assume_init()))
+        }
+    }
+
+    /// Creates a multidimensional list with length of each dimension in length,
+    /// e.g for [2,2] this function returns a list(list(null, null), list(null, null))
+    /// Fails for byond reasons
+    pub fn new_dimensional_list(len: &[u32]) -> Result<Self, Error> {
+        unsafe {
+            let mut new_self = std::mem::MaybeUninit::uninit();
+            map_byond_error!(byond().Byond_CreateDimensionalList(
+                new_self.as_mut_ptr(),
+                len.as_ptr(),
+                len.len() as u32
+            ))?;
+            Ok(Self(new_self.assume_init()))
+        }
     }
 }

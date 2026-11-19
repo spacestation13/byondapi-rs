@@ -38,6 +38,7 @@ impl Debug for ByondValue {
     }
 }
 
+// Clone
 impl Clone for ByondValue {
     fn clone(&self) -> Self {
         //incrementing does nothing on non-ref types

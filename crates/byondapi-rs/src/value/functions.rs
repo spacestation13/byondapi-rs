@@ -1,6 +1,6 @@
 use std::ffi::CString;
 
-use byondapi_sys::{u4c, ByondValueType, CByondValue};
+use byondapi_sys::{ByondValueType, CByondValue};
 
 use super::ByondValue;
 use crate::{static_global::byond, Error};
@@ -82,21 +82,16 @@ impl ByondValue {
     }
 
     /// Get the underlying ref number to this value
-    pub fn get_ref(&self) -> Result<u4c, Error> {
-        let res = unsafe { byond().ByondValue_GetRef(&self.0) };
-        if res == 0 {
-            Err(Error::NotReferencable(format!("{:?}", self)))
-        } else {
-            Ok(res)
-        }
+    pub fn get_ref(&self) -> u32 {
+        unsafe { byond().ByondValue_GetRef(&self.0) }
     }
 
     /// Get the string id of this value, fail if this isn't a string
-    pub fn get_strid(&self) -> Result<u4c, Error> {
+    pub fn get_strid(&self) -> Result<u32, Error> {
         if !self.is_str() {
             Err(Error::NotAString(format!("{:?}", self)))
         } else {
-            Ok(self.get_ref()?)
+            Ok(self.get_ref())
         }
     }
 }
@@ -127,7 +122,7 @@ impl ByondValue {
     /// Replaces whatever is currently in this value with a string that's pointed to by the stringid
     /// # Safety
     /// This must be a valid stringid
-    pub unsafe fn set_strid(&mut self, strid: u4c) {
+    pub unsafe fn set_strid(&mut self, strid: u32) {
         unsafe {
             byond().ByondValue_DecRef(&self.0);
             byond().ByondValue_SetStrId(&mut self.0, strid)
@@ -137,7 +132,7 @@ impl ByondValue {
     /// Replaces whatever is currently in this value with a ref
     /// # Safety
     /// This must be a valid ref
-    pub unsafe fn set_ref(&mut self, type_: ByondValueType, ref_: u4c) {
+    pub unsafe fn set_ref(&mut self, type_: ByondValueType, ref_: u32) {
         unsafe {
             byond().ByondValue_DecRef(&self.0);
             byond().ByondValue_SetRef(&mut self.0, type_, ref_)
@@ -149,18 +144,16 @@ impl ByondValue {
 impl ByondValue {
     /// Read a variable through the ref. Fails if this isn't a ref type.
     pub fn read_var<T: Into<Vec<u8>>>(&self, name: T) -> Result<ByondValue, Error> {
-        if !self.is_ref() {
-            return Err(Error::NotReferencable(format!("{:?}", self)));
-        }
         let c_string = CString::new(name).unwrap();
-
-        let mut new_value = ByondValue::default();
-
         unsafe {
-            map_byond_error!(byond().Byond_ReadVar(&self.0, c_string.as_ptr(), &mut new_value.0))?;
+            let mut new_value = std::mem::MaybeUninit::uninit();
+            map_byond_error!(byond().Byond_ReadVar(
+                &self.0,
+                c_string.as_ptr(),
+                new_value.as_mut_ptr()
+            ))?;
+            Ok(ByondValue(new_value.assume_init()))
         }
-
-        Ok(new_value)
     }
 
     /// Write to a variable through the ref. Fails if this isn't a ref type.
@@ -183,56 +176,51 @@ impl ByondValue {
         args: &[ByondValue],
     ) -> Result<ByondValue, Error> {
         let c_string = CString::new(name).unwrap();
-        let mut new_value = ByondValue::default();
         unsafe {
+            let mut new_value = std::mem::MaybeUninit::uninit();
             map_byond_error!(byond().Byond_CallProc(
                 &self.0,
                 c_string.as_ptr(),
                 args.as_ptr().cast(),
                 args.len() as u32,
-                &mut new_value.0
+                new_value.as_mut_ptr()
             ))?;
+            Ok(ByondValue(new_value.assume_init()))
         }
-        Ok(new_value)
     }
 }
 
 /// # Accessors by ids
 impl ByondValue {
     /// Read a variable through the ref. Fails if this isn't a ref type, or the id is invalid.
-    pub fn read_var_id(&self, name: u4c) -> Result<ByondValue, Error> {
-        if !self.is_ref() {
-            return Err(Error::NotReferencable(format!("{:?}", self)));
-        }
-        let mut new_value = ByondValue::default();
+    pub fn read_var_id(&self, name: u32) -> Result<ByondValue, Error> {
         unsafe {
-            map_byond_error!(byond().Byond_ReadVarByStrId(&self.0, name, &mut new_value.0))?;
+            let mut new_value = std::mem::MaybeUninit::uninit();
+            map_byond_error!(byond().Byond_ReadVarByStrId(&self.0, name, new_value.as_mut_ptr()))?;
+            Ok(ByondValue(new_value.assume_init()))
         }
-
-        Ok(new_value)
     }
 
     /// Write to a variable through the ref. Fails if this isn't a ref type, or the id is invalid.
-    pub fn write_var_id(&mut self, name: u4c, other: &ByondValue) -> Result<(), Error> {
+    pub fn write_var_id(&mut self, name: u32, other: &ByondValue) -> Result<(), Error> {
         unsafe { map_byond_error!(byond().Byond_WriteVarByStrId(&self.0, name, &other.0)) }
     }
 
     /// Call a proc using self as src. Fails if this isn't a ref type, or the id is invalid.
     ///
     /// Implicitly set waitfor=0, will never block unless called on another thread.
-    pub fn call_id(&self, name: u4c, args: &[ByondValue]) -> Result<ByondValue, Error> {
-        let mut new_value = ByondValue::default();
+    pub fn call_id(&self, name: u32, args: &[ByondValue]) -> Result<ByondValue, Error> {
         unsafe {
+            let mut new_value = std::mem::MaybeUninit::uninit();
             map_byond_error!(byond().Byond_CallProcByStrId(
                 &self.0,
                 name,
                 args.as_ptr().cast(),
                 args.len() as u32,
-                &mut new_value.0
+                new_value.as_mut_ptr()
             ))?;
+            Ok(ByondValue(new_value.assume_init()))
         }
-
-        Ok(new_value)
     }
 }
 
@@ -254,10 +242,17 @@ impl ByondValue {
         unsafe { byond().ByondValue_DecRef(&self.0) }
     }
 
+    /// Gets the reference count of this value, errors if this is not a valid reference and more
     pub fn get_refcount(&self) -> Result<u32, Error> {
         let mut result = 0u32;
         unsafe { map_byond_error!(byond().Byond_Refcount(&self.0, &mut result))? };
         Ok(result)
+    }
+
+    /// Tests the reference inside this value if its a reference, turns it into a null if its not a
+    /// valid reference
+    pub fn test_ref(&mut self) -> bool {
+        unsafe { byond().Byond_TestRef(&mut self.0) }
     }
 }
 

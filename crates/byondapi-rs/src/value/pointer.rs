@@ -12,13 +12,11 @@ impl ByondValuePointer {
 
     /// Read from this pointer and get a new [`ByondValue`]
     pub fn read(&self) -> Result<ByondValue, Error> {
-        let mut new_value = ByondValue::default();
-
         unsafe {
-            map_byond_error!(byond().Byond_ReadPointer(&self.0 .0, &mut new_value.0))?;
+            let mut new_value = std::mem::MaybeUninit::uninit();
+            map_byond_error!(byond().Byond_ReadPointer(&self.0 .0, new_value.as_mut_ptr()))?;
+            Ok(ByondValue(new_value.assume_init()))
         }
-
-        Ok(new_value)
     }
 
     /// Write a [`ByondValue`] through this pointer

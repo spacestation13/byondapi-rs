@@ -6,41 +6,36 @@ use std::ffi::CString;
 
 /// Calls a global proc.
 ///
-/// Implicitly set waitfor=0, will never block.
+/// Implicitly set waitfor=0, will never block unless called from another thread.
 pub fn call_global<T: Into<Vec<u8>>>(name: T, args: &[ByondValue]) -> Result<ByondValue, Error> {
     let c_string = CString::new(name).unwrap();
-    let c_str = c_string.as_c_str();
 
-    let str_id = unsafe { byond().Byond_GetStrId(c_str.as_ptr()) };
-    if str_id == crate::sys::u2c::MAX as u32 {
-        return Err(Error::InvalidProc(c_string));
-    }
-    let ptr = args.as_ptr();
-    let mut new_value = ByondValue::default();
     unsafe {
-        map_byond_error!(byond().Byond_CallGlobalProcByStrId(
-            str_id,
-            ptr.cast(),
+        let mut new_value = std::mem::MaybeUninit::uninit();
+        map_byond_error!(byond().Byond_CallGlobalProc(
+            c_string.as_ptr(),
+            args.as_ptr().cast(),
             args.len() as u32,
-            &mut new_value.0
+            new_value.as_mut_ptr()
         ))?;
+        Ok(ByondValue(new_value.assume_init()))
     }
-    Ok(new_value)
 }
 
 /// Calls a global proc by its string id.
 ///
-/// Implicitly set waitfor=0, will never block.
-pub fn call_global_id(name: u4c, args: &[ByondValue]) -> Result<ByondValue, Error> {
+/// Implicitly set waitfor=0, will never block unless called from another thread.
+pub fn call_global_id(name: u32, args: &[ByondValue]) -> Result<ByondValue, Error> {
     let ptr = args.as_ptr();
-    let mut new_value = ByondValue::default();
+
     unsafe {
+        let mut new_value = std::mem::MaybeUninit::uninit();
         map_byond_error!(byond().Byond_CallGlobalProcByStrId(
             name,
             ptr.cast(),
             args.len() as u32,
-            &mut new_value.0
+            new_value.as_mut_ptr()
         ))?;
+        Ok(ByondValue(new_value.assume_init()))
     }
-    Ok(new_value)
 }

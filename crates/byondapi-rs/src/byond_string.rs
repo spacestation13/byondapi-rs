@@ -3,7 +3,8 @@ use crate::static_global::byond;
 use crate::Error;
 use std::ffi::CString;
 
-pub fn str_id_of<T: Into<Vec<u8>>>(string: T) -> Result<u4c, Error> {
+/// Gets stringid of a string, fails if this string doesn't exist
+pub fn str_id_of<T: Into<Vec<u8>>>(string: T) -> Result<u32, Error> {
     let c_string = CString::new(string).unwrap();
     let res = unsafe { byond().Byond_GetStrId(c_string.as_ptr()) };
     if res == u2c::MAX as u32 {
@@ -12,7 +13,8 @@ pub fn str_id_of<T: Into<Vec<u8>>>(string: T) -> Result<u4c, Error> {
     Ok(res)
 }
 
-pub fn addget_str_id_of<T: Into<Vec<u8>>>(string: T) -> Result<u4c, Error> {
+/// Gets stringid of a string or adds it if it doesn't exist, fails if this string can't be added
+pub fn addget_str_id_of<T: Into<Vec<u8>>>(string: T) -> Result<u32, Error> {
     let c_string = CString::new(string).unwrap();
     let res = unsafe { byond().Byond_AddGetStrId(c_string.as_ptr()) };
     if res == u2c::MAX as u32 {

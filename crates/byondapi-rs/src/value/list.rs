@@ -123,11 +123,11 @@ impl ByondValue {
 
     /// Reads a value by key through the ref. Fails if the index doesn't exist
     pub fn read_list_index_internal(&self, index: &ByondValue) -> Result<ByondValue, Error> {
-        let mut result = ByondValue::default();
         unsafe {
-            map_byond_error!(byond().Byond_ReadListIndex(&self.0, &index.0, &mut result.0))?;
+            let mut result = std::mem::MaybeUninit::uninit();
+            map_byond_error!(byond().Byond_ReadListIndex(&self.0, &index.0, result.as_mut_ptr()))?;
+            Ok(ByondValue(result.assume_init()))
         }
-        Ok(result)
     }
 
     /// Writes a value by key through the ref. Dunno why it can fail
@@ -153,7 +153,6 @@ impl ByondValue {
     }
 
     /// Pops a value from a list
-    /// Not ideal, there is no bindings for this yet
     pub fn pop_list(&mut self) -> Result<Option<ByondValue>, Error> {
         if !self.is_list() {
             return Err(Error::NotAList(format!("{:?}", self)));
@@ -163,18 +162,19 @@ impl ByondValue {
             return Ok(None);
         }
         let value = self.read_list_index(len as f32)?;
-        self.call_id(byond_string!("Remove"), &[ByondValue::new_num(len as f32)])?;
+        unsafe {
+            byond().Byond_ListRemove(
+                &self.0,
+                [ByondValue::new_num(len as f32)].as_ptr().cast(),
+                1,
+            )
+        };
         Ok(Some(value))
     }
 
-    /// Removes multiple values from a list, returns the number of values removed
-    pub fn remove_items(&mut self, values: &[ByondValue]) -> Result<u32, Error> {
-        if !self.is_list() {
-            return Err(Error::NotAList(format!("{:?}", self)));
-        }
-
-        Ok(unsafe {
-            byond().Byond_ListRemove(&self.0, values.as_ptr().cast(), values.len() as u32)
-        })
+    /// Removes multiple values from a list, returns the number of values removed, zero if
+    /// nothing is removed or this isn't a list
+    pub fn remove_items(&mut self, values: &[ByondValue]) -> u32 {
+        unsafe { byond().Byond_ListRemove(&self.0, values.as_ptr().cast(), values.len() as u32) }
     }
 }

@@ -101,7 +101,7 @@ impl TryFrom<&ByondValue> for String {
 impl TryFrom<&[ByondValue]> for ByondValue {
     type Error = Error;
     fn try_from(value: &[ByondValue]) -> Result<Self, Self::Error> {
-        let res = ByondValue::new_list()?;
+        let res = ByondValue::new_list_with_capacity(value.len() as u32)?;
         res.write_list(value)?;
         Ok(res)
     }
