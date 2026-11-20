@@ -46,11 +46,27 @@ mod version {
 
         (version, build)
     }
+
+    pub unsafe fn get_dmb_version(library: &libloading::Library) -> (u32, u32) {
+        let Byond_GetDMBVersion: unsafe extern "C-unwind" fn(version: *mut u4c, build: *mut u4c) =
+            library
+                .get(b"Byond_GetDMBVersion\0")
+                .map(|sym| *sym)
+                .expect("Failed to find Byond_GetDMBVersion");
+
+        let mut version = 0;
+        let mut build = 0;
+
+        Byond_GetDMBVersion(&mut version, &mut build);
+
+        (version, build)
+    }
 }
 
 pub struct ByondApi {
     internal: byond_rawbind::ByondApi,
     version: (u32, u32),
+    dmb_version: (u32, u32),
 }
 
 unsafe impl Sync for ByondApi {}
@@ -63,14 +79,23 @@ impl ByondApi {
     {
         let lib = library.into();
         let version = version::get_byond_version(&lib);
+        let dmb_version = version::get_byond_version(&lib);
 
         let internal = byond_rawbind::ByondApi::from_library(lib)?;
 
-        Ok(ByondApi { internal, version })
+        Ok(ByondApi {
+            internal,
+            version,
+            dmb_version,
+        })
     }
 
     pub fn get_version(&self) -> (u32, u32) {
         self.version
+    }
+
+    pub fn get_dmb_version(&self) -> (u32, u32) {
+        self.dmb_version
     }
 }
 

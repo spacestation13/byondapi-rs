@@ -1,3 +1,5 @@
+use std::ffi::CString;
+
 use super::ByondValue;
 use crate::{static_global::byond, Error};
 
@@ -51,6 +53,13 @@ impl ByondValue {
     /// Compares this value to another one with byond's ~= operator, not the same as ==
     pub fn builtin_equiv(&self, other: &ByondValue) -> bool {
         unsafe { byond().ByondValue_Equiv(&self.0, &other.0) }
+    }
+
+    /// Corresponds to [`istype(src, text2path(typestr))`](https://www.byond.com/docs/ref/#/proc/istype)
+    /// Checks if this value is of this type
+    pub fn builtin_istype<T: Into<Vec<u8>>>(&self, typ: T) -> bool {
+        let c_string = CString::new(typ).unwrap();
+        unsafe { byond().ByondValue_IsType(&self.0, c_string.as_ptr().cast()) }
     }
 }
 
