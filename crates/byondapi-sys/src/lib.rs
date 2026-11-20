@@ -79,7 +79,7 @@ impl ByondApi {
     {
         let lib = library.into();
         let version = version::get_byond_version(&lib);
-        let dmb_version = version::get_byond_version(&lib);
+        let dmb_version = version::get_dmb_version(&lib);
 
         let internal = byond_rawbind::ByondApi::from_library(lib)?;
 

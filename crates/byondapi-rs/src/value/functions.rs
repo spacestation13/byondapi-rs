@@ -120,9 +120,7 @@ impl ByondValue {
     }
 
     /// Replaces whatever is currently in this value with a string that's pointed to by the stringid
-    /// # Safety
-    /// This must be a valid stringid
-    pub unsafe fn set_strid(&mut self, strid: u32) {
+    pub fn set_strid(&mut self, strid: u32) {
         unsafe {
             byond().ByondValue_DecRef(&self.0);
             byond().ByondValue_SetStrId(&mut self.0, strid)
@@ -130,9 +128,7 @@ impl ByondValue {
     }
 
     /// Replaces whatever is currently in this value with a ref
-    /// # Safety
-    /// This must be a valid ref
-    pub unsafe fn set_ref(&mut self, type_: ByondValueType, ref_: u32) {
+    pub fn set_ref(&mut self, type_: ByondValueType, ref_: u32) {
         unsafe {
             byond().ByondValue_DecRef(&self.0);
             byond().ByondValue_SetRef(&mut self.0, type_, ref_)
