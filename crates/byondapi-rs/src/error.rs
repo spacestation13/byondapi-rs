@@ -53,7 +53,9 @@ impl std::fmt::Display for Error {
             }
             Self::NonUtf8String => write!(f, "String is not utf8"),
             Self::ByondError(e) => write!(f, "Byondapi error: {:#?}", e.0),
-            Self::UnknownByondError => write!(f, "Unknown byondapi error"),
+            Self::UnknownByondError => {
+                write!(f, "Unknown byondapi error, or byond didn't write an error")
+            }
             Self::NotAvailableForThisByondVersion => write!(
                 f,
                 "This call is not available on current version of the api"
@@ -106,6 +108,8 @@ impl ByondError {
             }
         })?;
 
+        //reset that shit
+        unsafe { byond().Byond_SetLastError(std::ptr::null()) };
         CString::from_vec_with_nul(bytes)
             .ok()
             .filter(|err| !err.as_bytes().is_empty())
