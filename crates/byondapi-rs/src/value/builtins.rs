@@ -39,7 +39,7 @@ impl ByondValue {
         arglist: &ByondValue,
     ) -> Result<ByondValue, Error> {
         unsafe {
-            let mut result = std::mem::MaybeUninit::uninit();
+            let mut result = std::mem::MaybeUninit::zeroed();
             map_byond_error!(byond().Byond_NewArglist(
                 &value_type.0,
                 &arglist.0,

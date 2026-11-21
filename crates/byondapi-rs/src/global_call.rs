@@ -11,7 +11,7 @@ pub fn call_global<T: Into<Vec<u8>>>(name: T, args: &[ByondValue]) -> Result<Byo
     let c_string = CString::new(name).unwrap();
 
     unsafe {
-        let mut new_value = std::mem::MaybeUninit::uninit();
+        let mut new_value = std::mem::MaybeUninit::zeroed();
         map_byond_error!(byond().Byond_CallGlobalProc(
             c_string.as_ptr(),
             args.as_ptr().cast(),
@@ -26,13 +26,11 @@ pub fn call_global<T: Into<Vec<u8>>>(name: T, args: &[ByondValue]) -> Result<Byo
 ///
 /// Implicitly set waitfor=0, will never block unless called from another thread.
 pub fn call_global_id(name: u32, args: &[ByondValue]) -> Result<ByondValue, Error> {
-    let ptr = args.as_ptr();
-
     unsafe {
-        let mut new_value = std::mem::MaybeUninit::uninit();
+        let mut new_value = std::mem::MaybeUninit::zeroed();
         map_byond_error!(byond().Byond_CallGlobalProcByStrId(
             name,
-            ptr.cast(),
+            args.as_ptr().cast(),
             args.len() as u32,
             new_value.as_mut_ptr()
         ))?;

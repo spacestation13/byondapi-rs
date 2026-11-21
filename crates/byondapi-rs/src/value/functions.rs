@@ -134,6 +134,14 @@ impl ByondValue {
             byond().ByondValue_SetRef(&mut self.0, type_, ref_)
         }
     }
+
+    /// Clears whatevers in this value and sets it to null
+    pub fn clear(&mut self) {
+        unsafe {
+            byond().ByondValue_DecRef(&self.0);
+            byond().ByondValue_Clear(&mut self.0);
+        }
+    }
 }
 
 /// # Accessors
